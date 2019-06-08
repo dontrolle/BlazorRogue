@@ -1,0 +1,61 @@
+@page "/game"
+
+<div class="map">
+    <!-- map is rendered row by row, top to bottom (TODO: Means x-axis points downwards. Standard? -->
+    @for (int y = 0; y < positions.GetLength(1); y++)
+    {
+        <div id="row_@y" class="row">
+        @for (int x = 0; x < positions.GetLength(0); x++)
+        {
+            string imgFileName = positions[x,y].ImageName + ".png";            
+            <div id="@x,@y" class="tile">
+                <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y"> </div>
+            </div>
+        }
+        </div>
+    }
+</div>
+
+@functions {
+    MapPosition[,] positions = CreateMap(20, 12);
+    static String[] prefixes = new String[] { "ground" };
+    static String[] middles = new String[] { 
+        "crusted", 
+        "dirt_brown", 
+        "dirt_dark",
+        "grass", 
+        "grass_burnt", 
+        "sand" 
+        };
+
+    // Create map
+    private static MapPosition[,] CreateMap(int width, int height)
+    {
+        var poss = new MapPosition[width, height];
+        Random random = new Random();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++){
+                int prefixIndex = random.Next(0, prefixes.Length - 1);
+                String prefix = prefixes[prefixIndex];
+
+                int middleIndex = random.Next(0, middles.Length - 1);
+                String middle = middles[middleIndex];
+
+                int number = random.Next(1, 4);
+                string imageName = prefix + "_" + middle + "_" + number;
+
+                //System.Diagnostics.Debug.WriteLine(imageName);
+
+                poss[x,y] = new MapPosition {
+                    ImageName = imageName,
+                    x = x,
+                    y = y
+                };
+            }
+        }
+
+        return poss;
+    }
+}
