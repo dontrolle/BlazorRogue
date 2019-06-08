@@ -1,7 +1,7 @@
 @page "/indoor"
 
 <div class="map">
-    <!-- map is rendered row by row, top to bottom (TODO: Means x-axis points downwards. Standard? -->
+    <!-- map is rendered row by row, top to bottom (TODO: Means y-axis points downwards. Standard? -->
     @for (int y = 0; y < positions.GetLength(1); y++)
     {
         <div id="row_@y" class="row">
@@ -23,6 +23,7 @@
     private static MapPosition[,] CreateMap(int width, int height)
     {
         var dg = new DungeonGenerator(width, height);
+        dg.Generate();
         return dg.Map;
     }
 }

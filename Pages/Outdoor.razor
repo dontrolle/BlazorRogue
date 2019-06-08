@@ -1,7 +1,7 @@
 @page "/outdoor"
 
 <div class="map">
-    <!-- map is rendered row by row, top to bottom (TODO: Means x-axis points downwards. Standard? -->
+    <!-- map is rendered row by row, top to bottom (TODO: Means y-axis points downwards. Standard? -->
     @for (int y = 0; y < positions.GetLength(1); y++)
     {
         <div id="row_@y" class="row">
@@ -37,10 +37,10 @@
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++){
-                int prefixIndex = random.Next(0, prefixes.Length - 1);
+                int prefixIndex = random.Next(0, prefixes.Length);
                 String prefix = prefixes[prefixIndex];
 
-                int middleIndex = random.Next(0, middles.Length - 1);
+                int middleIndex = random.Next(0, middles.Length);
                 String middle = middles[middleIndex];
 
                 int number = random.Next(1, 4);
