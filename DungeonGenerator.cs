@@ -23,6 +23,7 @@ public class DungeonGenerator {
     private readonly int[] WallsWithFront = new [] { 14,15,16,17,18,19 };
     private readonly String[] BaseFloorSets = new [] { "set_blue", "set_dark", "set_grey" };
     private readonly int[] BaseFloorIndexes = new [] {1,2,3,4,5};
+    private readonly String[] DoorTypes = new [] { "metal" , "stone", "wood", "ruin" };
 
     public DungeonGenerator(int width, int height)
     {
@@ -76,10 +77,11 @@ public class DungeonGenerator {
         PlaceFloor(right_door_x, y, right_door_tileset, BaseFloorIndexes);
 
         // put doors in tiles
-        //Map.Tiles[left_door_x, y].Items.Add("door");
-        // TODO
+        map.GameObjects.Add(new Door(left_door_x, y, RandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, false));
+        map.GameObjects.Add(new Door(right_door_x, y, RandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, false));
 
         // Change tile above door to WallWithFront type
+        // TODO Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
         PlaceWall(left_door_x, y - 1, WallsWithFront);
         PlaceWall(right_door_x, y - 1, WallsWithFront);
 
@@ -87,7 +89,7 @@ public class DungeonGenerator {
         var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_tileset : right_door_tileset;
 
         // set floors in tunnel
-        // create walls around tunnel        
+        // create walls around tunnel
         for (int x = left_door_x + 1; x < right_door_x; x++)
         {
             PlaceWall(x, y - 1, WallsWithFront);

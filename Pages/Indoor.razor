@@ -11,6 +11,11 @@
             string tiletype = map.Tiles[x,y].TileType.ToString();
             <div id="@x,@y" class="tile">
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
+                @foreach (var decoration in map.Decorations[x,y])
+                {
+                    string decImgFileName = decoration.ImageName + ".png";
+                    <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');" alt="@x,@y (go)"> </div>
+                }
             </div>
         }
         </div>
@@ -25,6 +30,7 @@
     {
         var dg = new DungeonGenerator(width, height);
         dg.Generate();
+        dg.Map.RenderGameObjects();
         return dg.Map;
     }
 }

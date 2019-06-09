@@ -29,9 +29,9 @@ public class Map
     }
 
     // Decorations are rendered effects, and other graphics
-    private List<Decoration> decorations;
+    private List<Decoration>[,] decorations;
 
-    public List<Decoration> Decorations 
+    public List<Decoration>[,] Decorations 
     {
         get
         {
@@ -46,6 +46,7 @@ public class Map
         Height = height;
         // initalize map with dark floor tiles
         tiles = new MapPosition[width, height];
+        decorations = new List<Decoration>[width, height];
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -57,9 +58,19 @@ public class Map
                     "extra",
                     11
                 );
+                decorations[i,j] = new List<Decoration>();
             }
         }
 
         gameObjects = new List<GameObject>();
+    }
+
+    // Renders GameObjects to Decorations, updating the latter
+    // TODO Is this the best way of doing this...?
+    public void RenderGameObjects(){
+        foreach (var gameObject in GameObjects)
+        {
+            gameObject.Render(this);
+        }
     }
 }
