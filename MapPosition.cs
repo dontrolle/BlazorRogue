@@ -1,14 +1,17 @@
 public class MapPosition {
 
-    public MapPosition(int x, int y, TileType tileType, string imageName)
+    public MapPosition(int x, int y, TileType tileType, string tileSet, int tileIndex)
     {
         this.x = x;
         this.y = y;
         TileType = tileType;
-        ImageName = imageName;
+        TileSet = tileSet;
+        TileIndex = tileIndex;
     }
 
-    public string ImageName { get; set; }
+    public string ImageName { get => TileType.ToTileSetPrefix() + "_" + TileSet + "_" + TileIndex; }
+    public string TileSet { get; set; }
+    public int TileIndex { get; set; }
     public TileType TileType { get; set; }
     public int x { get; }
     public int y { get; }

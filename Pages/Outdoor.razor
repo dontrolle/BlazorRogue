@@ -44,9 +44,8 @@
                 String middle = middles[middleIndex];
 
                 int number = random.Next(1, 4);
-                string imageName = prefix + "_" + middle + "_" + number;
 
-                poss[x,y] = new MapPosition (x, y, TileType.Floor, imageName);
+                poss[x,y] = new MapPosition (x, y, TileType.Ground, middle, number);
             }
         }
 

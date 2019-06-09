@@ -22,13 +22,13 @@ public class DungeonGenerator {
     private readonly String[] WallSets = new [] { "crypt", "dungeon", };
     private readonly int[] WallsWithoutFront = new [] { 7,8,9,10,11,12 };
     private readonly int[] WallsWithFront = new [] { 14,15,16,17,18,19 };
-    private readonly String[] BaseFloorSets = new [] { "blue", "dark", "grey" };
+    private readonly String[] BaseFloorSets = new [] { "set_blue", "set_dark", "set_grey" };
     private readonly int[] BaseFloorIndexes = new [] {1,2,3,4,5};
 
     public DungeonGenerator(int width, int height)
     {
         // choose random wall-set for this entire dungeon
-        DungeonWallSet = "wall_" + RandomElement(WallSets);
+        DungeonWallSet = RandomElement(WallSets);
 
         map = new MapPosition[width, height];
         for (int i = 0; i < width; i++)
@@ -38,8 +38,9 @@ public class DungeonGenerator {
                 map[i,j] = new MapPosition (
                     i,
                     j,
-                    TileType.Wall,
-                    "floor_extra_11"                    
+                    TileType.Floor,
+                    "extra",
+                    11
                 );
             }
         }
@@ -47,8 +48,9 @@ public class DungeonGenerator {
 
     public void Generate(){
         CreateRoom(1, 3, 6, 7);
-        //CreateTunnel
+        //HorizontalTunnel(7, 5, 3);
         CreateRoom(10, 3, 6, 7);
+        //VerticalTunnel(13, 10, 5);
     }
 
     private T RandomElement<T>(T[] elements){
@@ -57,13 +59,15 @@ public class DungeonGenerator {
 
     private void SetWall(int x, int y, int[] WallIndexes)
     {
-        Map[x, y].ImageName = DungeonWallSet + "_" + RandomElement(WallIndexes);
+        Map[x, y].TileSet = DungeonWallSet;
+        Map[x, y].TileIndex = RandomElement(WallIndexes);
         Map[x, y].TileType = TileType.Wall;
     }
 
     private void SetFloor(int x, int y, string FloorSet, int[] FloorIndexes)
     {
-        Map[x, y].ImageName = "floor_set_" + FloorSet + "_" + RandomElement(FloorIndexes);
+        Map[x, y].TileSet = FloorSet;
+        Map[x, y].TileIndex = RandomElement(FloorIndexes);
         Map[x, y].TileType = TileType.Floor;
     }
 
