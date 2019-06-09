@@ -1,14 +1,14 @@
 @page "/indoor"
 
 <div class="map">
-    <!-- map is rendered row by row, top to bottom (TODO: Means y-axis points downwards. Standard? -->
-    @for (int y = 0; y < positions.GetLength(1); y++)
+    <!-- map is rendered row by row, top to bottom -->
+    @for (int y = 0; y < map.Height; y++)
     {
         <div id="row_@y" class="row">
-        @for (int x = 0; x < positions.GetLength(0); x++)
+        @for (int x = 0; x < map.Width; x++)
         {
-            string imgFileName = positions[x,y].ImageName + ".png";
-            string tiletype = positions[x,y].TileType.ToString();
+            string imgFileName = map.Tiles[x,y].ImageName + ".png";
+            string tiletype = map.Tiles[x,y].TileType.ToString();
             <div id="@x,@y" class="tile">
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
             </div>
@@ -18,10 +18,10 @@
 </div>
 
 @functions {
-    MapPosition[,] positions = CreateMap(30, 20);
+    Map map = CreateMap(30, 20);
 
     // Create map
-    private static MapPosition[,] CreateMap(int width, int height)
+    private static Map CreateMap(int width, int height)
     {
         var dg = new DungeonGenerator(width, height);
         dg.Generate();

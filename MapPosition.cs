@@ -1,3 +1,4 @@
+// TODO rename to Tile
 public class MapPosition {
 
     public MapPosition(int x, int y, TileType tileType, string tileSet, int tileIndex)
