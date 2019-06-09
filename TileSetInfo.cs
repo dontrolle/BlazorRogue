@@ -7,7 +7,6 @@ public static class TileSetInfo
         {
             case TileType.Floor : return "floor"; 
             case TileType.Wall : return "wall"; 
-            case TileType.Door : return "door";
             case TileType.Ground : return "ground";
             default : throw new InvalidOperationException("Unknown TileType" + tileType);
         }

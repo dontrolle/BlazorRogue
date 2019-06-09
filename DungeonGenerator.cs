@@ -47,9 +47,10 @@ public class DungeonGenerator {
     }
 
     public void Generate(){
-        CreateRoom(1, 3, 6, 7);
-        //HorizontalTunnel(7, 5, 3);
+        CreateRoom(1, 1, 6, 7);
         CreateRoom(10, 3, 6, 7);
+        HorizontalTunnel(6, 4, 5); // from left to right
+        HorizontalTunnel(10, 6, -5); // from right to left
         //VerticalTunnel(13, 10, 5);
     }
 
@@ -69,6 +70,45 @@ public class DungeonGenerator {
         Map[x, y].TileSet = FloorSet;
         Map[x, y].TileIndex = RandomElement(FloorIndexes);
         Map[x, y].TileType = TileType.Floor;
+    }
+
+    // create a horizontal tunnel with a door in each end
+    // positive length means go left
+    // negative length means go right
+    // checks the floor tile set left (or right) of 'breaching' door, and sets the floor tile set of the door to the same tileset
+    // TODO PROBLEM - connecting room may not have been created yet
+    private void HorizontalTunnel(int start_x, int y, int length)
+    {
+        // handle possible 'negative' length tunnel
+        int door_0_x = start_x;
+        int door_1_x = start_x + length + (Math.Sign(length) * -1);
+        int left_door_x = Math.Min(door_0_x, door_1_x);
+        int right_door_x = Math.Max(door_0_x, door_1_x);
+        var left_door_tileset = Map[left_door_x - 1, y].TileSet;
+        var right_door_tileset = Map[right_door_x + 1, y].TileSet;
+
+        // Set floor tile on door tiles
+        SetFloor(left_door_x, y, left_door_tileset, BaseFloorIndexes);
+        SetFloor(right_door_x, y, right_door_tileset, BaseFloorIndexes);
+
+        // Randomly choose either floor set for the tunnel
+        var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_tileset : right_door_tileset;
+
+        // put doors in tiles
+        // TODO
+
+        // Change tile above door to WallWithFront type
+        SetWall(left_door_x, y - 1, WallsWithFront);
+        SetWall(right_door_x, y - 1, WallsWithFront);
+
+        // set floors in tunnel
+        // create walls around tunnel        
+        for (int x = left_door_x + 1; x < right_door_x; x++)
+        {
+            SetWall(x, y - 1, WallsWithFront);
+            SetFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
+            SetWall(x, y + 1, WallsWithFront);
+        }
     }
 
     private void CreateRoom(int left_x, int top_y, int width, int height)
