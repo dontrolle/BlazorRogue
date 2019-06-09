@@ -35,17 +35,20 @@ public class DungeonGenerator {
         {
             for (int j = 0; j < height; j++)
             {
-                map[i,j] = new MapPosition {
-                    x = i,
-                    y = j,
-                    ImageName = "floor_extra_11"
-                };
+                map[i,j] = new MapPosition (
+                    i,
+                    j,
+                    TileType.Wall,
+                    "floor_extra_11"                    
+                );
             }
         }
     }
 
     public void Generate(){
         CreateRoom(1, 3, 6, 7);
+        //CreateTunnel
+        CreateRoom(10, 3, 6, 7);
     }
 
     private T RandomElement<T>(T[] elements){
@@ -55,21 +58,19 @@ public class DungeonGenerator {
     private void SetWall(int x, int y, int[] WallIndexes)
     {
         Map[x, y].ImageName = DungeonWallSet + "_" + RandomElement(WallIndexes);
+        Map[x, y].TileType = TileType.Wall;
     }
 
     private void SetFloor(int x, int y, string FloorSet, int[] FloorIndexes)
     {
         Map[x, y].ImageName = "floor_set_" + FloorSet + "_" + RandomElement(FloorIndexes);
+        Map[x, y].TileType = TileType.Floor;
     }
 
     private void CreateRoom(int left_x, int top_y, int width, int height)
     {
         // choose random floor-set for this room
         string floorset = RandomElement(BaseFloorSets);
-
-        // if x == 0 or x == w-1 -> wall
-        // x 0 og w-1 -> wall
-        // y 0 og h-1 -> wall
 
         // corners
         SetWall(left_x, top_y, WallsWithoutFront);
@@ -103,17 +104,3 @@ public class DungeonGenerator {
     }
 }
 
-/*
-        int right_x = left_x + width;
-        int bottom_y = top_y + height;
-        for (int x = left_x; x < right_x; x++)
-        {
-            for (int y = top_y; y < bottom_y; y++)
-            {
-                if()
-                Map[]
-
-            }
-        }
-
- */

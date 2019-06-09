@@ -46,13 +46,7 @@
                 int number = random.Next(1, 4);
                 string imageName = prefix + "_" + middle + "_" + number;
 
-                //System.Diagnostics.Debug.WriteLine(imageName);
-
-                poss[x,y] = new MapPosition {
-                    ImageName = imageName,
-                    x = x,
-                    y = y
-                };
+                poss[x,y] = new MapPosition (x, y, TileType.Floor, imageName);
             }
         }
 
