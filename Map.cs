@@ -65,9 +65,21 @@ public class Map
         gameObjects = new List<GameObject>();
     }
 
+    private void ClearDecorations(){
+        for (int i = 0; i < decorations.GetLength(0); i++)
+        {
+            for (int j = 0; j < decorations.GetLength(1); j++)
+            {
+                decorations[i,j].Clear();
+            }
+        }
+    }
+
     // Renders GameObjects to Decorations, updating the latter
-    // TODO Is this the best way of doing this...?
+    // TODO: Optimizations abound - clearing all decorations is overdoing it; 
+    //       we know the identity and locality of the decoration clicked; and this has link to gameobject
     public void RenderGameObjects(){
+        ClearDecorations();
         foreach (var gameObject in GameObjects)
         {
             gameObject.Render(this);

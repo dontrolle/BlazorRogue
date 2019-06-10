@@ -36,7 +36,7 @@ public class DungeonGenerator {
         CreateRoom(10, 3, 6, 7);
         HorizontalTunnel(6, 4, 5); // test from left to right
         HorizontalTunnel(10, 6, -5); // test from right to left
-        //VerticalTunnel(13, 10, 5);
+        //TODO: VerticalTunnel(13, 10, 5);
     }
 
     private T GetRandomElement<T>(T[] elements){
@@ -73,7 +73,7 @@ public class DungeonGenerator {
         int left_door_x = Math.Min(door_0_x, door_1_x);
         int right_door_x = Math.Max(door_0_x, door_1_x);
 
-        // TODO Handle possible visual problem - connecting room may not have been created yet
+        // TODO: Handle possible visual problem - connecting room may not have been created yet
         var left_door_floor_tileset = Map.Tiles[left_door_x - 1, y].TileSet;
         var right_door_floor_tileset = Map.Tiles[right_door_x + 1, y].TileSet;
 
@@ -86,7 +86,7 @@ public class DungeonGenerator {
         map.GameObjects.Add(new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
 
         // Change tile above door to WallWithFront type
-        // TODO Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
+        // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
         PlaceWall(left_door_x, y - 1, WallsWithFront);
         PlaceWall(right_door_x, y - 1, WallsWithFront);
 
