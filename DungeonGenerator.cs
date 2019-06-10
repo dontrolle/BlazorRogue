@@ -28,7 +28,7 @@ public class DungeonGenerator {
     public DungeonGenerator(int width, int height)
     {
         // choose random wall-set for this entire dungeon
-        map = new Map(width, height, RandomElement(WallSets));
+        map = new Map(width, height, GetRandomElement(WallSets));
     }
 
     public void Generate(){
@@ -39,21 +39,25 @@ public class DungeonGenerator {
         //VerticalTunnel(13, 10, 5);
     }
 
-    private T RandomElement<T>(T[] elements){
+    private T GetRandomElement<T>(T[] elements){
         return elements[random.Next(0, elements.Length)];
+    }
+
+    private bool GetRandomBool(){
+        return random.Next(0,2) == 0;
     }
 
     private void PlaceWall(int x, int y, int[] WallIndexes)
     {
         Map.Tiles[x, y].TileSet = map.DungeonWallSet;
-        Map.Tiles[x, y].TileIndex = RandomElement(WallIndexes);
+        Map.Tiles[x, y].TileIndex = GetRandomElement(WallIndexes);
         Map.Tiles[x, y].TileType = TileType.Wall;
     }
 
     private void PlaceFloor(int x, int y, string FloorSet, int[] FloorIndexes)
     {
         Map.Tiles[x, y].TileSet = FloorSet;
-        Map.Tiles[x, y].TileIndex = RandomElement(FloorIndexes);
+        Map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
         Map.Tiles[x, y].TileType = TileType.Floor;
     }
 
@@ -61,7 +65,6 @@ public class DungeonGenerator {
     // positive length means go left
     // negative length means go right
     // checks the floor tile set left (or right) of 'breaching' door, and sets the floor tile set of the door to the same tileset
-    // TODO PROBLEM - connecting room may not have been created yet
     private void HorizontalTunnel(int start_x, int y, int length)
     {
         // handle possible 'negative' length tunnel
@@ -69,16 +72,18 @@ public class DungeonGenerator {
         int door_1_x = start_x + length + (Math.Sign(length) * -1);
         int left_door_x = Math.Min(door_0_x, door_1_x);
         int right_door_x = Math.Max(door_0_x, door_1_x);
-        var left_door_tileset = Map.Tiles[left_door_x - 1, y].TileSet;
-        var right_door_tileset = Map.Tiles[right_door_x + 1, y].TileSet;
+
+        // TODO Handle possible visual problem - connecting room may not have been created yet
+        var left_door_floor_tileset = Map.Tiles[left_door_x - 1, y].TileSet;
+        var right_door_floor_tileset = Map.Tiles[right_door_x + 1, y].TileSet;
 
         // Set floor tile on door tiles
-        PlaceFloor(left_door_x, y, left_door_tileset, BaseFloorIndexes);
-        PlaceFloor(right_door_x, y, right_door_tileset, BaseFloorIndexes);
+        PlaceFloor(left_door_x, y, left_door_floor_tileset, BaseFloorIndexes);
+        PlaceFloor(right_door_x, y, right_door_floor_tileset, BaseFloorIndexes);
 
         // put doors in tiles
-        map.GameObjects.Add(new Door(left_door_x, y, RandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, false));
-        map.GameObjects.Add(new Door(right_door_x, y, RandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, false));
+        map.GameObjects.Add(new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+        map.GameObjects.Add(new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
 
         // Change tile above door to WallWithFront type
         // TODO Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
@@ -86,7 +91,7 @@ public class DungeonGenerator {
         PlaceWall(right_door_x, y - 1, WallsWithFront);
 
         // Randomly choose either floor set for the tunnel
-        var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_tileset : right_door_tileset;
+        var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_floor_tileset : right_door_floor_tileset;
 
         // set floors in tunnel
         // create walls around tunnel
@@ -101,7 +106,7 @@ public class DungeonGenerator {
     private void CreateRoom(int left_x, int top_y, int width, int height)
     {
         // choose random floor-set for this room
-        string floorset = RandomElement(BaseFloorSets);
+        string floorset = GetRandomElement(BaseFloorSets);
 
         // corners
         PlaceWall(left_x, top_y, WallsWithoutFront);
