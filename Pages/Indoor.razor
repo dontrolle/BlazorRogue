@@ -11,15 +11,15 @@
             string tiletype = map.Tiles[x,y].TileType.ToString();
             <div id="@x,@y" class="tile">
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
-                @foreach (var decoration in map.Decorations?[x,y])
+                @foreach (var decoration in map.Decorations[x,y])
                 {
                     string decImgFileName = decoration.ImageName + ".png";
-
-<!--
-                     TODO: no onclick capturing and bubbling; so onclick is always caught by the topmost img. Means that this only works if
-                           topmost decoration in tile has the relevant Interact().
--->
-                    <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');" alt="@x,@y (go)" > </div>
+                    string offset = "";
+                    if (decoration.Offset != 0)
+                    {
+                        offset = " top: " + decoration.Offset + "px;";
+                    }
+                    <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
                     if (decoration.Interact != null){
                         <button class="interact_button" onclick=@(() => Interact(decoration)) /> 
                     }
@@ -45,6 +45,8 @@
     private void Interact(Decoration decoration)
     {
         decoration.Interact();
-        map.RenderGameObjects();
+        // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
+        //       When I begin to do effecs, I may need to revisit this...
+        map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
     }    
 }

@@ -9,6 +9,8 @@ public class Decoration
 
     public Action Interact { get; set; }
 
+    public int Offset {get; set;}
+
     public Decoration(GameObject gameObject, string imageName)
     {
         GameObject = gameObject;

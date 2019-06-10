@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class Map
 {
+    public const int TileWidth = 48;
+    public const int TileHeight = 48;
     public int Width { get; private set; }
     public int Height {get; private set; }
 
@@ -19,7 +21,6 @@ public class Map
     }
 
     private List<GameObject> gameObjects;
-
     public List<GameObject> GameObjects
     {
         get
@@ -28,7 +29,7 @@ public class Map
         }
     }
 
-    // Decorations are rendered effects, and other graphics
+    // Decorations are rendered gameobjects, effects, and other graphics
     private List<Decoration>[,] decorations;
 
     public List<Decoration>[,] Decorations 
@@ -75,12 +76,25 @@ public class Map
         }
     }
 
+    private IEnumerable<GameObject> ClearDecorations(int x, int y){
+        // we can't do deferred evaluation here, since we're going to clear this exact list in the next line...
+        var go = decorations[x,y].Select(d => d.GameObject).Distinct().ToList();
+        decorations[x,y].Clear();
+        return go;
+    }
+
     // Renders GameObjects to Decorations, updating the latter
-    // TODO: Optimizations abound - clearing all decorations is overdoing it; 
-    //       we know the identity and locality of the decoration clicked; and this has link to gameobject
     public void RenderGameObjects(){
         ClearDecorations();
         foreach (var gameObject in GameObjects)
+        {
+            gameObject.Render(this);
+        }
+    }
+
+    public void RenderGameObjects(int x, int y){
+        var reRenderGameObjects = ClearDecorations(x, y);
+        foreach (var gameObject in reRenderGameObjects)
         {
             gameObject.Render(this);
         }
