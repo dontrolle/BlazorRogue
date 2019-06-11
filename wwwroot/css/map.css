@@ -24,6 +24,7 @@
     background:transparent; 
     border:none; 
     color:transparent;
+    z-index: 1;
 }
 
 .row {

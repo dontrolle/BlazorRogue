@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 public class DungeonGenerator {
     private Map map;
@@ -37,6 +38,27 @@ public class DungeonGenerator {
         HorizontalTunnel(6, 4, 5); // test from left to right
         HorizontalTunnel(10, 6, -5); // test from right to left
         //TODO: VerticalTunnel(13, 10, 5);
+        AddPostGenerationDecorations();
+    }
+
+    private void AddPostGenerationDecorations()
+    {
+        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile directly above
+        for (int x = 0; x < Map.Width; x++)
+        {
+            for (int y = 1; y < Map.Height; y++)
+            {
+                if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y-1].TileType == TileType.Floor ){
+                    // if tile has door, select from 1-3, else from tiles 1-6
+                    int topHalfWallIndex = 6;
+                    if(Map.GameObjectByCoord[x,y].Any(go => go is Door)){
+                        topHalfWallIndex = 3;
+                    }
+                    var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
+                    Map.AddGameObject(x,y, new HalfWall(x,y, halfWallIndex));
+                }
+            }
+        }        
     }
 
     private T GetRandomElement<T>(T[] elements){
@@ -82,8 +104,8 @@ public class DungeonGenerator {
         PlaceFloor(right_door_x, y, right_door_floor_tileset, BaseFloorIndexes);
 
         // put doors in tiles
-        map.GameObjects.Add(new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
-        map.GameObjects.Add(new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+        map.AddGameObject(left_door_x, y, new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+        map.AddGameObject(right_door_x, y, new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
 
         // Change tile above door to WallWithFront type
         // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)

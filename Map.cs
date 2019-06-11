@@ -21,11 +21,20 @@ public class Map
     }
 
     private List<GameObject> gameObjects;
-    public List<GameObject> GameObjects
+    public IEnumerable<GameObject> GameObjects
     {
         get
         {
             return gameObjects;
+        }
+    }
+
+    private List<GameObject>[,] gameObjectByCoord;
+    public IEnumerable<GameObject>[,] GameObjectByCoord
+    {
+        get
+        {
+            return gameObjectByCoord;
         }
     }
 
@@ -48,6 +57,7 @@ public class Map
         // initalize map with dark floor tiles
         tiles = new MapPosition[width, height];
         decorations = new List<Decoration>[width, height];
+        gameObjectByCoord = new List<GameObject>[width, height];
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -60,6 +70,7 @@ public class Map
                     11
                 );
                 decorations[i,j] = new List<Decoration>();
+                gameObjectByCoord[i,j] = new List<GameObject>();
             }
         }
 
@@ -93,10 +104,16 @@ public class Map
     }
 
     public void RenderGameObjects(int x, int y){
+        // TODO: Use GameObjectsByCoord instead and simplify ClearDecorations()
         var reRenderGameObjects = ClearDecorations(x, y);
         foreach (var gameObject in reRenderGameObjects)
         {
             gameObject.Render(this);
         }
+    }
+
+    public void AddGameObject(int x, int y, GameObject gameObject){
+        gameObjects.Add(gameObject);
+        gameObjectByCoord[x,y].Add(gameObject);
     }
 }

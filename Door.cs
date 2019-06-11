@@ -16,43 +16,6 @@ public class Door : GameObject {
         IsOpen = isOpen;
     }
 
-    // public override Tuple<List<Tuple<string,int>>,Action> RenderDirect()
-    // {
-    //     var images = new List<Tuple<string,int>>();
-    //     Action action = null;
-    //     if (Orientation == Orientation.Vertical)
-    //     {
-    //         if(IsOpen)
-    //         {
-    //             // place 3 just above door tile
-    //             images.Add(Tuple.Create(ImagePrefix + 3, -Map.TileHeight));
-    //             // place 7 on door tile
-    //             images.Add(Tuple.Create(ImagePrefix + 7, 0));
-    //             // place 10 on door tile
-    //             images.Add(Tuple.Create(ImagePrefix + 10, 0));
-    //             // place half a wall tile below
-    //             images.Add(Tuple.Create("wall_" + HalfWallSet + "_" + HalfWallIndex, 0));
-    //             action = Interact;
-    //         }
-    //         else
-    //         {
-    //             // place 2 just above door tile
-    //             images.Add(Tuple.Create(ImagePrefix + 2, -Map.TileHeight));
-    //             // place 6 on door tile
-    //             images.Add(Tuple.Create(ImagePrefix + 6, 0));
-    //             // place half a wall tile below
-    //             images.Add(Tuple.Create("wall_" + HalfWallSet + "_" + HalfWallIndex, 0));
-    //             action = Interact;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         // TODO:
-    //     }            
-
-    //     return Tuple.Create(images, action);
-    // }
-
     public override void Render(Map map)
     {
         // TODO: Maybe all bottom (defined how?) walls should just have half wall tiles as decoration? Would match examples...
@@ -65,30 +28,27 @@ public class Door : GameObject {
                 // place 7 on door tile
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 7 ));
                 // place 10 on door tile
-                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ) );
-                // place half a wall tile below
-                map.Decorations[x, y].Add( new Decoration ( this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex ) { Interact = Interact });
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ));
             }
             else
             {
                 // place 2 just above door tile
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 2 ) { Offset = -Map.TileHeight });
                 // place 6 on door tile
-                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 6 ) );
-                // place half a wall tile below
-                map.Decorations[x, y].Add( new Decoration ( this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex ){ Interact = Interact });
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 6 ));
             }
         }
         else
         {
             // TODO:
         }
+
+        // add a button (without own graphic) to interact with the door
+        map.Decorations[x,y].Add(new Decoration ( this, null ) { Interact = Interact });
     }
 
     public void Interact()
     {
         IsOpen = !IsOpen;
-
-        // TODO: Optimization - On Interact(), GameObject has ability to remove all it's Decorations, and just call Render on itself.
     }
 }

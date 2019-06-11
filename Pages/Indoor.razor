@@ -13,13 +13,15 @@
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
                 @foreach (var decoration in map.Decorations[x,y])
                 {
-                    string decImgFileName = decoration.ImageName + ".png";
-                    string offset = "";
-                    if (decoration.Offset != 0)
-                    {
-                        offset = " top: " + decoration.Offset + "px;";
+                    if(decoration.ImageName != null){
+                        string decImgFileName = decoration.ImageName + ".png";
+                        string offset = "";
+                        if (decoration.Offset != 0)
+                        {
+                            offset = " top: " + decoration.Offset + "px;";
+                        }
+                        <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
                     }
-                    <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
                     if (decoration.Interact != null){
                         <button class="interact_button" onclick=@(() => Interact(decoration)) /> 
                     }
