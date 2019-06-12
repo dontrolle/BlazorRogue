@@ -49,13 +49,13 @@ public class DungeonGenerator {
             for (int y = 1; y < Map.Height; y++)
             {
                 if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y-1].TileType == TileType.Floor ){
-                    // if tile has door, select from 1-3, else from tiles 1-6
+                    // if tile above has door, select from 1-3, else from tiles 1-6
                     int topHalfWallIndex = 6;
-                    if(Map.GameObjectByCoord[x,y].Any(go => go is Door)){
+                    if(Map.GameObjectByCoord[x,y-1].Any(go => go is Door)){
                         topHalfWallIndex = 3;
                     }
                     var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                    Map.AddGameObject(x,y, new HalfWall(x,y, halfWallIndex));
+                    Map.AddGameObject(new HalfWall(x,y, halfWallIndex));
                 }
             }
         }        
@@ -104,8 +104,8 @@ public class DungeonGenerator {
         PlaceFloor(right_door_x, y, right_door_floor_tileset, BaseFloorIndexes);
 
         // put doors in tiles
-        map.AddGameObject(left_door_x, y, new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
-        map.AddGameObject(right_door_x, y, new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+        map.AddGameObject(new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+        map.AddGameObject(new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
 
         // Change tile above door to WallWithFront type
         // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)

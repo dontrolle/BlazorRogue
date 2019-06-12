@@ -112,8 +112,8 @@ public class Map
         }
     }
 
-    public void AddGameObject(int x, int y, GameObject gameObject){
+    public void AddGameObject(GameObject gameObject){
         gameObjects.Add(gameObject);
-        gameObjectByCoord[x,y].Add(gameObject);
+        gameObjectByCoord[gameObject.x,gameObject.y].Add(gameObject);
     }
 }
