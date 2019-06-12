@@ -20,7 +20,7 @@
                         {
                             offset = " top: " + decoration.Offset + "px;";
                         }
-                        <div class="map_img" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
+                        <div class="map_dec" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
                     }
                     if (decoration.Interact != null){
                         <button class="interact_button" onclick=@(() => Interact(decoration)) /> 

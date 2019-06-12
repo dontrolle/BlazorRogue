@@ -38,9 +38,24 @@ public class Door : GameObject {
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 6 ));
             }
         }
-        else
+        else if (Orientation == Orientation.Horizontal)
         {
-            // TODO:
+            if(IsOpen)
+            {
+                // place 1 above door tile
+                map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 1 ) {Offset = -Map.TileHeight});                
+                // place 5 on door tile
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 5 ));
+                // place 9 below door tile
+                map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 9 ) {Offset = +Map.TileHeight});
+            }
+            else
+            {
+                // place 4 on door tile
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 4 ));
+                // place 8 below door tile
+                map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 8 ) {Offset = +Map.TileHeight});               
+            }
         }
 
         // add a button (without own graphic) to interact with the door
