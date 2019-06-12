@@ -87,11 +87,8 @@ public class Map
         }
     }
 
-    private IEnumerable<GameObject> ClearDecorations(int x, int y){
-        // we can't do deferred evaluation here, since we're going to clear this exact list in the next line...
-        var go = decorations[x,y].Select(d => d.GameObject).Distinct().ToList();
+    private void ClearDecorations(int x, int y){
         decorations[x,y].Clear();
-        return go;
     }
 
     // Renders GameObjects to Decorations, updating the latter
@@ -104,8 +101,8 @@ public class Map
     }
 
     public void RenderGameObjects(int x, int y){
-        // TODO: Use GameObjectsByCoord instead and simplify ClearDecorations()
-        var reRenderGameObjects = ClearDecorations(x, y);
+        ClearDecorations(x, y);
+        var reRenderGameObjects = GameObjectByCoord[x,y];
         foreach (var gameObject in reRenderGameObjects)
         {
             gameObject.Render(this);
