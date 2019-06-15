@@ -39,6 +39,11 @@ public class DungeonGenerator {
         HorizontalTunnel(10, 6, -5); // test from right to left
         VerticalTunnel(13, 9, 5);
         AddPostGenerationDecorations();
+        AddPlayer(3,3);
+    }
+
+    private void AddPlayer(int x, int y){
+        Map.AddGameObject(new Player(x, y));
     }
 
     private void AddPostGenerationDecorations()

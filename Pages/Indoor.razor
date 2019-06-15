@@ -13,15 +13,32 @@
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
                 @foreach (var decoration in map.Decorations[x,y])
                 {
-                    if(decoration.ImageName != null){
+                    bool renderDiv = false;
+                    string cssclass = "map_dec";
+                    if(decoration.AnimationClass != null && decoration.AnimationClass != "")
+                    {
+                        cssclass = @decoration.AnimationClass;
+                        renderDiv = true;
+                    }
+
+                    string style = "";
+                    if(decoration.ImageName != null && decoration.ImageName != ""){
                         string decImgFileName = decoration.ImageName + ".png";
                         string offset = "";
                         if (decoration.Offset != 0)
                         {
-                            offset = " top: " + decoration.Offset + "px;";
+                            offset = $" top: {decoration.Offset}px;";
                         }
-                        <div class="map_dec" style="background-image: url('img/uf_terrain/@decImgFileName');@offset" alt="@x,@y (go)" > </div>
+
+                        renderDiv = true;
+                        style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
                     }
+
+                    if(renderDiv)
+                    {
+                        <div class="@cssclass" style="@style" alt="@x,@y (go)" > </div>
+                    }
+
                     if (decoration.Interact != null){
                         <button class="interact_button" onclick=@(() => Interact(decoration)) /> 
                     }
