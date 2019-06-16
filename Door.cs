@@ -59,10 +59,10 @@ public class Door : GameObject {
         }
 
         // add a button (without own graphic) to interact with the door
-        map.Decorations[x,y].Add(new Decoration ( this, null ) { Interact = Interact });
+        map.Decorations[x,y].Add(new Decoration ( this, null ) { OnClick = OnClick });
     }
 
-    public void Interact()
+    public void OnClick()
     {
         IsOpen = !IsOpen;
     }

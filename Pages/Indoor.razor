@@ -1,5 +1,8 @@
 @page "/indoor"
 
+@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime;
+
 <div class="map">
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < map.Height; y++)
@@ -11,14 +14,17 @@
             string tiletype = map.Tiles[x,y].TileType.ToString();
             <div id="@x,@y" class="tile">
                 <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
-                @foreach (var decoration in map.Decorations[x,y])
+
+                @foreach (var decoration in map.AllDecorations(x,y))
                 {
                     bool renderDiv = false;
                     string cssclass = "map_dec";
+                    bool bindToRerender = false;
                     if(decoration.AnimationClass != null && decoration.AnimationClass != "")
                     {
                         cssclass = @decoration.AnimationClass;
                         renderDiv = true;
+                        bindToRerender = true;
                     }
 
                     string style = "";
@@ -36,11 +42,17 @@
 
                     if(renderDiv)
                     {
-                        <div class="@cssclass" style="@style" alt="@x,@y (go)" > </div>
+                        if(bindToRerender) {
+                            <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
+                            //  bind=@MoveableRefresher
+                        }
+                        else {
+                            <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
+                        }
                     }
 
-                    if (decoration.Interact != null){
-                        <button class="interact_button" onclick=@(() => Interact(decoration)) /> 
+                    if (decoration.OnClick != null){
+                        <button class="interact_button" onclick=@(() => OnClick(decoration)) /> 
                     }
                 }
             </div>
@@ -52,20 +64,59 @@
 @functions {
     Map map = CreateMap(30, 20);
 
+    [Parameter]
+    private Map MapParam { get; set; }
+
+    private string PlayerXY { 
+        get {
+            return $"({map.Player.x},{map.Player.y}";
+        }
+    }
+
+    string moveableRefresher = "";
+    public string MoveableRefresher { 
+        get{ return moveableRefresher; }
+        set {moveableRefresher = value;} 
+     }
+
+    [Inject]
+    IJSRuntime Runtime { get; set; }
+
+    protected override async Task OnAfterRenderAsync()
+    {
+        JsInterop.InteropKeyPress.KeyUp += this.OnKeyUp;
+        MoveableRefresher = "";
+//        MapParam = map;
+        await this.Runtime.InvokeAsync<bool>("AddOnKeyUpEvent");
+        // TODO: OnKeyUp invokes this.StateHasChanged - and it works; but it seems that each render ADDS an OnKeyUp listener, which definitely isn't the intention...
+    }
+
     // Create map
     private static Map CreateMap(int width, int height)
     {
         var dg = new DungeonGenerator(width, height);
         dg.Generate();
         dg.Map.RenderGameObjects();
+        dg.Map.RenderMoveables();
         return dg.Map;
     }
 
-    private void Interact(Decoration decoration)
+    private void OnClick(Decoration decoration)
     {
-        decoration.Interact();
+        decoration.OnClick();
         // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
         //       When I begin to do effecs, I may need to revisit this...
         map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
-    }    
+    }
+
+    // TODO: PICKUP Can't get moveable to rerender after state change due to keypress (which works)
+    // Tried bind to property which I change manually below; but I can't seem to get it working...
+
+    public void OnKeyUp(object sender, ConsoleKey key)
+    {
+        map.OnKeyPress(key.ToString());
+        map.RenderMoveables();
+        this.StateHasChanged();
+        //MoveableRefresher += "a";
+    }
 }

@@ -43,7 +43,7 @@ public class DungeonGenerator {
     }
 
     private void AddPlayer(int x, int y){
-        Map.AddGameObject(new Player(x, y));
+        Map.AddPlayer(new Player(x, y));
     }
 
     private void AddPostGenerationDecorations()

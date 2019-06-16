@@ -6,6 +6,6 @@ public class Player : GameObject
 
     public override void Render(Map map)
     {
-        map.Decorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_templar"});
+        map.MoveableDecorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_templar"});
     }
 }
