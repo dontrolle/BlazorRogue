@@ -37,10 +37,16 @@
                         renderDiv = true;
                         style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
                     }
+                    // TODO: Setting the z-index directly is nasty; it requires the decoration to know about the css.
+                    // Much rather have it be the default z-index of decs + 1, say. But don't know how to do that right now...
+                    if(decoration.ZIndex != 0){
+                        style += $";z-index: {decoration.ZIndex};";
+                    }
+
 
                     if(renderDiv)
                     {
-                        <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
+                        <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)"> </div>
                     }
 
                     if (decoration.OnClick != null){

@@ -1,4 +1,4 @@
-// TODO rename to Tile
+// TODO:Rename to Tile
 public class MapPosition {
 
     public MapPosition(int x, int y, TileType tileType, string tileSet, int tileIndex)
@@ -16,4 +16,5 @@ public class MapPosition {
     public TileType TileType { get; set; }
     public int x { get; }
     public int y { get; }
+    public bool Blocking { get; set; } = false;
 }

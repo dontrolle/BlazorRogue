@@ -14,6 +14,7 @@ public class Door : GameObject {
         HalfWallIndex = halfWallIndex;
         Orientation = orientation;
         IsOpen = isOpen;
+        Blocking = !isOpen;
     }
 
     public override void Render(Map map)
@@ -27,8 +28,8 @@ public class Door : GameObject {
                 map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 3 ) {Offset = -Map.TileHeight});
                 // place 7 on door tile
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 7 ));
-                // place 10 on door tile
-                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ));
+                // place 10 on door tile - raised 1 z-index, to be in front of player
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ) {ZIndex = 2});
             }
             else
             {
@@ -54,7 +55,7 @@ public class Door : GameObject {
                 // place 4 on door tile
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 4 ));
                 // place 8 below door tile
-                map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 8 ) {Offset = +Map.TileHeight});               
+                map.Decorations[x, y].Add( new Decoration( this, ImagePrefix + 8 ) {Offset = +Map.TileHeight});
             }
         }
 
@@ -65,5 +66,6 @@ public class Door : GameObject {
     public void OnClick()
     {
         IsOpen = !IsOpen;
+        Blocking = !Blocking;
     }
 }

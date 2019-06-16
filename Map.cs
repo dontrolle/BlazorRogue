@@ -205,7 +205,20 @@ public class Map
             yDelta = 1;
         }
 
-        this.Player.x += xDelta;
-        this.Player.y += yDelta;
+        // Check for blocking Walls or GameObject's
+        int destX = this.Player.x + xDelta;
+        int destY = this.Player.y + yDelta;
+        if (!Blocked(destX, destY))
+            Player.Move(xDelta, yDelta);
+    }
+
+    public bool Blocked(int x, int y){
+        if(Tiles[x,y].Blocking)
+            return true;
+        
+        if(GameObjectByCoord[x,y].Any(g=>g.Blocking))
+            return true;
+
+        return false;
     }
 }

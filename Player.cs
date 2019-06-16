@@ -8,4 +8,10 @@ public class Player : GameObject
     {
         map.MoveableDecorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_templar"});
     }
+
+    public void Move(int xDelta, int yDelta)
+    {
+        this.x += xDelta;
+        this.y += yDelta;
+    }
 }

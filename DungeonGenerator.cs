@@ -76,16 +76,20 @@ public class DungeonGenerator {
 
     private void PlaceWall(int x, int y, int[] WallIndexes)
     {
+        // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
         Map.Tiles[x, y].TileSet = map.DungeonWallSet;
         Map.Tiles[x, y].TileIndex = GetRandomElement(WallIndexes);
         Map.Tiles[x, y].TileType = TileType.Wall;
+        Map.Tiles[x, y].Blocking = true;
     }
 
     private void PlaceFloor(int x, int y, string FloorSet, int[] FloorIndexes)
     {
+        // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.
         Map.Tiles[x, y].TileSet = FloorSet;
         Map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
         Map.Tiles[x, y].TileType = TileType.Floor;
+        Map.Tiles[x, y].Blocking = false; 
     }
 
     // create a horizontal tunnel with a door in each end
