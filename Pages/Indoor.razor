@@ -19,12 +19,10 @@
                 {
                     bool renderDiv = false;
                     string cssclass = "map_dec";
-                    bool bindToRerender = false;
                     if(decoration.AnimationClass != null && decoration.AnimationClass != "")
                     {
                         cssclass = @decoration.AnimationClass;
                         renderDiv = true;
-                        bindToRerender = true;
                     }
 
                     string style = "";
@@ -42,13 +40,7 @@
 
                     if(renderDiv)
                     {
-                        if(bindToRerender) {
-                            <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
-                            //  bind=@MoveableRefresher
-                        }
-                        else {
-                            <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
-                        }
+                        <div class="@cssclass" style="@style" alt="@x,@y (go)"> </div>
                     }
 
                     if (decoration.OnClick != null){
@@ -64,31 +56,20 @@
 @functions {
     Map map = CreateMap(30, 20);
 
-    [Parameter]
-    private Map MapParam { get; set; }
-
-    private string PlayerXY { 
-        get {
-            return $"({map.Player.x},{map.Player.y}";
-        }
-    }
-
-    string moveableRefresher = "";
-    public string MoveableRefresher { 
-        get{ return moveableRefresher; }
-        set {moveableRefresher = value;} 
-     }
-
     [Inject]
     IJSRuntime Runtime { get; set; }
 
+    bool first = true;
+
     protected override async Task OnAfterRenderAsync()
     {
-        JsInterop.InteropKeyPress.KeyUp += this.OnKeyUp;
-        MoveableRefresher = "";
-//        MapParam = map;
-        await this.Runtime.InvokeAsync<bool>("AddOnKeyUpEvent");
-        // TODO: OnKeyUp invokes this.StateHasChanged - and it works; but it seems that each render ADDS an OnKeyUp listener, which definitely isn't the intention...
+        // Clunky, and probably has simpler solution, but it works for now. OnAfterRenderAsync is run after each render, and event listeners apparently need to be set here. If first isn't set and checked, we get multiple event listeners registered.
+        if(first)
+        {
+            first = false;
+            JsInterop.InteropKeyPress.KeyUp += this.OnKeyUp;
+            await this.Runtime.InvokeAsync<bool>("AddOnKeyUpEvent");
+        }
     }
 
     // Create map
@@ -109,14 +90,11 @@
         map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
     }
 
-    // TODO: PICKUP Can't get moveable to rerender after state change due to keypress (which works)
-    // Tried bind to property which I change manually below; but I can't seem to get it working...
-
+    // TODO: Tried bind to property on player which I change manually; but I can't seem to get it working. Thus, this.StateHasChanged().
     public void OnKeyUp(object sender, ConsoleKey key)
     {
         map.OnKeyPress(key.ToString());
         map.RenderMoveables();
         this.StateHasChanged();
-        //MoveableRefresher += "a";
     }
 }
