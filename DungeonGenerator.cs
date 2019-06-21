@@ -14,12 +14,12 @@ public class DungeonGenerator {
     Random random = new Random();
 
     // Walls with borders- "cave", "ruins", "stone"
-    // Wall-sets have tiles 1-6 halved; can be used to round off the top (TODO) for iso effect
-    // and - in junction with this - to paste over bottom part of lowermost floors for same... (TODO)
+    // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
+    // and - in junction with this - to paste over bottom part of lowermost floors for same...
     // Wall tiles 7-12 have no front-face
     // Wall tiles 13 is special?
     // Wall tiles 14-19 have a front-face
-    private readonly String[] WallSets = new [] { "crypt", "dungeon", };
+    private readonly String[] WallSets = new [] { "crypt", "dungeon", "ruins" };
     private readonly int[] WallsWithoutFront = new [] { 7,8,9,10,11,12 };
     private readonly int[] WallsWithFront = new [] { 14,15,16,17,18,19 };
     private readonly String[] BaseFloorSets = new [] { "set_blue", "set_dark", "set_grey" };
@@ -66,9 +66,13 @@ public class DungeonGenerator {
                 }
 
                 if (y < Map.Height - 1){
-                    // Wall should have front, if there is a floor tile below.
+                    // Wall should have front, if there is a floor tile below; if tile below has a door, choose 14
                     if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y+1].TileType == TileType.Floor ){
-                        Map.Tiles[x,y].TileIndex = GetRandomElement(WallsWithFront);
+                        var index = GetRandomElement(WallsWithFront);
+                        if (Map.GameObjectByCoord[x,y+1].Any(go => go is Door)){
+                            index = 14;
+                        }
+                        Map.Tiles[x,y].TileIndex = index;
                     }
                 }
             }
