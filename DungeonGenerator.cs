@@ -48,19 +48,28 @@ public class DungeonGenerator {
 
     private void AddPostGenerationDecorations()
     {
-        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile directly above
         for (int x = 0; x < Map.Width; x++)
         {
-            for (int y = 1; y < Map.Height; y++)
+            for (int y = 0; y < Map.Height; y++)
             {
-                if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y-1].TileType == TileType.Floor ){
+                if (y > 0){
+                    // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile directly above 
                     // if tile above has door, select from 1-3, else from tiles 1-6
-                    int topHalfWallIndex = 6;
-                    if(Map.GameObjectByCoord[x,y-1].Any(go => go is Door)){
-                        topHalfWallIndex = 3;
+                    if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y-1].TileType == TileType.Floor ){
+                        int topHalfWallIndex = 6;
+                        if(Map.GameObjectByCoord[x,y-1].Any(go => go is Door)){
+                            topHalfWallIndex = 3;
+                        }
+                        var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
+                        Map.AddGameObject(new HalfWall(x,y, halfWallIndex));
                     }
-                    var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                    Map.AddGameObject(new HalfWall(x,y, halfWallIndex));
+                }
+
+                if (y < Map.Height - 1){
+                    // Wall should have front, if there is a floor tile below.
+                    if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y+1].TileType == TileType.Floor ){
+                        Map.Tiles[x,y].TileIndex = GetRandomElement(WallsWithFront);
+                    }
                 }
             }
         }        
@@ -73,6 +82,11 @@ public class DungeonGenerator {
     private bool GetRandomBool(){
         return random.Next(0,2) == 0;
     }
+
+    private void PlaceWall(int x, int y){
+        PlaceWall(x, y, WallsWithoutFront);
+    }
+
 
     private void PlaceWall(int x, int y, int[] WallIndexes)
     {
@@ -122,8 +136,8 @@ public class DungeonGenerator {
         // Change tile above door to WallWithFront type
         // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
         // TODO: Superflouos, if wall-front'age is determined as a decorative post-gen. pass
-        PlaceWall(left_door_x, y - 1, WallsWithFront);
-        PlaceWall(right_door_x, y - 1, WallsWithFront);
+        PlaceWall(left_door_x, y - 1);
+        PlaceWall(right_door_x, y - 1);
 
         // Randomly choose either floor set for the tunnel
         var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_floor_tileset : right_door_floor_tileset;
@@ -132,9 +146,9 @@ public class DungeonGenerator {
         // create walls around tunnel
         for (int x = left_door_x + 1; x < right_door_x; x++)
         {
-            PlaceWall(x, y - 1, WallsWithFront);
+            PlaceWall(x, y - 1);
             PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
-            PlaceWall(x, y + 1, WallsWithFront);
+            PlaceWall(x, y + 1);
         }
     }
 
@@ -168,10 +182,10 @@ public class DungeonGenerator {
         // Change tile left and right of doors to WallWithoutFront type
         // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
         // TODO: Superflouos, if wall-front'age is determined as a decorative post-gen. pass
-        PlaceWall(x - 1, upper_door_y, WallsWithoutFront);
-        PlaceWall(x + 1, upper_door_y, WallsWithoutFront);
-        PlaceWall(x - 1, bottom_door_y, WallsWithoutFront);
-        PlaceWall(x + 1, bottom_door_y, WallsWithoutFront);
+        PlaceWall(x - 1, upper_door_y);
+        PlaceWall(x + 1, upper_door_y);
+        PlaceWall(x - 1, bottom_door_y);
+        PlaceWall(x + 1, bottom_door_y);
 
         // Randomly choose either floor set for the tunnel
         var tunnelFloorSet = random.Next(0,2) == 0 ? upper_door_floor_tileset : bottom_door_floor_tileset;
@@ -180,9 +194,9 @@ public class DungeonGenerator {
         // create walls around tunnel
         for (int y = upper_door_y + 1; y < bottom_door_y; y++)
         {
-            PlaceWall(x - 1, y, WallsWithoutFront);
+            PlaceWall(x - 1, y);
             PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
-            PlaceWall(x + 1, y, WallsWithoutFront);
+            PlaceWall(x + 1, y);
         }
     }
 
@@ -192,16 +206,16 @@ public class DungeonGenerator {
         string floorset = GetRandomElement(BaseFloorSets);
 
         // corners
-        PlaceWall(left_x, top_y, WallsWithoutFront);
-        PlaceWall(left_x + width - 1, top_y, WallsWithoutFront);
-        PlaceWall(left_x, top_y + height - 1, WallsWithFront);
-        PlaceWall(left_x + width - 1, top_y + height - 1, WallsWithFront);
+        PlaceWall(left_x, top_y);
+        PlaceWall(left_x + width - 1, top_y);
+        PlaceWall(left_x, top_y + height - 1);
+        PlaceWall(left_x + width - 1, top_y + height - 1);
 
         // rest of top row and bottom row
         for (int x = 1; x < width - 1; x++)
         {
-            PlaceWall(left_x + x, top_y, WallsWithFront);
-            PlaceWall(left_x + x, top_y + height - 1, WallsWithFront);
+            PlaceWall(left_x + x, top_y);
+            PlaceWall(left_x + x, top_y + height - 1);
         }
 
         int right_x = left_x + width;
@@ -212,7 +226,7 @@ public class DungeonGenerator {
             {
                 if (x == 0 || x == width - 1)
                 {
-                    PlaceWall(x + left_x, y + top_y, WallsWithoutFront);
+                    PlaceWall(x + left_x, y + top_y);
                 }
                 else 
                 {
