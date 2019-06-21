@@ -29,7 +29,7 @@ public class Door : GameObject {
                 // place 7 on door tile
                 map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 7 ));
                 // place 10 on door tile - raised 1 z-index, to be in front of player
-                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ) {ZIndex = 2});
+                map.Decorations[x, y].Add( new Decoration ( this, ImagePrefix + 10 ) {InFront = true});
             }
             else
             {

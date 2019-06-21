@@ -18,12 +18,19 @@
                 @foreach (var decoration in map.AllDecorations(x,y))
                 {
                     bool renderDiv = false;
-                    string cssclass = "map_dec";
+                    string cssclass = "decoration";
                     if(decoration.AnimationClass != null && decoration.AnimationClass != "")
                     {
                         cssclass = @decoration.AnimationClass;
                         renderDiv = true;
                     }
+
+                    var layerClass = "decbehind";
+                    if(decoration.InFront){
+                        layerClass = "decinfront";
+                    }
+
+                    cssclass = $"{cssclass} {(layerClass)}";
 
                     string style = "";
                     if(decoration.ImageName != null && decoration.ImageName != ""){
@@ -37,12 +44,6 @@
                         renderDiv = true;
                         style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
                     }
-                    // TODO: Setting the z-index directly is nasty; it requires the decoration to know about the css.
-                    // Much rather have it be the default z-index of decs + 1, say. But don't know how to do that right now...
-                    if(decoration.ZIndex != 0){
-                        style += $";z-index: {decoration.ZIndex};";
-                    }
-
 
                     if(renderDiv)
                     {

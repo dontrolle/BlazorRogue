@@ -15,13 +15,20 @@
     background-size: cover;
 }
 
-.map_dec {
+.decoration {
     width: 100%;
     height: 100%;
     position: absolute;
     left: 0px;
     top: 0px;
     background-size: cover;
+}
+
+.decinfront {
+    z-index: 2;
+}
+
+.decbehind {
     z-index: 1;
 }
 
