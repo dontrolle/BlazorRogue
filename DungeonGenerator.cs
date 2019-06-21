@@ -87,7 +87,6 @@ public class DungeonGenerator {
         PlaceWall(x, y, WallsWithoutFront);
     }
 
-
     private void PlaceWall(int x, int y, int[] WallIndexes)
     {
         // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
