@@ -26,14 +26,29 @@ public class DungeonGenerator
     private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
     private readonly String[] BaseFloorSets = new[] { "set_blue", "set_dark", "set_grey" };
     private readonly int[] BaseFloorIndexes = new[] { 1, 2, 3, 4, 5 };
+    private readonly Tuple<string,int[]>[] SpecialFloorSets = new [] { 
+            Tuple.Create("diagonal_blue", new [] {1,2,3,4}),
+            Tuple.Create("diagonal_red", new [] {1,2,3,4}),
+            Tuple.Create("crusted_grey", new [] {1,2,3,4}),
+            Tuple.Create("extra", new int[] {19}),
+            Tuple.Create("extra", new int[] {17}),
+            Tuple.Create("extra", new int[] {7}),
+            Tuple.Create("extra", new int[] {4}),
+            Tuple.Create("extra", new int[] {3}),
+            Tuple.Create("extra", new int[] {2}),
+            Tuple.Create("extra", new int[] {1}),
+        };
     private readonly String[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
 
     // width and height are including walls
+    private const int MaxRooms = 10;
     private const int MinRoomHeight = 4;
-    private const int MaxRoomHeight = 7;
+    private const int MaxRoomHeight = 8;
     private const int MinRoomWidth = 4;
-    private const int MaxRoomWidth = 8;
-    private const int MaxRooms = 12;
+    private const int MaxRoomWidth = 10;
+    const int SpecialRoomHeight = 7;
+    const int SpecialRoomWidth = 8;    
+    const double PercentageChanceOfSpecialRoom = 1.0;    
 
     private List<Room> Rooms = new List<Room>();
     private List<Tuple<int,int>> CandidateDoors = new List<Tuple<int, int>>();
@@ -220,14 +235,15 @@ public class DungeonGenerator
         var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        // Randomly choose either floor set for the tunnel
-        var tunnelFloorSet = GetRandomBool() ? from_floor_tileset : to_floor_tileset;
+        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets);
 
-        var tileset = from_floor_tileset;
+        // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
+        var tunnelFloorSet = GetRandomElement(possibleTileSets.ToArray());
+
         for (int x = minX; x < maxX + 1; x++)
         {
             if(Map.Tiles[x,y].TileType != TileType.Floor){
-                PlaceFloor(x, y, tileset, BaseFloorIndexes);
+                PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
             }
         }
     }
@@ -247,14 +263,15 @@ public class DungeonGenerator
         var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        // Randomly choose either floor set for the tunnel
-        var tunnelFloorSet = GetRandomBool() ? from_floor_tileset : to_floor_tileset;
+        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets);
 
-        var tileset = from_floor_tileset;
+        // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
+        var tunnelFloorSet = GetRandomElement(possibleTileSets.ToArray());
+
         for (int y = minY; y < maxY + 1; y++)
         {
             if(Map.Tiles[x,y].TileType != TileType.Floor){
-                PlaceFloor(x, y, tileset, BaseFloorIndexes);
+                PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
             }
         }
     }
@@ -437,16 +454,22 @@ public class DungeonGenerator
         CreateRoom(room, true);
     }
 
-    private void CreateRoom(Room room, bool elideWalls = false){
-        CreateRoom(room.X, room.Y, room.Width, room.Height, elideWalls);
+    private void CreateRoom(Room room, bool elideOuterWalls = false){
+        CreateRoom(room.X, room.Y, room.Width, room.Height, elideOuterWalls);
     }
 
-    private void CreateRoom(int left_x, int top_y, int width, int height, bool elideWalls = false)
+    private void CreateRoom(int left_x, int top_y, int width, int height, bool elideOuterWalls = false)
     {
-        bool placeWalls = !elideWalls;
+        bool placeWalls = !elideOuterWalls;
 
         // choose random floor-set for this room
         string floorset = GetRandomElement(BaseFloorSets);
+        int[] floorIndexes = BaseFloorIndexes;
+        bool specialRoom = false;
+        if(width >= SpecialRoomWidth && height >= SpecialRoomHeight && random.NextDouble() < PercentageChanceOfSpecialRoom){
+            specialRoom = true;
+            (floorset, floorIndexes) = GetRandomElement(SpecialFloorSets);
+        }
 
         if(placeWalls)
         {
@@ -477,7 +500,7 @@ public class DungeonGenerator
                 }
                 else
                 {
-                    PlaceFloor(x + left_x, y + top_y, floorset, BaseFloorIndexes);
+                    PlaceFloor(x + left_x, y + top_y, floorset, floorIndexes);
                 }
             }
         }
