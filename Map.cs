@@ -92,10 +92,10 @@ public class Map
                 tiles[i, j] = new MapPosition(
                     i,
                     j,
-                    TileType.Floor,
+                    TileType.Black,
                     "extra",
                     11
-                );
+                ) { Blocking = true };
                 decorations[i, j] = new List<Decoration>();
                 moveableDecorations[i, j] = new List<Decoration>();
                 gameObjectByCoord[i, j] = new List<GameObject>();

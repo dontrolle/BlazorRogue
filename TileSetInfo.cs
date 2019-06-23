@@ -5,7 +5,8 @@ public static class TileSetInfo
     public static string ToTileSetPrefix(this TileType tileType){
         switch(tileType)
         {
-            case TileType.Floor : return "floor"; 
+            case TileType.Black : return "floor";
+            case TileType.Floor : return "floor";
             case TileType.Wall : return "wall"; 
             case TileType.Ground : return "ground";
             default : throw new InvalidOperationException("Unknown TileType" + tileType);

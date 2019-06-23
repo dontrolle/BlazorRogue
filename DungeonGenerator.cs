@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
-public class DungeonGenerator {
+public class DungeonGenerator
+{
     private Map map;
     public Map Map
     {
@@ -19,12 +21,49 @@ public class DungeonGenerator {
     // Wall tiles 7-12 have no front-face
     // Wall tiles 13 is special?
     // Wall tiles 14-19 have a front-face
-    private readonly String[] WallSets = new [] { "crypt", "dungeon", "ruins" };
-    private readonly int[] WallsWithoutFront = new [] { 7,8,9,10,11,12 };
-    private readonly int[] WallsWithFront = new [] { 14,15,16,17,18,19 };
-    private readonly String[] BaseFloorSets = new [] { "set_blue", "set_dark", "set_grey" };
-    private readonly int[] BaseFloorIndexes = new [] {1,2,3,4,5};
-    private readonly String[] DoorTypes = new [] { "metal" , "stone", "wood", "ruin" };
+    private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
+    private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
+    private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
+    private readonly String[] BaseFloorSets = new[] { "set_blue", "set_dark", "set_grey" };
+    private readonly int[] BaseFloorIndexes = new[] { 1, 2, 3, 4, 5 };
+    private readonly String[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
+
+    // width and height are including walls
+    private const int MinRoomHeight = 4;
+    private const int MaxRoomHeight = 7;
+    private const int MinRoomWidth = 4;
+    private const int MaxRoomWidth = 8;
+    private const int MaxRooms = 12;
+
+    private List<Room> Rooms = new List<Room>();
+    private List<Tuple<int,int>> CandidateDoors = new List<Tuple<int, int>>();
+    class Room
+    {
+        public Room(int X, int Y, int width, int height)
+        {
+            this.X = X;
+            this.Y = Y;
+            Width = width;
+            Height = height;
+        }
+
+        public int X { get; }
+        public int Y { get; }
+        public int Width { get; }
+        public int Height { get; }
+        public int Left => X;
+        public int Right => X + Width - 1;
+        public int Upper => Y;
+        public int Lower => Y + Height - 1;
+        public int CenterX => X + Width / 2;
+        public int CenterY => Y + Height / 2;        
+
+        public bool Intersect(Room other){
+            bool xInter = this.Left <= other.Right && this.Right >= other.Left;
+            bool yInter = this.Lower >= other.Upper && this.Upper <= other.Lower;
+            return xInter && yInter;
+        }
+    }
 
     public DungeonGenerator(int width, int height)
     {
@@ -32,17 +71,181 @@ public class DungeonGenerator {
         map = new Map(width, height, GetRandomElement(WallSets));
     }
 
-    public void Generate(){
-        CreateRoom(1, 1, 6, 7);
-        CreateRoom(10, 3, 6, 7);
-        HorizontalTunnel(6, 4, 5); // test from left to right
-        HorizontalTunnel(10, 6, -5); // test from right to left
-        VerticalTunnel(13, 9, 5);
+    public void Generate()
+    {
+        var playerCoord = CreateFloorPlans();
+        
+        AddWalls();
+        AddDoors();
         AddPostGenerationDecorations();
-        AddPlayer(3,3);
+
+        // Add Player in the corner of the first room - offset +1,+1 from left-top corner
+        AddPlayer(playerCoord.Item1, playerCoord.Item2);
     }
 
-    private void AddPlayer(int x, int y){
+    private void AddDoors(){
+        foreach (var candidateDoor in CandidateDoors)
+        {
+            var x = candidateDoor.Item1;
+            var y = candidateDoor.Item2;
+            // Check if horizontal makes sense
+            if(x > 1 && x < Map.Width - 1 && map.Tiles[x-1,y].TileType == TileType.Wall && map.Tiles[x+1,y].TileType == TileType.Wall){
+                map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
+            }
+            // Check if vertical makes sense
+            else if(y > 1 && y < Map.Height - 1 && map.Tiles[x,y-1].TileType == TileType.Wall && map.Tiles[x,y+1].TileType == TileType.Wall){
+                map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+            }
+        }
+    }
+
+    private void AddWalls()
+    {
+        // Depends on no rooms having been misplaced directly up Map-border
+        for (int x = 1; x < Map.Width - 1; x++)
+        {
+            for (int y = 1; y < Map.Height - 1; y++)
+            {
+                if(Map.Tiles[x,y].TileType == TileType.Floor){
+                    for (int dx = -1; dx < 2; dx++)
+                    {
+                        for (int dy = -1; dy < 2; dy++)
+                        {
+                            if(Map.Tiles[x+dx, y+dy].TileType == TileType.Black){
+                                PlaceWall(x+dx,y+dy);
+                            }
+                        }
+                    }
+                }
+            }
+        }        
+    }
+
+    private Tuple<int,int> CreateFloorPlans()
+    {
+        var playerCoord = Tuple.Create(-1, -1);        
+        Room lastRoom = null;
+        for (int i = 0; i < MaxRooms; i++)
+        {
+            int w = random.Next(MinRoomWidth, MaxRoomWidth + 1);
+            int h = random.Next(MinRoomHeight, MaxRoomHeight + 1);
+            int x = random.Next(1, Map.Width - w - 1);
+            int y = random.Next(1, Map.Height - h - 1);
+            var newRoom = new Room(x, y, w, h);
+            bool intersect = false;
+            foreach (var r in Rooms)
+            {
+                if(newRoom.Intersect(r)){
+                    intersect = true;
+                    break;
+                }
+            }
+
+            if(!intersect){
+                Rooms.Add(newRoom);
+                CreateRoomFloor(newRoom);
+
+                if(lastRoom == null){
+                    // place player in first room
+                    playerCoord = Tuple.Create(newRoom.X + 1, newRoom.Y + 1);
+                }
+                else {
+                    // connect to last room with corridor
+                    if(GetRandomBool()){
+                        // go horizontally, then vertically
+                        CreateHorizontalTunnelFloor(lastRoom, newRoom, lastRoom.CenterY);
+
+                        // x = lastRoom.Left-1 if newRoom is Left of lastRoom, else lastRoom.Right+1
+                        int doorX = lastRoom.Left - 1;
+                        if(newRoom.CenterX > lastRoom.CenterX)
+                            doorX = lastRoom.Right + 1;
+
+                        int doorY = lastRoom.CenterY;
+                        CandidateDoors.Add(Tuple.Create(doorX, doorY));
+
+                        CreateVerticalTunnelFloor(lastRoom, newRoom, newRoom.CenterX);
+                        // TODO: Second breaching door
+                        //bool isLastTunnelInsideRoom = 
+                        //is_last_tunnel_inside_room = min(prev_y, new_y) >= new_room.y1 and max(prev_y, new_y) <= new_room.y2                       
+                    }
+                    else {
+                        CreateVerticalTunnelFloor(lastRoom, newRoom, lastRoom.CenterX);
+                        // y = lastRoom.Upper-1 if newRoom is above lastRoom, else lastRoom.Lower+1
+                        int doorY = lastRoom.Upper - 1;
+                        if(newRoom.CenterY > lastRoom.CenterY)
+                            doorY = lastRoom.Lower + 1;
+
+                        int doorX = lastRoom.CenterX;
+                        CandidateDoors.Add(Tuple.Create(doorX, doorY));
+
+                        CreateHorizontalTunnelFloor(lastRoom, newRoom, newRoom.CenterY);
+                        // TODO: Second breaching door                        
+                    }
+                }
+                lastRoom = newRoom;                
+            }
+        }
+
+        return playerCoord;
+    }
+
+    // TODO: Factor CreateXXXTunnelFloor into one method
+    private void CreateHorizontalTunnelFloor(Room fromRoom, Room toRoom, int y){
+        Room leftRoom = toRoom;
+        Room rightRoom = fromRoom;
+        if(rightRoom.CenterX < leftRoom.CenterX) {
+            leftRoom = fromRoom;
+            rightRoom = toRoom;
+        }
+
+        int minX = leftRoom.CenterX;
+        int maxX = rightRoom.CenterX;
+
+        // get the floor tile set of each room
+        var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
+        var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
+
+        // Randomly choose either floor set for the tunnel
+        var tunnelFloorSet = GetRandomBool() ? from_floor_tileset : to_floor_tileset;
+
+        var tileset = from_floor_tileset;
+        for (int x = minX; x < maxX + 1; x++)
+        {
+            if(Map.Tiles[x,y].TileType != TileType.Floor){
+                PlaceFloor(x, y, tileset, BaseFloorIndexes);
+            }
+        }
+    }
+
+    private void CreateVerticalTunnelFloor(Room fromRoom, Room toRoom, int x){
+        Room upperRoom = fromRoom;
+        Room lowerRoom = toRoom;
+        if(lowerRoom.CenterY < upperRoom.CenterY) {
+            upperRoom = toRoom;
+            lowerRoom = fromRoom;
+        }
+
+        int minY = upperRoom.CenterY;
+        int maxY = lowerRoom.CenterY;
+
+        // get the floor tile set of each room
+        var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
+        var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
+
+        // Randomly choose either floor set for the tunnel
+        var tunnelFloorSet = GetRandomBool() ? from_floor_tileset : to_floor_tileset;
+
+        var tileset = from_floor_tileset;
+        for (int y = minY; y < maxY + 1; y++)
+        {
+            if(Map.Tiles[x,y].TileType != TileType.Floor){
+                PlaceFloor(x, y, tileset, BaseFloorIndexes);
+            }
+        }
+    }
+
+    private void AddPlayer(int x, int y)
+    {
         Map.AddPlayer(new Player(x, y));
     }
 
@@ -52,42 +255,51 @@ public class DungeonGenerator {
         {
             for (int y = 0; y < Map.Height; y++)
             {
-                if (y > 0){
-                    // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile directly above 
+                if (y > 0)
+                {
+                    // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
                     // if tile above has door, select from 1-3, else from tiles 1-6
-                    if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y-1].TileType == TileType.Floor ){
+                    if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y - 1].TileType == TileType.Floor || Map.Tiles[x, y - 1].TileType == TileType.Black))
+                    {
                         int topHalfWallIndex = 6;
-                        if(Map.GameObjectByCoord[x,y-1].Any(go => go is Door)){
+                        if (Map.GameObjectByCoord[x, y - 1].Any(go => go is Door))
+                        {
                             topHalfWallIndex = 3;
                         }
                         var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                        Map.AddGameObject(new HalfWall(x,y, halfWallIndex));
+                        Map.AddGameObject(new HalfWall(x, y, halfWallIndex));
                     }
                 }
 
-                if (y < Map.Height - 1){
-                    // Wall should have front, if there is a floor tile below; if tile below has a door, choose 14
-                    if( Map.Tiles[x,y].TileType == TileType.Wall && Map.Tiles[x,y+1].TileType == TileType.Floor ){
+                if (y < Map.Height - 1)
+                {
+                    // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
+                    if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y + 1].TileType == TileType.Floor || Map.Tiles[x, y + 1].TileType == TileType.Black))
+                    {
                         var index = GetRandomElement(WallsWithFront);
-                        if (Map.GameObjectByCoord[x,y+1].Any(go => go is Door)){
+                        if (Map.GameObjectByCoord[x, y + 1].Any(go => go is Door))
+                        {
                             index = 14;
                         }
-                        Map.Tiles[x,y].TileIndex = index;
+                        Map.Tiles[x, y].TileIndex = index;
                     }
                 }
             }
-        }        
+        }
     }
 
-    private T GetRandomElement<T>(T[] elements){
+    private T GetRandomElement<T>(T[] elements)
+    {
         return elements[random.Next(0, elements.Length)];
     }
 
-    private bool GetRandomBool(){
-        return random.Next(0,2) == 0;
+    private bool GetRandomBool()
+    {
+        return random.Next(0, 2) == 0;
     }
 
-    private void PlaceWall(int x, int y){
+    private void PlaceWall(int x, int y)
+    {
         PlaceWall(x, y, WallsWithoutFront);
     }
 
@@ -106,7 +318,7 @@ public class DungeonGenerator {
         Map.Tiles[x, y].TileSet = FloorSet;
         Map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
         Map.Tiles[x, y].TileType = TileType.Floor;
-        Map.Tiles[x, y].Blocking = false; 
+        Map.Tiles[x, y].Blocking = false;
     }
 
     // create a horizontal tunnel with a door in each end
@@ -143,7 +355,7 @@ public class DungeonGenerator {
         PlaceWall(right_door_x, y - 1);
 
         // Randomly choose either floor set for the tunnel
-        var tunnelFloorSet = random.Next(0,2) == 0 ? left_door_floor_tileset : right_door_floor_tileset;
+        var tunnelFloorSet = random.Next(0, 2) == 0 ? left_door_floor_tileset : right_door_floor_tileset;
 
         // set floors in tunnel
         // create walls around tunnel
@@ -191,7 +403,7 @@ public class DungeonGenerator {
         PlaceWall(x + 1, bottom_door_y);
 
         // Randomly choose either floor set for the tunnel
-        var tunnelFloorSet = random.Next(0,2) == 0 ? upper_door_floor_tileset : bottom_door_floor_tileset;
+        var tunnelFloorSet = random.Next(0, 2) == 0 ? upper_door_floor_tileset : bottom_door_floor_tileset;
 
         // set floors in tunnel
         // create walls around tunnel
@@ -203,22 +415,35 @@ public class DungeonGenerator {
         }
     }
 
-    private void CreateRoom(int left_x, int top_y, int width, int height)
+    private void CreateRoomFloor(Room room){
+        CreateRoom(room, true);
+    }
+
+    private void CreateRoom(Room room, bool elideWalls = false){
+        CreateRoom(room.X, room.Y, room.Width, room.Height, elideWalls);
+    }
+
+    private void CreateRoom(int left_x, int top_y, int width, int height, bool elideWalls = false)
     {
+        bool placeWalls = !elideWalls;
+
         // choose random floor-set for this room
         string floorset = GetRandomElement(BaseFloorSets);
 
-        // corners
-        PlaceWall(left_x, top_y);
-        PlaceWall(left_x + width - 1, top_y);
-        PlaceWall(left_x, top_y + height - 1);
-        PlaceWall(left_x + width - 1, top_y + height - 1);
-
-        // rest of top row and bottom row
-        for (int x = 1; x < width - 1; x++)
+        if(placeWalls)
         {
-            PlaceWall(left_x + x, top_y);
-            PlaceWall(left_x + x, top_y + height - 1);
+            // corners
+            PlaceWall(left_x, top_y);
+            PlaceWall(left_x + width - 1, top_y);
+            PlaceWall(left_x, top_y + height - 1);
+            PlaceWall(left_x + width - 1, top_y + height - 1);
+
+            // rest of top row and bottom row
+            for (int x = 1; x < width - 1; x++)
+            {
+                PlaceWall(left_x + x, top_y);
+                PlaceWall(left_x + x, top_y + height - 1);
+            }
         }
 
         int right_x = left_x + width;
@@ -227,11 +452,11 @@ public class DungeonGenerator {
         {
             for (int y = 1; y < height - 1; y++)
             {
-                if (x == 0 || x == width - 1)
+                if (placeWalls && (x == 0 || x == width - 1))
                 {
                     PlaceWall(x + left_x, y + top_y);
                 }
-                else 
+                else
                 {
                     PlaceFloor(x + left_x, y + top_y, floorset, BaseFloorIndexes);
                 }
