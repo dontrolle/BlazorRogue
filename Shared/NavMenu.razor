@@ -1,5 +1,5 @@
 <div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">Navbar title</a>
+    <a class="navbar-brand" href="">BlazorRogue</a>
     <button class="navbar-toggler" onclick="@ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -21,7 +21,7 @@
 </div>
 
 @functions {
-    bool collapseNavMenu = true;
+    bool collapseNavMenu = false;
 
     string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 

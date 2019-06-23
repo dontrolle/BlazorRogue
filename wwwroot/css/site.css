@@ -26,7 +26,7 @@ app {
     }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-image: linear-gradient(180deg, rgb(16, 18, 20) 0%, #3a0647 70%);
 }
 
     .sidebar .top-row {
@@ -34,7 +34,7 @@ app {
     }
 
     .sidebar .navbar-brand {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 
     .sidebar .oi {
@@ -125,7 +125,7 @@ app {
     }
 
     .navbar-toggler {
-        display: none;
+        display: block;
     }
 
     .sidebar .collapse {

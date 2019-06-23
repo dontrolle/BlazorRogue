@@ -60,8 +60,17 @@
     }
 </div>
 
+<div>
+    <ul>
+    @foreach (var debugInfo in map.DebugInfo)
+    {
+        <li>@debugInfo</li>
+    }
+    </ul>
+</div>
+
 @functions {
-    Map map = CreateMap(40, 30);
+    Map map = CreateMap(44, 22);
 
     [Inject]
     IJSRuntime Runtime { get; set; }

@@ -12,6 +12,8 @@ public class Map
     public string DungeonWallSet { get; private set; }
     public Player Player { get; private set; }
 
+    public List<string> DebugInfo = new List<string>();
+
     private MapPosition[,] tiles;
     public MapPosition[,] Tiles
     {

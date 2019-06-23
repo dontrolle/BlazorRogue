@@ -55,8 +55,8 @@ public class DungeonGenerator
         public int Right => X + Width - 1;
         public int Upper => Y;
         public int Lower => Y + Height - 1;
-        public int CenterX => X + Width / 2;
-        public int CenterY => Y + Height / 2;        
+        public int CenterX => X + (Width - 1) / 2;
+        public int CenterY => Y + (Height - 1) / 2;        
 
         public bool Intersect(Room other){
             bool xInter = this.Left <= other.Right && this.Right >= other.Left;
@@ -88,13 +88,18 @@ public class DungeonGenerator
         {
             var x = candidateDoor.Item1;
             var y = candidateDoor.Item2;
-            // Check if horizontal makes sense
-            if(x > 1 && x < Map.Width - 1 && map.Tiles[x-1,y].TileType == TileType.Wall && map.Tiles[x+1,y].TileType == TileType.Wall){
-                map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
-            }
-            // Check if vertical makes sense
-            else if(y > 1 && y < Map.Height - 1 && map.Tiles[x,y-1].TileType == TileType.Wall && map.Tiles[x,y+1].TileType == TileType.Wall){
-                map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+            if (map.Tiles[x,y].TileType == TileType.Floor)
+            {
+                // Check if horizontal makes sense
+                if(x > 1 && x < Map.Width - 1 && map.Tiles[x-1,y].TileType == TileType.Wall && map.Tiles[x+1,y].TileType == TileType.Wall){
+                    if(!MapTileContainsDoor(x, y))
+                        map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
+                }
+                // Check if vertical makes sense
+                else if(y > 1 && y < Map.Height - 1 && map.Tiles[x,y-1].TileType == TileType.Wall && map.Tiles[x,y+1].TileType == TileType.Wall){
+                    if(!MapTileContainsDoor(x, y))
+                        map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+                }
             }
         }
     }
@@ -143,6 +148,7 @@ public class DungeonGenerator
 
             if(!intersect){
                 Rooms.Add(newRoom);
+                Map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
                 CreateRoomFloor(newRoom);
 
                 if(lastRoom == null){
@@ -154,32 +160,41 @@ public class DungeonGenerator
                     if(GetRandomBool()){
                         // go horizontally, then vertically
                         CreateHorizontalTunnelFloor(lastRoom, newRoom, lastRoom.CenterY);
-
-                        // x = lastRoom.Left-1 if newRoom is Left of lastRoom, else lastRoom.Right+1
-                        int doorX = lastRoom.Left - 1;
-                        if(newRoom.CenterX > lastRoom.CenterX)
-                            doorX = lastRoom.Right + 1;
-
+                        // place candidate door
                         int doorY = lastRoom.CenterY;
+                        // x = lastRoom.Left if newRoom is Left of lastRoom, else lastRoom.Right
+                        int doorX = lastRoom.Left;
+                        if(newRoom.CenterX > lastRoom.CenterX)
+                            doorX = lastRoom.Right;
+
                         CandidateDoors.Add(Tuple.Create(doorX, doorY));
 
                         CreateVerticalTunnelFloor(lastRoom, newRoom, newRoom.CenterX);
-                        // TODO: Second breaching door
-                        //bool isLastTunnelInsideRoom = 
-                        //is_last_tunnel_inside_room = min(prev_y, new_y) >= new_room.y1 and max(prev_y, new_y) <= new_room.y2                       
+                        doorX = newRoom.CenterX;
+                        doorY = newRoom.Upper;
+                        if(newRoom.CenterY < lastRoom.CenterY)
+                            doorY = newRoom.Lower;
+
+                        CandidateDoors.Add(Tuple.Create(doorX, doorY));
                     }
                     else {
                         CreateVerticalTunnelFloor(lastRoom, newRoom, lastRoom.CenterX);
-                        // y = lastRoom.Upper-1 if newRoom is above lastRoom, else lastRoom.Lower+1
-                        int doorY = lastRoom.Upper - 1;
-                        if(newRoom.CenterY > lastRoom.CenterY)
-                            doorY = lastRoom.Lower + 1;
-
+                        // place candidate door                        
                         int doorX = lastRoom.CenterX;
+                        // y = lastRoom.Upper if newRoom is above lastRoom, else lastRoom.Lower
+                        int doorY = lastRoom.Upper;
+                        if(newRoom.CenterY > lastRoom.CenterY)
+                            doorY = lastRoom.Lower;
+
                         CandidateDoors.Add(Tuple.Create(doorX, doorY));
 
                         CreateHorizontalTunnelFloor(lastRoom, newRoom, newRoom.CenterY);
-                        // TODO: Second breaching door                        
+                        doorY = newRoom.CenterY;
+                        doorX = newRoom.Left;
+                        if(newRoom.CenterX < lastRoom.CenterX)
+                            doorX = newRoom.Right;
+
+                        CandidateDoors.Add(Tuple.Create(doorX, doorY));
                     }
                 }
                 lastRoom = newRoom;                
@@ -277,7 +292,7 @@ public class DungeonGenerator
                     if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y + 1].TileType == TileType.Floor || Map.Tiles[x, y + 1].TileType == TileType.Black))
                     {
                         var index = GetRandomElement(WallsWithFront);
-                        if (Map.GameObjectByCoord[x, y + 1].Any(go => go is Door))
+                        if (MapTileContainsDoor(x, y + 1))
                         {
                             index = 14;
                         }
@@ -288,6 +303,9 @@ public class DungeonGenerator
         }
     }
 
+    private bool MapTileContainsDoor(int x, int y){
+        return Map.GameObjectByCoord[x, y].Any(go => go is Door);
+    }
     private T GetRandomElement<T>(T[] elements)
     {
         return elements[random.Next(0, elements.Length)];
@@ -452,9 +470,10 @@ public class DungeonGenerator
         {
             for (int y = 1; y < height - 1; y++)
             {
-                if (placeWalls && (x == 0 || x == width - 1))
+                if (x == 0 || x == width - 1)
                 {
-                    PlaceWall(x + left_x, y + top_y);
+                    if(placeWalls)
+                        PlaceWall(x + left_x, y + top_y);
                 }
                 else
                 {
