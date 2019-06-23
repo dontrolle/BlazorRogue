@@ -15,6 +15,9 @@ public class DungeonGenerator
 
     Random random = new Random();
 
+    // Decorations
+    private const double PercentageChanceOfBones = 0.05;
+
     // Walls with borders- "cave", "ruins", "stone"
     // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
     // and - in junction with this - to paste over bottom part of lowermost floors for same...
@@ -49,7 +52,7 @@ public class DungeonGenerator
     private const int MaxRoomWidth = 10;
     const int SpecialRoomHeight = 7;
     const int SpecialRoomWidth = 8;    
-    const double PercentageChanceOfSpecialRoom = 1.0;    
+    const double PercentageChanceOfSpecialRoom = 1.0;
 
     private List<Room> Rooms = new List<Room>();
     private List<Tuple<int,int>> CandidateDoors = new List<Tuple<int, int>>();
@@ -325,6 +328,12 @@ public class DungeonGenerator
                             index = 14;
                         }
                         Map.Tiles[x, y].TileIndex = index;
+                    }
+                }
+
+                if(Map.Tiles[x, y].TileType == TileType.Floor) {
+                    if(random.NextDouble() < PercentageChanceOfBones){
+                        Map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
                     }
                 }
             }
