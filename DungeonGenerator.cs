@@ -24,6 +24,7 @@ public class DungeonGenerator
     private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
     private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
     private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
+    private readonly double[] WallWeights = new [] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
     private readonly String[] BaseFloorSets = new[] { "set_blue", "set_dark", "set_grey" };
     private readonly int[] BaseFloorIndexes = new[] { 1, 2, 3, 4, 5 };
     private readonly Tuple<string,int[]>[] SpecialFloorSets = new [] { 
@@ -235,10 +236,14 @@ public class DungeonGenerator
         var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets);
+        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets).ToArray();
 
         // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-        var tunnelFloorSet = GetRandomElement(possibleTileSets.ToArray());
+        string tunnelFloorSet = GetRandomElement(BaseFloorSets);
+        if(possibleTileSets.Length > 0)
+        {
+            tunnelFloorSet = GetRandomElement(possibleTileSets);
+        }
 
         for (int x = minX; x < maxX + 1; x++)
         {
@@ -263,10 +268,14 @@ public class DungeonGenerator
         var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets);
+        var possibleTileSets = (new string[] {from_floor_tileset, to_floor_tileset}).Intersect(BaseFloorSets).ToArray();
 
         // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-        var tunnelFloorSet = GetRandomElement(possibleTileSets.ToArray());
+        string tunnelFloorSet = GetRandomElement(BaseFloorSets);
+        if(possibleTileSets.Length > 0)
+        {
+            tunnelFloorSet = GetRandomElement(possibleTileSets);
+        }
 
         for (int y = minY; y < maxY + 1; y++)
         {
@@ -294,7 +303,9 @@ public class DungeonGenerator
                     if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y - 1].TileType == TileType.Floor || Map.Tiles[x, y - 1].TileType == TileType.Black))
                     {
                         int topHalfWallIndex = 6;
-                        if (Map.GameObjectByCoord[x, y - 1].Any(go => go is Door))
+
+                        bool restrictToSimplerHalfWall = MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
+                        if (restrictToSimplerHalfWall)
                         {
                             topHalfWallIndex = 3;
                         }
@@ -308,7 +319,7 @@ public class DungeonGenerator
                     // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
                     if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y + 1].TileType == TileType.Floor || Map.Tiles[x, y + 1].TileType == TileType.Black))
                     {
-                        var index = GetRandomElement(WallsWithFront);
+                        var index = GetRandomElementWeighted(WallsWithFront, WallWeights);
                         if (MapTileContainsDoor(x, y + 1))
                         {
                             index = 14;
@@ -328,6 +339,24 @@ public class DungeonGenerator
         return elements[random.Next(0, elements.Length)];
     }
 
+    private T GetRandomElementWeighted<T>(T[] elements, double[] weights)
+    {
+        if(elements.Length != weights.Length)
+            throw new ArgumentException("elements and weigths should be of same length.");
+
+        int i;
+        double r = random.NextDouble() * weights.Sum();
+        for (i = 0; i < weights.Length; i++)
+        {
+            if(r < weights[i]){
+                break;
+            }
+            r -= weights[i];
+        }
+
+        return elements[i];
+    }
+
     private bool GetRandomBool()
     {
         return random.Next(0, 2) == 0;
@@ -342,7 +371,7 @@ public class DungeonGenerator
     {
         // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
         Map.Tiles[x, y].TileSet = map.DungeonWallSet;
-        Map.Tiles[x, y].TileIndex = GetRandomElement(WallIndexes);
+        Map.Tiles[x, y].TileIndex = GetRandomElementWeighted(WallIndexes, WallWeights);
         Map.Tiles[x, y].TileType = TileType.Wall;
         Map.Tiles[x, y].Blocking = true;
     }
