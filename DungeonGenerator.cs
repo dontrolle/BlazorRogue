@@ -25,6 +25,7 @@ public class DungeonGenerator
     // Wall tiles 13 is special?
     // Wall tiles 14-19 have a front-face
     private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
+    private readonly String[] DungeonWallSets = new[] { "cave" };
     private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
     private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
     private readonly double[] WallWeights = new [] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
@@ -84,17 +85,46 @@ public class DungeonGenerator
         }
     }
 
+    enum Level
+    {
+        Dungeon,
+        Cave
+    }
+
+    private Level LevelType;
+
     public DungeonGenerator(int width, int height)
     {
+        LevelType = Level.Cave;
+
+        var wallSet = GetRandomElement(WallSets);
+        if(LevelType == Level.Cave){
+            wallSet = DungeonWallSets[0];
+        }
+
         // choose random wall-set for this entire dungeon
-        map = new Map(width, height, GetRandomElement(WallSets));
+        map = new Map(width, height, wallSet);
     }
 
     public void Generate()
     {
-        var playerCoord = CreateFloorPlans();
+        Tuple<int,int> playerCoord;
         
-        AddWalls();
+        switch (LevelType)
+        {
+            case Level.Dungeon:
+                playerCoord = CreateFloorPlans();
+                AddWalls();
+                break;
+
+            case Level.Cave:
+                playerCoord = CreateCave();
+
+                break;
+            default:
+                throw new InvalidOperationException("Unknown level-type:" + LevelType);
+        }
+
         AddDoors();
         AddPostGenerationDecorations();
 
@@ -142,7 +172,7 @@ public class DungeonGenerator
                     }
                 }
             }
-        }        
+        } 
     }
 
     private Tuple<int,int> CreateFloorPlans()
@@ -221,6 +251,102 @@ public class DungeonGenerator
         }
 
         return playerCoord;
+    }
+
+    private void ForEachCaveTile(Action<int,int> apply){
+        for (int x = 0; x < Map.Width; x++)
+        {
+            for (int y = 0; y < Map.Height; y++)
+            {
+                apply(x,y);
+            }
+        }
+    }
+
+    private Tuple<int,int> CreateCave(){
+        int initWallPercentageChance = 47;
+        string floorset = "crusted_grey";
+        int[] floorIndexes = new [] {1,2,3,4};
+
+        Action<int,int> initFill = (x,y) =>
+            {
+                if(random.Next(1, 101) < initWallPercentageChance)
+                    PlaceWall(x,y);
+                else
+                    PlaceFloor(x, y, floorset, floorIndexes);
+            };
+        
+        ForEachCaveTile(initFill);
+
+        Action<int,int> generation1Fill = (x,y) =>
+            {
+                if(SurroundingWallNumberWithinN(x,y,1) >= 5 || SurroundingWallNumberWithinN(x,y,2) <= 1)
+                    PlaceWall(x,y);
+                else
+                    PlaceFloor(x, y, floorset, floorIndexes);
+            };
+        for (int i = 0; i < 6; i++)
+        {
+            ForEachCaveTile(generation1Fill);
+        }
+
+        Action<int,int> generation2Fill = (x,y) =>
+            {
+                if(SurroundingWallNumberWithinN(x,y,1) >= 5)
+                    PlaceWall(x,y);
+                else
+                    PlaceFloor(x, y, floorset, floorIndexes);
+            };
+
+        for (int i = 0; i < 1; i++)
+        {
+            ForEachCaveTile(generation2Fill);
+        }
+
+        // fill border area
+        for (int x = 0; x < Map.Width; x++)
+        {
+            for (int y = 0; y < Map.Height; y++)
+            {
+                if(x == 0 || x == Map.Width - 1 || y == 0 || y == Map.Height - 1)
+                    PlaceWall(x,y);
+            }
+        }        
+
+        return GetRandomUnblockedMapTile();
+    }
+
+    private int SurroundingWallNumberWithinN(int x, int y, int distance){
+        int noOfWalls = 0;
+
+        for (int dx = -distance; dx < distance + 1; dx++)
+        {
+            for (int dy = -distance; dy < distance + 1; dy++)
+            {
+                // consider outside of map as walls
+                if(x+dx < 0 || x+dx > Map.Width - 1 || y+dy < 0 || y+dy > Map.Height - 1){
+                    noOfWalls++;
+                }
+                else if(Map.Tiles[x+dx, y+dy].TileType == TileType.Wall){
+                    noOfWalls++;
+                }
+            }
+        }
+
+        return noOfWalls;
+    }
+
+    private Tuple<int,int> GetRandomUnblockedMapTile(){
+        int MaxSearch = 200;
+        for (int i = 0; i < MaxSearch; i++)
+        {
+            var x = random.Next(0, Map.Width);
+            var y = random.Next(0, Map.Height);
+
+            if(!Map.Blocked(x,y)) 
+                return Tuple.Create(x,y);
+        }
+        throw new Exception($"Couldn't find an unblocked tile on map in {MaxSearch} tries!");
     }
 
     // TODO: Factor CreateXXXTunnelFloor into one method
