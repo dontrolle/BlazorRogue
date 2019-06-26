@@ -264,43 +264,51 @@ public class DungeonGenerator
     }
 
     private Tuple<int,int> CreateCave(){
-        int initWallPercentageChance = 47;
-        string floorset = "crusted_grey";
-        int[] floorIndexes = new [] {1,2,3,4};
+        int initWallPercentageChance = 40;
+
+        var genmap = new bool[map.Width, map.Height];
 
         Action<int,int> initFill = (x,y) =>
             {
                 if(random.Next(1, 101) < initWallPercentageChance)
-                    PlaceWall(x,y);
+                    genmap[x,y] = true;
                 else
-                    PlaceFloor(x, y, floorset, floorIndexes);
+                    genmap[x,y] = false;
             };
         
         ForEachCaveTile(initFill);
 
+        bool[,] newmap = null;
         Action<int,int> generation1Fill = (x,y) =>
             {
-                if(SurroundingWallNumberWithinN(x,y,1) >= 5 || SurroundingWallNumberWithinN(x,y,2) <= 1)
-                    PlaceWall(x,y);
+                if(SurroundingWallNumberWithinN(genmap,x,y,1) >= 5 || SurroundingWallNumberWithinN(genmap,x,y,2) <= 1)
+                    newmap[x,y] = true;
                 else
-                    PlaceFloor(x, y, floorset, floorIndexes);
+                    newmap[x,y] = false;
             };
-        for (int i = 0; i < 6; i++)
+
+        for (int i = 0; i < 4; i++)
         {
+            newmap = new bool[map.Width, map.Height];
             ForEachCaveTile(generation1Fill);
+            genmap = newmap;
         }
+
+        //return FinalizeCaveGen(genmap);        
 
         Action<int,int> generation2Fill = (x,y) =>
             {
-                if(SurroundingWallNumberWithinN(x,y,1) >= 5)
-                    PlaceWall(x,y);
+                if(SurroundingWallNumberWithinN(genmap,x,y,1) >= 5)
+                    newmap[x,y] = true;
                 else
-                    PlaceFloor(x, y, floorset, floorIndexes);
+                    newmap[x,y] = false;
             };
 
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 3; i++)
         {
+            newmap = new bool[map.Width, map.Height];            
             ForEachCaveTile(generation2Fill);
+            genmap = newmap;            
         }
 
         // fill border area
@@ -309,14 +317,34 @@ public class DungeonGenerator
             for (int y = 0; y < Map.Height; y++)
             {
                 if(x == 0 || x == Map.Width - 1 || y == 0 || y == Map.Height - 1)
-                    PlaceWall(x,y);
+                    genmap[x,y] = true;
             }
-        }        
+        }
+
+        return FinalizeCaveGen(genmap);
+    }
+
+    private Tuple<int,int> FinalizeCaveGen(bool[,] genmap){
+        string floorset = "crusted_grey";
+        int[] floorIndexes = new [] {1,2,3,4};
+        FillMap(genmap, floorset, floorIndexes);
 
         return GetRandomUnblockedMapTile();
     }
 
-    private int SurroundingWallNumberWithinN(int x, int y, int distance){
+    private void FillMap(bool[,] genmap, string floorset, int[] floorIndexes){
+        ForEachCaveTile(
+            (x,y) => 
+            {
+                if(genmap[x,y])
+                    PlaceWall(x,y);
+                else
+                    PlaceFloor(x, y, floorset, floorIndexes);
+            }
+        );
+    }
+
+    private int SurroundingWallNumberWithinN(bool[,] genmap, int x, int y, int distance){
         int noOfWalls = 0;
 
         for (int dx = -distance; dx < distance + 1; dx++)
@@ -324,10 +352,11 @@ public class DungeonGenerator
             for (int dy = -distance; dy < distance + 1; dy++)
             {
                 // consider outside of map as walls
+                // TODO: check Map - slightly wrong...
                 if(x+dx < 0 || x+dx > Map.Width - 1 || y+dy < 0 || y+dy > Map.Height - 1){
                     noOfWalls++;
                 }
-                else if(Map.Tiles[x+dx, y+dy].TileType == TileType.Wall){
+                else if(genmap[x+dx,y+dy]){
                     noOfWalls++;
                 }
             }
