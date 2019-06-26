@@ -95,7 +95,10 @@ public class DungeonGenerator
 
     public DungeonGenerator(int width, int height)
     {
+        // Choose random level-type
         LevelType = Level.Cave;
+        if(GetRandomBool())
+            LevelType = Level.Dungeon;
 
         var wallSet = GetRandomElement(WallSets);
         if(LevelType == Level.Cave){
