@@ -491,6 +491,13 @@ public class DungeonGenerator
                         Map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
                     }
                 }
+
+                //TODO: If leveltype is Cave:
+                // - add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
+                // - add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
+                // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
+                
+
             }
         }
     }
