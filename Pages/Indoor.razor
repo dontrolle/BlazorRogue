@@ -40,6 +40,10 @@
                         {
                             offset = $" top: {decoration.Offset}px;";
                         }
+                        if (decoration.HOffset != 0)
+                        {
+                            offset += $"left: {decoration.HOffset}px;";
+                        }                        
 
                         renderDiv = true;
                         style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";

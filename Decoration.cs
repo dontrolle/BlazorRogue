@@ -7,6 +7,7 @@ public class Decoration
     public string AnimationClass { get; set; }
     public Action OnClick { get; set; }
     public int Offset { get; set; }
+    public int HOffset { get; set; }
     public bool InFront { get; set; }
 
     public Decoration(GameObject gameObject, string imageName)

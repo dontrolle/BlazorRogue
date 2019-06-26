@@ -469,6 +469,20 @@ public class DungeonGenerator
                         }
                         var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
                         Map.AddGameObject(new HalfWall(x, y, halfWallIndex));
+
+                        if(LevelType == Level.Cave){
+                            // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
+                            if(x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black)){
+                                Map.AddGameObject(new CaveEdge(x, y, 1, -Map.TileHeight, -Map.TileWidth));
+                                //Map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
+                            }
+                                
+
+                            if(x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black)){
+                                Map.AddGameObject(new CaveEdge(x, y, 2, -Map.TileHeight, Map.TileWidth));
+                                //Map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
+                            }
+                        }
                     }
                 }
 
@@ -483,6 +497,17 @@ public class DungeonGenerator
                             index = 14;
                         }
                         Map.Tiles[x, y].TileIndex = index;
+
+                        if(LevelType == Level.Cave){
+                            // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
+                            if(x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black)){                            
+                                Map.AddGameObject(new CaveEdge(x, y, 5, 0, -Map.TileWidth));
+                            }
+
+                            if(x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black)){                    
+                                Map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.TileWidth));
+                            }
+                        }                        
                     }
                 }
 
@@ -492,12 +517,18 @@ public class DungeonGenerator
                     }
                 }
 
-                //TODO: If leveltype is Cave:
-                // - add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
-                // - add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
-                // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
-                
+                if(LevelType == Level.Cave){
+                    // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
+                    if(Map.Tiles[x, y].TileType == TileType.Wall){
+                        if(x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black)){                            
+                            Map.AddGameObject(new CaveEdge(x, y, 3, 0, -Map.TileWidth));
+                        }
 
+                        if(x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black)){                    
+                            Map.AddGameObject(new CaveEdge(x, y, 4, 0, Map.TileWidth));
+                        }
+                    }
+                }
             }
         }
     }
