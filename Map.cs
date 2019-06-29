@@ -11,6 +11,8 @@ public class Map
 
     public string DungeonWallSet { get; private set; }
     public Player Player { get; private set; }
+    public const int SightRadius = 6;
+    public const int PlayerSightRadiusSquared = SightRadius * SightRadius;
 
     public List<string> DebugInfo = new List<string>();
 
@@ -210,11 +212,14 @@ public class Map
         // Check for blocking Walls or GameObject's
         int destX = this.Player.x + xDelta;
         int destY = this.Player.y + yDelta;
-        if (!Blocked(destX, destY))
+        if (!IsBlocked(destX, destY))
             Player.Move(xDelta, yDelta);
     }
 
-    public bool Blocked(int x, int y){
+    // TODO: 
+    // * precompute and save in bool[,] array 
+    // * update on any GameObject move, or state change (like Door)
+    public bool IsBlocked(int x, int y){
         if(Tiles[x,y].Blocking)
             return true;
         
@@ -222,5 +227,12 @@ public class Map
             return true;
 
         return false;
+    }
+
+    // TODO: 
+    // * precompute and save in bool[,] array 
+    // * update on any GameObject move, or state change (like Door)
+    public bool IsVisible(int x, int y){
+        return ((Player.x-x)*(Player.x-x)+(Player.y-y)*(Player.y-y)) < PlayerSightRadiusSquared;
     }
 }

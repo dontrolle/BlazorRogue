@@ -12,8 +12,13 @@
         {
             string imgFileName = map.Tiles[x,y].ImageName + ".png";
             string tiletype = map.Tiles[x,y].TileType.ToString();
-            <div id="@x,@y" class="tile">
-                <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y (@tiletype)"> </div>
+            string fovClass = map.IsVisible(x,y) ? "" : "outoffov";
+            string tileClass = $"tile {(fovClass)}";
+
+            <div id="@x,@y" class="cell">
+                <div class="tile" style="background-image: url('img/uf_terrain/floor_extra_11.png');" alt="@x,@y (dark background)"> </div>
+                
+                <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
 
                 @foreach (var decoration in map.AllDecorations(x,y))
                 {
@@ -30,7 +35,7 @@
                         layerClass = "decinfront";
                     }
 
-                    cssclass = $"{cssclass} {(layerClass)}";
+                    cssclass = $"{cssclass} {(layerClass)} {(fovClass)}";
 
                     string style = "";
                     if(decoration.ImageName != null && decoration.ImageName != ""){

@@ -8,8 +8,8 @@
         @for (int x = 0; x < positions.GetLength(0); x++)
         {
             string imgFileName = positions[x,y].ImageName + ".png";            
-            <div id="@x,@y" class="tile">
-                <div class="map_img" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y"> </div>
+            <div id="@x,@y" class="cell">
+                <div class="tile" style="background-image: url('img/uf_terrain/@imgFileName');" alt="@x,@y"> </div>
             </div>
         }
         </div>

@@ -2,7 +2,8 @@ using System;
 
 public class Player : GameObject
 {
-    public Player(int x, int y) : base(x,y) {}
+    public Player(int x, int y) : base(x,y) {
+    }
 
     public override void Render(Map map)
     {

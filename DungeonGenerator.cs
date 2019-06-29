@@ -375,7 +375,7 @@ public class DungeonGenerator
             var x = random.Next(0, Map.Width);
             var y = random.Next(0, Map.Height);
 
-            if(!Map.Blocked(x,y)) 
+            if(!Map.IsBlocked(x,y))
                 return Tuple.Create(x,y);
         }
         throw new Exception($"Couldn't find an unblocked tile on map in {MaxSearch} tries!");
