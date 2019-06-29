@@ -17,6 +17,7 @@ public class DungeonGenerator
 
     // Decorations
     private const double PercentageChanceOfBones = 0.05;
+    private double PercentageChanceOfSpiderWeb = 0.25;
 
     // Walls with borders- "cave", "ruins", "stone"
     // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
@@ -96,7 +97,7 @@ public class DungeonGenerator
     public DungeonGenerator(int width, int height)
     {
         // Choose random level-type
-        LevelType = Level.Dungeon;
+        LevelType = Level.Cave;
         // if(GetRandomBool())
         //     LevelType = Level.Cave;
 
@@ -504,13 +505,34 @@ public class DungeonGenerator
                             if(x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black)){                    
                                 Map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.TileWidth));
                             }
-                        }                        
+                        }
                     }
                 }
 
                 if(Map.Tiles[x, y].TileType == TileType.Floor) {
                     if(random.NextDouble() < PercentageChanceOfBones){
                         Map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
+                    }
+
+                    // in the following we rely on floors never being placed on the perimeter tiles, else we could do
+                    //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
+                    if(random.NextDouble() < PercentageChanceOfSpiderWeb){
+                        bool wallAbove = Map.Tiles[x, y-1].TileType == TileType.Wall;
+                        bool wallBelow = Map.Tiles[x, y+1].TileType == TileType.Wall;
+                        bool wallLeft = Map.Tiles[x-1, y].TileType == TileType.Wall;
+                        bool wallRight = Map.Tiles[x+1, y].TileType == TileType.Wall;
+                        if(wallAbove && wallLeft){
+                            Map.AddGameObject(new SpiderWeb(x,y-1,1));
+                        }
+                        else if(wallBelow && wallLeft){
+                            Map.AddGameObject(new SpiderWeb(x,y,2));
+                        }
+                        else if(wallBelow && wallRight){
+                            Map.AddGameObject(new SpiderWeb(x,y,3));
+                        }
+                        else if(wallAbove && wallRight){
+                            Map.AddGameObject(new SpiderWeb(x,y-1,4));
+                        }
                     }
                 }
 
