@@ -286,6 +286,8 @@ public class Map
             yDelta = 1;
         }
 
+        //TODO: If the player does an action, which may change visibility, call UpdateBlocksLight( , , true)
+
         // Check for blocking Walls or GameObject's
         int destX = this.Player.x + xDelta;
         int destY = this.Player.y + yDelta;
