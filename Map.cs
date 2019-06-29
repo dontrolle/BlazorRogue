@@ -297,7 +297,7 @@ public class Map
     }
 
     private void RecomputeVisibility(){
-        // TODO: Can I optimize this clearing?
+        // TODO: Can I optimize this clearing? Or, fold it into the Compute()?
         ForEachTile(
             (x,y) => {
                 IsVisibleMap[x,y] = false;

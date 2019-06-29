@@ -60,14 +60,7 @@ public class Door : GameObject {
         }
 
         // add a button (without own graphic) to interact with the door
-        map.Decorations[x,y].Add(new Decoration ( this, null ){
-                OnClick = () => { 
-                    OnClick(); 
-                    // TODO: clunky to call UpdateBlocksLight here... Should be something general for interactive objects
-                    map.UpdateBlocksLight(x,y, recomputeVisibility: true);
-                }
-            }
-        );
+        map.Decorations[x,y].Add(new Decoration ( this, null ){OnClick = OnClick});
     }
 
     public void OnClick()

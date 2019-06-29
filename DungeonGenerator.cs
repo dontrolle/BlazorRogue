@@ -96,9 +96,9 @@ public class DungeonGenerator
     public DungeonGenerator(int width, int height)
     {
         // Choose random level-type
-        LevelType = Level.Cave;
+        LevelType = Level.Dungeon;
         // if(GetRandomBool())
-        //     LevelType = Level.Dungeon;
+        //     LevelType = Level.Cave;
 
         var wallSet = GetRandomElement(WallSets);
         if(LevelType == Level.Cave){
@@ -204,7 +204,7 @@ public class DungeonGenerator
 
             if(!intersect){
                 Rooms.Add(newRoom);
-                Map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
+                //Map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
                 CreateRoomFloor(newRoom);
 
                 if(lastRoom == null){
