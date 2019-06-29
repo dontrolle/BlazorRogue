@@ -74,6 +74,9 @@ public class Map
         }
     }
 
+    public bool[,] IsMappedMap;
+    public bool[,] IsVisibleMap;
+
     public IEnumerable<Decoration> AllDecorations(int x, int y)
     {
         return decorations[x,y].Concat(moveableDecorations[x, y]);
@@ -89,6 +92,8 @@ public class Map
         decorations = new List<Decoration>[width, height];
         moveableDecorations = new List<Decoration>[width, height];        
         gameObjectByCoord = new List<GameObject>[width, height];
+        IsMappedMap = new bool[width, height];
+        IsVisibleMap = new bool[width, height];
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -103,6 +108,8 @@ public class Map
                 decorations[i, j] = new List<Decoration>();
                 moveableDecorations[i, j] = new List<Decoration>();
                 gameObjectByCoord[i, j] = new List<GameObject>();
+                IsMappedMap[i,j] = false;
+                IsVisibleMap[i,j] = false;
             }
         }
 
@@ -117,6 +124,16 @@ public class Map
             for (int j = 0; j < clearArray.GetLength(1); j++)
             {
                 clearArray[i, j].Clear();
+            }
+        }
+    }
+
+    public void ForEachTile(Action<int,int> apply){
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                apply(x,y);
             }
         }
     }
@@ -165,12 +182,19 @@ public class Map
     {
         AddMoveable(player);
         this.Player = player;
-        //TODO: Do I want to stuff beside this?
+
+        // Init IsVisible and IsMapped maps)
+        ForEachTile(
+            (x,y) => IsVisibleMap[x,y] = IsMappedMap[x,y] = IsVisible(x,y)
+        );
     }
 
     public void AddMoveable(GameObject gameObject)
     {
         moveables.Add(gameObject);
+        // TODO: Should I be adding to gameObjectByCoord here, also?
+        // TODO: Currently, something fishy in that Moveables and MoveableByCorrd aren't linked. Player itself adds the dec.
+        // TODO: I'll probably hit this, when I add the first other moveable
     }
 
     public void RenderMoveables()
@@ -212,8 +236,20 @@ public class Map
         // Check for blocking Walls or GameObject's
         int destX = this.Player.x + xDelta;
         int destY = this.Player.y + yDelta;
-        if (!IsBlocked(destX, destY))
+        if (!IsBlocked(destX, destY)){
             Player.Move(xDelta, yDelta);
+            UpdateFoVMapsAfterPlayerMove(xDelta, yDelta);
+        }
+    }
+
+    private void UpdateFoVMapsAfterPlayerMove(int xDelta, int yDelta){
+        ForEachTile(
+            (x,y) => {
+                bool xyVisible = IsVisible(x,y);
+                IsVisibleMap[x,y] = xyVisible;
+                IsMappedMap[x,y] |= xyVisible;
+            }
+        );        
     }
 
     // TODO: 

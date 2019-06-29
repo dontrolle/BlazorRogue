@@ -12,55 +12,56 @@
         {
             string imgFileName = map.Tiles[x,y].ImageName + ".png";
             string tiletype = map.Tiles[x,y].TileType.ToString();
-            string fovClass = map.IsVisible(x,y) ? "" : "outoffov";
+            string fovClass = map.IsVisibleMap[x,y] ? "" : "outoffov";
             string tileClass = $"tile {(fovClass)}";
 
             <div id="@x,@y" class="cell">
                 <div class="tile" style="background-image: url('img/uf_terrain/floor_extra_11.png');" alt="@x,@y (dark background)"> </div>
-                
-                <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
+                @if (map.IsMappedMap[x,y]){
+                    <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
 
-                @foreach (var decoration in map.AllDecorations(x,y))
-                {
-                    bool renderDiv = false;
-                    string cssclass = "decoration";
-                    if(decoration.AnimationClass != null && decoration.AnimationClass != "")
+                    @foreach (var decoration in map.AllDecorations(x,y))
                     {
-                        cssclass = @decoration.AnimationClass;
-                        renderDiv = true;
-                    }
-
-                    var layerClass = "decbehind";
-                    if(decoration.InFront){
-                        layerClass = "decinfront";
-                    }
-
-                    cssclass = $"{cssclass} {(layerClass)} {(fovClass)}";
-
-                    string style = "";
-                    if(decoration.ImageName != null && decoration.ImageName != ""){
-                        string decImgFileName = decoration.ImageName + ".png";
-                        string offset = "";
-                        if (decoration.Offset != 0)
+                        bool renderDiv = false;
+                        string cssclass = "decoration";
+                        if(decoration.AnimationClass != null && decoration.AnimationClass != "")
                         {
-                            offset = $" top: {decoration.Offset}px;";
+                            cssclass = @decoration.AnimationClass;
+                            renderDiv = true;
                         }
-                        if (decoration.HOffset != 0)
+
+                        var layerClass = "decbehind";
+                        if(decoration.InFront){
+                            layerClass = "decinfront";
+                        }
+
+                        cssclass = $"{cssclass} {(layerClass)} {(fovClass)}";
+
+                        string style = "";
+                        if(decoration.ImageName != null && decoration.ImageName != ""){
+                            string decImgFileName = decoration.ImageName + ".png";
+                            string offset = "";
+                            if (decoration.Offset != 0)
+                            {
+                                offset = $" top: {decoration.Offset}px;";
+                            }
+                            if (decoration.HOffset != 0)
+                            {
+                                offset += $"left: {decoration.HOffset}px;";
+                            }                        
+
+                            renderDiv = true;
+                            style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
+                        }
+
+                        if(renderDiv)
                         {
-                            offset += $"left: {decoration.HOffset}px;";
-                        }                        
+                            <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)"> </div>
+                        }
 
-                        renderDiv = true;
-                        style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
-                    }
-
-                    if(renderDiv)
-                    {
-                        <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)"> </div>
-                    }
-
-                    if (decoration.OnClick != null){
-                        <button class="interact_button" onclick=@(() => OnClick(decoration)) /> 
+                        if (decoration.OnClick != null){
+                            <button class="interact_button" onclick=@(() => OnClick(decoration)) /> 
+                        }
                     }
                 }
             </div>

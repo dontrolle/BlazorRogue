@@ -256,16 +256,6 @@ public class DungeonGenerator
         return playerCoord;
     }
 
-    private void ForEachCaveTile(Action<int,int> apply){
-        for (int x = 0; x < Map.Width; x++)
-        {
-            for (int y = 0; y < Map.Height; y++)
-            {
-                apply(x,y);
-            }
-        }
-    }
-
     private Tuple<int,int> CreateCave(){
         int initWallPercentageChance = 40;
 
@@ -279,7 +269,7 @@ public class DungeonGenerator
                     genmap[x,y] = false;
             };
         
-        ForEachCaveTile(initFill);
+        Map.ForEachTile(initFill);
 
         bool[,] newmap = null;
         Action<int,int> generation1Fill = (x,y) =>
@@ -293,7 +283,7 @@ public class DungeonGenerator
         for (int i = 0; i < 4; i++)
         {
             newmap = new bool[map.Width, map.Height];
-            ForEachCaveTile(generation1Fill);
+            Map.ForEachTile(generation1Fill);
             genmap = newmap;
         }
 
@@ -310,7 +300,7 @@ public class DungeonGenerator
         for (int i = 0; i < 3; i++)
         {
             newmap = new bool[map.Width, map.Height];            
-            ForEachCaveTile(generation2Fill);
+            Map.ForEachTile(generation2Fill);
             genmap = newmap;            
         }
 
@@ -336,7 +326,7 @@ public class DungeonGenerator
     }
 
     private void FillMap(bool[,] genmap, string floorset, int[] floorIndexes){
-        ForEachCaveTile(
+        Map.ForEachTile(
             (x,y) => 
             {
                 if(genmap[x,y])
