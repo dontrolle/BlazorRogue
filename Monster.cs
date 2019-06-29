@@ -5,6 +5,7 @@ public class Monster : GameObject
     public Monster(int x, int y) : base(x,y) {
         InvisibleOutsideFov = true;
         Blocking = true;
+        // Note, can't block light due to the way moveables are treated in Map
     }
 
     public override void Render(Map map)

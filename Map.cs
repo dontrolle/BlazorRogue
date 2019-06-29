@@ -154,7 +154,6 @@ public class Map
     }
 
     public void UpdateBlocksLight(int x, int y, bool recomputeVisibility = false) {
-        // TODO: Due to the problem with moveables and XXXByCoord, I'm afraid this will fail for moveables
         BlocksLightMap[x,y] = Tiles[x,y].Blocking || gameObjectByCoord[x,y].Any(g => g.BlocksLight);
 
         if(recomputeVisibility)
