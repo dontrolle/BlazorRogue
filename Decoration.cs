@@ -9,6 +9,7 @@ public class Decoration
     public int Offset { get; set; }
     public int HOffset { get; set; }
     public bool InFront { get; set; }
+    public bool BlocksLight => GameObject.BlocksLight;
 
     public Decoration(GameObject gameObject, string imageName)
     {

@@ -16,5 +16,6 @@ public class MapPosition {
     public TileType TileType { get; set; }
     public int x { get; }
     public int y { get; }
+    // For now, all blocking tiles also block light. If I make windows, this needs to change. 
     public bool Blocking { get; set; } = false;
 }

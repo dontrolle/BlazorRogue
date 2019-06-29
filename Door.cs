@@ -14,7 +14,7 @@ public class Door : GameObject {
         HalfWallIndex = halfWallIndex;
         Orientation = orientation;
         IsOpen = isOpen;
-        Blocking = !isOpen;
+        Blocking = BlocksLight = !isOpen;
     }
 
     public override void Render(Map map)
@@ -60,12 +60,20 @@ public class Door : GameObject {
         }
 
         // add a button (without own graphic) to interact with the door
-        map.Decorations[x,y].Add(new Decoration ( this, null ) { OnClick = OnClick });
+        map.Decorations[x,y].Add(new Decoration ( this, null ){
+                OnClick = () => { 
+                    OnClick(); 
+                    // TODO: clunky to call UpdateBlocksLight here... Should be something general for interactive objects
+                    map.UpdateBlocksLight(x,y, recomputeVisibility: true);
+                }
+            }
+        );
     }
 
     public void OnClick()
     {
         IsOpen = !IsOpen;
         Blocking = !Blocking;
+        BlocksLight = !BlocksLight;
     }
 }

@@ -133,6 +133,7 @@ public class DungeonGenerator
 
         // Add Player in the corner of the first room - offset +1,+1 from left-top corner
         AddPlayer(playerCoord.Item1, playerCoord.Item2);
+        Map.PostGenInitalize();
     }
 
     private void AddDoors(){
