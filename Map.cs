@@ -52,17 +52,6 @@ public class Map
         }
     }
 
-    private List<Decoration>[,] moveableDecorations;
-
-    public List<Decoration>[,] MoveableDecorations
-    {
-        get
-        {
-            return moveableDecorations;
-        }
-    }
-
-
     private List<GameObject>[,] gameObjectByCoord;
     public IEnumerable<GameObject>[,] GameObjectByCoord
     {
@@ -83,9 +72,20 @@ public class Map
         }
     }
 
+    private List<Decoration>[,] moveableDecorations;
+
+    public List<Decoration>[,] MoveableDecorations
+    {
+        get
+        {
+            return moveableDecorations;
+        }
+    }
+
     public bool[,] IsMappedMap;
     public bool[,] IsVisibleMap;
     public bool[,] BlocksLightMap;
+    public bool[,] BlocksMovementMap;
 
     private Visibility VisibilityAlgorithm;
     private bool PostGenInitialized = false;
@@ -107,6 +107,7 @@ public class Map
         IsMappedMap = new bool[width, height];
         IsVisibleMap = new bool[width, height];
         BlocksLightMap = new bool[width, height];
+        BlocksMovementMap = new bool[width, height];
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
@@ -123,10 +124,6 @@ public class Map
                 decorations[i, j] = new List<Decoration>();
                 moveableDecorations[i, j] = new List<Decoration>();
                 gameObjectByCoord[i, j] = new List<GameObject>();
-                // unecessary -->
-                //IsMappedMap[i,j] = false;
-                //IsVisibleMap[i,j] = false;
-                //BlocksLightMap[i,j] = false;
             }
         }
 
@@ -149,6 +146,7 @@ public class Map
             {
                 IsVisibleMap[x,y] = IsMappedMap[x,y] = IsPlayerVisible(x,y);
                 UpdateBlocksLight(x, y);
+                UpdateBlockMovement(x, y);
             }
         );
     }
@@ -158,6 +156,12 @@ public class Map
 
         if(recomputeVisibility)
             RecomputeVisibility();
+    }
+
+    public void UpdateBlockMovement(int x, int y){
+        BlocksMovementMap[x,y] = Tiles[x,y].Blocking || gameObjectByCoord[x,y].Any(g => g.Blocking);
+
+        BlocksMovementMap[x,y] |= moveables.Any(m => m.Blocking && m.x == x && m.y == y);
     }
 
     private void ClearTwoDimListArray<T>(List<T>[,] clearArray)
@@ -241,9 +245,6 @@ public class Map
     public void AddMoveable(GameObject gameObject)
     {
         moveables.Add(gameObject);
-        // TODO: Should I be adding to gameObjectByCoord here, also?
-        // TODO: Currently, something fishy in that Moveables and MoveableByCorrd aren't linked. Player itself adds the dec.
-        // TODO: I'll probably hit this, when I add the first other moveable
     }
 
     public void RenderMoveables()
@@ -291,9 +292,14 @@ public class Map
         int destX = this.Player.x + xDelta;
         int destY = this.Player.y + yDelta;
         if (!IsBlocked(destX, destY)){
+            // where we came from is definetely not blocking anymore, since we just vacated the tile
+            BlocksMovementMap[this.Player.x, this.Player.y] = false; 
+            // do the move
             Player.Move(xDelta, yDelta);
+            // we need to recompute visibility
             RecomputeVisibility();
-            //UpdateFoVMapsAfterPlayerMove(xDelta, yDelta);
+            // and we need to update blocked status for the destination tile (for the benefit of other moveables)
+            BlocksMovementMap[destX, destY] = true;
         }
     }
 
@@ -320,18 +326,19 @@ public class Map
         );        
     }
 
-    // TODO: 
-    // * precompute and save in bool[,] array 
-    // * update on any GameObject move, or state change (like Door)
     public bool IsBlocked(int x, int y){
-        if(Tiles[x,y].Blocking)
-            return true;
-        
-        // TODO: Due to the problem with moveables and XXXByCoord, I'm afraid this will fail for moveables
-        if(GameObjectByCoord[x,y].Any(g=>g.Blocking))
-            return true;
+        if(PostGenInitialized)
+            return BlocksMovementMap[x,y];
+        else
+        {
+            if(Tiles[x,y].Blocking)
+                return true;
+            
+            if(gameObjectByCoord[x,y].Any(g=>g.Blocking))
+                return true;
 
-        return false;
+            return moveables.Where(m => m.Blocking).Any(m => m.x == x && m.y == y);
+        }
     }
 
     public bool IsPlayerVisible(int x, int y){

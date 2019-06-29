@@ -118,6 +118,7 @@
         // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
         //       When I begin to do effecs, I may need to revisit this...
         map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
+        map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
         map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
     }
 
