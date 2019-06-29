@@ -22,11 +22,15 @@
 
                     @foreach (var decoration in map.AllDecorations(x,y))
                     {
+                        if(decoration.GameObject.InvisibleOutsideFov && !map.IsVisibleMap[x,y]){
+                            continue;
+                        }
+
                         bool renderDiv = false;
                         string cssclass = "decoration";
-                        if(decoration.AnimationClass != null && decoration.AnimationClass != "")
-                        {
-                            cssclass = @decoration.AnimationClass;
+                        string animationClass = "";
+                        if(decoration.AnimationClass != null && decoration.AnimationClass != ""){
+                            animationClass = @decoration.AnimationClass;
                             renderDiv = true;
                         }
 
@@ -35,7 +39,7 @@
                             layerClass = "decinfront";
                         }
 
-                        cssclass = $"{cssclass} {(layerClass)} {(fovClass)}";
+                        cssclass = $"{cssclass} {(animationClass)} {(layerClass)} {(fovClass)}";
 
                         string style = "";
                         if(decoration.ImageName != null && decoration.ImageName != ""){
@@ -80,7 +84,7 @@
 </div>
 
 @functions {
-    Map map = CreateMap(60, 40);
+    Map map = CreateMap(33, 20);
 
     [Inject]
     IJSRuntime Runtime { get; set; }

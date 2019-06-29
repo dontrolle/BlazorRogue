@@ -97,8 +97,8 @@ public class DungeonGenerator
     {
         // Choose random level-type
         LevelType = Level.Cave;
-        if(GetRandomBool())
-            LevelType = Level.Dungeon;
+        // if(GetRandomBool())
+        //     LevelType = Level.Dungeon;
 
         var wallSet = GetRandomElement(WallSets);
         if(LevelType == Level.Cave){
@@ -133,6 +133,9 @@ public class DungeonGenerator
 
         // Add Player in the corner of the first room - offset +1,+1 from left-top corner
         AddPlayer(playerCoord.Item1, playerCoord.Item2);
+
+        var tile = GetRandomUnblockedMapTile();
+        Map.AddMonster(new Monster(tile.Item1, tile.Item2));
         Map.PostGenInitalize();
     }
 

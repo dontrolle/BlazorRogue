@@ -43,6 +43,15 @@ public class Map
         }
     }
 
+    private List<Monster> monsters;
+    public IEnumerable<Monster> Monsters
+    {
+        get
+        {
+            return monsters;
+        }
+    }
+
     private List<Decoration>[,] moveableDecorations;
 
     public List<Decoration>[,] MoveableDecorations
@@ -124,6 +133,8 @@ public class Map
         gameObjects = new List<GameObject>();
         moveables = new List<GameObject>();
         VisibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
+
+        monsters = new List<Monster>();
     }
 
     /// <summary>
@@ -221,6 +232,11 @@ public class Map
     {
         AddMoveable(player);
         this.Player = player;
+    }
+
+    public void AddMonster(Monster monster){
+        AddMoveable(monster);
+        this.monsters.Add(monster);
     }
 
     public void AddMoveable(GameObject gameObject)
