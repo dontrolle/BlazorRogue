@@ -144,11 +144,12 @@ public class Map
         ForEachTile(
             (x,y) => 
             {
-                IsVisibleMap[x,y] = IsMappedMap[x,y] = IsPlayerVisible(x,y);
                 UpdateBlocksLight(x, y);
                 UpdateBlockMovement(x, y);
             }
         );
+
+        RecomputeVisibility();
     }
 
     public void UpdateBlocksLight(int x, int y, bool recomputeVisibility = false) {
@@ -314,18 +315,6 @@ public class Map
         VisibilityAlgorithm.Compute(new LevelPoint((uint) Player.x, (uint) Player.y), PlayerSightRadius);
     }
 
-    private void UpdateFoVMapsAfterPlayerMove(int xDelta, int yDelta){
-        ForEachTile(
-            (x,y) => {
-                bool xyVisible = IsPlayerVisible(x,y);
-                if(xyVisible)
-                    SetVisible(x,y);
-                else
-                    IsVisibleMap[x,y] = false;
-            }
-        );        
-    }
-
     public bool IsBlocked(int x, int y){
         if(PostGenInitialized)
             return BlocksMovementMap[x,y];
@@ -341,13 +330,28 @@ public class Map
         }
     }
 
-    public bool IsPlayerVisible(int x, int y){
+    #region Simple functions - should be folded into a Visibility alg or deleted
+
+    private void SimpleUpdateFoVMapsAfterPlayerMove(int xDelta, int yDelta){
+        ForEachTile(
+            (x,y) => {
+                bool xyVisible = SimpleIsPlayerVisible(x,y);
+                if(xyVisible)
+                    SetVisible(x,y);
+                else
+                    IsVisibleMap[x,y] = false;
+            }
+        );        
+    }
+
+    private bool SimpleIsPlayerVisible(int x, int y){
         if(x < 0 || x >= Width || y < 0 || y >= Height)
             return false;
 
         return ((Player.x-x)*(Player.x-x)+(Player.y-y)*(Player.y-y)) < PlayerSightRadiusSquared;
     }
-
+    #endregion
+    
     public bool BlocksLight(int x, int y){
         if(x < 0 || x >= Width || y < 0 || y >= Height)
             return true;
