@@ -2,8 +2,9 @@
 
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
+@inject IComponentContext ComponentContext
 
-<div class="map" onkeyup="@KeyUp">
+<div class="map" id="mapcontainer" onkeyup="@KeyUp">
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < map.Height; y++)
     {
@@ -72,12 +73,12 @@
         }
         </div>
     }
-    <div class="cell" style="background-image: url('img/uf_interface_641.png');top: -48px;">
-        <button class="interact_button" onclick=@(() => OnClickStart())/> 
+    <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
+        <button id="start_button" class="interact_button" onclick=@(OnClickStart)/> 
     </div>
 </div>
 
-<div>
+<div id="debuginfo">
     <ul>
     @foreach (var debugInfo in map.DebugInfo)
     {
@@ -89,23 +90,22 @@
 @functions {
     Map map = CreateMap(40,27);
 
-/*
-    [Inject]
-    IJSRuntime Runtime { get; set; }
-
-    bool first = true;
+    async Task Focus(string controlId)
+    {
+        await JsRuntime.InvokeAsync<string>("SetFocus", controlId);
+    }
 
     protected override async Task OnAfterRenderAsync()
     {
-        // Clunky, and probably has simpler solution, but it works for now. OnAfterRenderAsync is run after each render, and event listeners apparently need to be set here. If first isn't set and checked, we get multiple event listeners registered.
-        if(first)
+        // TODO: Sadly doesn't work        
+        if (!ComponentContext.IsConnected)
         {
-            first = false;
-            JsInterop.InteropKeyPress.KeyUp += this.OnKeyUp;
-            await this.Runtime.InvokeAsync<bool>("AddOnKeyUpEvent");
+            return;
         }
+
+        await Focus("start_button");
     }
-*/
+
     // Create map
     private static Map CreateMap(int width, int height)
     {
@@ -116,8 +116,10 @@
         return dg.Map;
     }
 
-    private void OnClickStart(){
-
+    private async Task OnCli    ckStart(){
+        // TODO: Sadly doesn't work
+//        await JsRuntime.InvokeAsync<string>("HideById", "start_button_div");
+//        this.StateHasChanged();
     }
     
     private void OnClick(Decoration decoration)
@@ -135,13 +137,5 @@
         map.OnKeyPress(e.Code);
         map.RenderMoveables();
 //        this.StateHasChanged();
-    }
-
-    // TODO: Tried bind to property on player which I change manually; but I can't seem to get it working. Thus, this.StateHasChanged().
-    public void OnKeyUp(object sender, ConsoleKey key)
-    {
-        map.OnKeyPress(key.ToString());
-        map.RenderMoveables();
-        this.StateHasChanged();
     }
 }

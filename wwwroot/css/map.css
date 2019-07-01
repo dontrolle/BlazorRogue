@@ -91,3 +91,15 @@
     height: 48px;
     white-space: normal;
 }
+
+.red-square {
+    background-color: #FF4136;
+    width: 96px;
+    height: 96px;
+    position: fixed;
+    left: 5%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+  
+  
