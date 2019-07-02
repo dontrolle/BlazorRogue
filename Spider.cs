@@ -19,7 +19,7 @@ public class Spider: Monster
         {Type.BlackGiant, "animated_spider_black_giant" },
     };
 
-    public Spider(int x, int y, Spider.Type type): base(x,y)
+    public Spider(int x, int y, AIComponent aIComponent, Spider.Type type): base(x,y, aIComponent)
     {
         base.AnimationClass = TypeToAnimation[type];
     }

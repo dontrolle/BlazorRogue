@@ -43,6 +43,7 @@ public class Map
         }
     }
 
+    /* Actually, currently these are GameObject with AI */
     private List<Monster> monsters;
     public IEnumerable<Monster> Monsters
     {
@@ -82,6 +83,7 @@ public class Map
         }
     }
 
+    /* Fragile... These aren't protected in any sence, currently... */
     public bool[,] IsMappedMap;
     public bool[,] IsVisibleMap;
     public bool[,] BlocksLightMap;
@@ -150,6 +152,13 @@ public class Map
         );
 
         RecomputeVisibility();
+    }
+
+    public void PlayerTookTurn(){
+        foreach (var monster in Monsters)
+        {
+            monster.AIComponent.TakeTurn();
+        }
     }
 
     public void UpdateBlocksLight(int x, int y, bool recomputeVisibility = false) {
