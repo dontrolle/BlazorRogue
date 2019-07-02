@@ -131,3 +131,59 @@
     animation-duration: 1.5s;
     animation-iteration-count: infinite;
 }
+
+@keyframes spider_black {
+    0% { background-image: url('../img/uf_heroes/spider_black_1.png'); }
+    25% { background-image: url('../img/uf_heroes/spider_black_2.png'); }
+    50% { background-image: url('../img/uf_heroes/spider_black_3.png');}
+    75% { background-image: url('../img/uf_heroes/spider_black_4.png'); }
+    100% { background-image: url('../img/uf_heroes/spider_black_1.png'); }
+}
+
+.animated_spider_black {
+    animation-name: spider_black;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes spider_black_giant {
+    0% { background-image: url('../img/uf_heroes/spider_black_giant_1.png'); }
+    25% { background-image: url('../img/uf_heroes/spider_black_giant_2.png'); }
+    50% { background-image: url('../img/uf_heroes/spider_black_giant_3.png');}
+    75% { background-image: url('../img/uf_heroes/spider_black_giant_4.png'); }
+    100% { background-image: url('../img/uf_heroes/spider_black_giant_1.png'); }
+}
+
+.animated_spider_black_giant {
+    animation-name: spider_black_giant;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes spider_brown {
+    0% { background-image: url('../img/uf_heroes/spider_brown_1.png'); }
+    25% { background-image: url('../img/uf_heroes/spider_brown_2.png'); }
+    50% { background-image: url('../img/uf_heroes/spider_brown_3.png');}
+    75% { background-image: url('../img/uf_heroes/spider_brown_4.png'); }
+    100% { background-image: url('../img/uf_heroes/spider_brown_1.png'); }
+}
+
+.animated_spider_brown {
+    animation-name: spider_brown;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes spider_brown_giant {
+    0% { background-image: url('../img/uf_heroes/spider_brown_giant_1.png'); }
+    25% { background-image: url('../img/uf_heroes/spider_brown_giant_2.png'); }
+    50% { background-image: url('../img/uf_heroes/spider_brown_giant_3.png');}
+    75% { background-image: url('../img/uf_heroes/spider_brown_giant_4.png'); }
+    100% { background-image: url('../img/uf_heroes/spider_brown_giant_1.png'); }
+}
+
+.animated_spider_brown_giant {
+    animation-name: spider_brown_giant;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}

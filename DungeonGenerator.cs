@@ -137,7 +137,11 @@ public class DungeonGenerator
         AddPlayer(playerCoord.Item1, playerCoord.Item2);
 
         var tile = GetRandomUnblockedMapTile();
-        //Map.AddMonster(new Monster(tile.Item1, tile.Item2));
+
+        // Add monsters
+        Map.AddMonster(new Goblin(tile.Item1, tile.Item2));
+
+        // initialize various maps and so on in Map (better place to do this?)
         Map.PostGenInitalize();
     }
 
