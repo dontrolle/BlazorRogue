@@ -18,6 +18,7 @@ public class DungeonGenerator
     // Decorations
     private const double PercentageChanceOfBones = 0.05;
     private double PercentageChanceOfSpiderWeb = 0.25;
+    private double PercentageChanceOfTorch = 0.25;
 
     // Walls with borders- "cave", "ruins", "stone"
     // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
@@ -97,9 +98,9 @@ public class DungeonGenerator
     public DungeonGenerator(int width, int height)
     {
         // Choose random level-type
-        LevelType = Level.Cave;
+        LevelType = Level.Dungeon;
         // if(GetRandomBool())
-        //     LevelType = Level.Dungeon;
+        //     LevelType = Level.Cave;
 
         var wallSet = GetRandomElement(WallSets);
         if(LevelType == Level.Cave){
@@ -468,6 +469,7 @@ public class DungeonGenerator
                         var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
                         Map.AddGameObject(new HalfWall(x, y, halfWallIndex));
 
+                        // add extra decs for specific tilesets
                         if(LevelType == Level.Cave){
                             // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
                             if(x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black)){
@@ -490,12 +492,20 @@ public class DungeonGenerator
                     if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y + 1].TileType == TileType.Floor || Map.Tiles[x, y + 1].TileType == TileType.Black))
                     {
                         var index = GetRandomElementWeighted(WallsWithFront, WallWeights);
-                        if (MapTileContainsDoor(x, y + 1))
+                        bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
+                        if (mapTileBelowHasDoor)
                         {
                             index = 14;
                         }
                         Map.Tiles[x, y].TileIndex = index;
 
+                        // check for adding torch
+                        if(!mapTileBelowHasDoor && Map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch){
+                            Map.AddGameObject(new Torch(x,y));
+                            //Map.DebugInfo.Add($"Added torch at ({x},{y}).");
+                        }
+
+                        // add extra decs for specific tilesets
                         if(LevelType == Level.Cave){
                             // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
                             if(x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black)){                            
@@ -522,7 +532,7 @@ public class DungeonGenerator
                         bool wallLeft = Map.Tiles[x-1, y].TileType == TileType.Wall;
                         bool wallRight = Map.Tiles[x+1, y].TileType == TileType.Wall;
                         if(wallAbove && wallLeft){
-                            Map.AddGameObject(new SpiderWeb(x,y-1,1));
+                            Map.AddGameObject(new SpiderWeb(x,y,1) {Offset = -Map.TileHeight});
                         }
                         else if(wallBelow && wallLeft){
                             Map.AddGameObject(new SpiderWeb(x,y,2));
@@ -531,11 +541,12 @@ public class DungeonGenerator
                             Map.AddGameObject(new SpiderWeb(x,y,3));
                         }
                         else if(wallAbove && wallRight){
-                            Map.AddGameObject(new SpiderWeb(x,y-1,4));
+                            Map.AddGameObject(new SpiderWeb(x,y,4) {Offset = -Map.TileHeight});
                         }
                     }
                 }
 
+                // add extra decs for specific tilesets
                 if(LevelType == Level.Cave){
                     // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
                     if(Map.Tiles[x, y].TileType == TileType.Wall){

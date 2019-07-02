@@ -20,6 +20,10 @@
     filter: brightness(50%);
 }
 
+.lit {
+    filter: brightness(120%);
+}
+
 .decoration {
     width: 100%;
     height: 100%;
@@ -35,34 +39,6 @@
 
 .decbehind {
     z-index: 1;
-}
-
-@keyframes templar {
-    0% { background-image: url('../img/uf_heroes/templar_1.png'); }
-    25% { background-image: url('../img/uf_heroes/templar_2.png'); }
-    50% { background-image: url('../img/uf_heroes/templar_3.png');}
-    75% { background-image: url('../img/uf_heroes/templar_4.png'); }
-    100% { background-image: url('../img/uf_heroes/templar_1.png'); }
-}
-
-.animated_templar {
-    animation-name: templar;
-    animation-duration: 1.5s;
-    animation-iteration-count: infinite;
-}
-
-@keyframes goblin {
-    0% { background-image: url('../img/uf_heroes/goblin_1.png'); }
-    25% { background-image: url('../img/uf_heroes/goblin_2.png'); }
-    50% { background-image: url('../img/uf_heroes/goblin_3.png');}
-    75% { background-image: url('../img/uf_heroes/goblin_4.png'); }
-    100% { background-image: url('../img/uf_heroes/goblin_1.png'); }
-}
-
-.animated_goblin {
-    animation-name: goblin;
-    animation-duration: 1.5s;
-    animation-iteration-count: infinite;
 }
 
 .interact_button {
@@ -102,5 +78,56 @@
     top: 50%;
     transform: translate(-50%, -50%);
 }
-  
-  
+
+
+.animated_torch_floor {
+    animation-name: torch_floor;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes torch_floor {
+    0% { background-image: url('../img/uf_terrain/torch1_floor.png'); }
+    50% { background-image: url('../img/uf_terrain/torch2_floor.png'); }
+    100% { background-image: url('../img/uf_terrain/torch1_floor.png'); }
+}
+
+.animated_torch {
+    animation-name: torch;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes torch {
+    0% { background-image: url('../img/uf_terrain/torch1.png'); }
+    50% { background-image: url('../img/uf_terrain/torch2.png'); }
+    100% { background-image: url('../img/uf_terrain/torch1.png'); }
+}
+
+@keyframes templar {
+    0% { background-image: url('../img/uf_heroes/templar_1.png'); }
+    25% { background-image: url('../img/uf_heroes/templar_2.png'); }
+    50% { background-image: url('../img/uf_heroes/templar_3.png');}
+    75% { background-image: url('../img/uf_heroes/templar_4.png'); }
+    100% { background-image: url('../img/uf_heroes/templar_1.png'); }
+}
+
+.animated_templar {
+    animation-name: templar;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes goblin {
+    0% { background-image: url('../img/uf_heroes/goblin_1.png'); }
+    25% { background-image: url('../img/uf_heroes/goblin_2.png'); }
+    50% { background-image: url('../img/uf_heroes/goblin_3.png');}
+    75% { background-image: url('../img/uf_heroes/goblin_4.png'); }
+    100% { background-image: url('../img/uf_heroes/goblin_1.png'); }
+}
+
+.animated_goblin {
+    animation-name: goblin;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+}

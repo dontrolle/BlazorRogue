@@ -22,10 +22,12 @@
 
                     @foreach (var decoration in map.AllDecorations(x,y))
                     {
+                        // skip invisibles outside of fov
                         if(decoration.GameObject.InvisibleOutsideFov && !map.IsVisibleMap[x,y]){
                             continue;
                         }
 
+                        // determine css class
                         bool renderDiv = false;
                         string cssclass = "decoration";
                         string animationClass = "";
@@ -34,29 +36,35 @@
                             renderDiv = true;
                         }
 
+                        // - handle layer class
                         var layerClass = "decbehind";
                         if(decoration.InFront){
                             layerClass = "decinfront";
                         }
 
                         cssclass = $"{cssclass} {(animationClass)} {(layerClass)} {(fovClass)}";
-
+                        
+                        // determine css style
                         string style = "";
                         if(decoration.ImageName != null && decoration.ImageName != ""){
                             string decImgFileName = decoration.ImageName + ".png";
-                            string offset = "";
-                            if (decoration.Offset != 0)
-                            {
-                                offset = $" top: {decoration.Offset}px;";
-                            }
-                            if (decoration.HOffset != 0)
-                            {
-                                offset += $"left: {decoration.HOffset}px;";
-                            }                        
 
                             renderDiv = true;
-                            style = $"background-image: url('img/uf_terrain/{decImgFileName}');{offset}";
+                            style = $"background-image: url('img/uf_terrain/{decImgFileName}');";
                         }
+
+                        // - handle horizontal and vertical offset
+                        string offset = "";
+                        if (decoration.Offset != 0)
+                        {
+                            offset = $"top: {decoration.Offset}px;";
+                        }
+                        if (decoration.HOffset != 0)
+                        {
+                            offset += $"left: {decoration.HOffset}px;";
+                        }
+
+                        style = $"{style}{offset}";
 
                         if(renderDiv)
                         {
@@ -89,7 +97,7 @@
 </div>
 
 @functions {
-    Map map = CreateMap(40,27);
+    Map map = CreateMap(30,22);
 
     async Task Focus(string controlId)
     {
