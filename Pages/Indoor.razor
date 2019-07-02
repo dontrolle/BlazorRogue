@@ -17,7 +17,6 @@
             string tileClass = $"tile {(fovClass)}";
 
             <div id="@x,@y" class="cell">
-                <div class="tile" style="background-image: url('img/uf_terrain/floor_extra_11.png');" alt="@x,@y (dark background)"> </div>
                 @if (map.IsMappedMap[x,y]){
                     <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
 
@@ -73,7 +72,9 @@
         }
         </div>
     }
+
     <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
+        <!-- Ugly start button for now; it's a placeholder for something we need to change. -->    
         <button id="start_button" class="interact_button" onclick=@(OnClickStart)/> 
     </div>
 </div>

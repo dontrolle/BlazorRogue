@@ -4,6 +4,7 @@
     left:0px;
     bottom:0px;
     right:0px;
+    background-color: black;
 }
 
 .tile {
@@ -16,7 +17,7 @@
 }
 
 .outoffov {
-    opacity: 0.6;
+    filter: brightness(50%);
 }
 
 .decoration {
