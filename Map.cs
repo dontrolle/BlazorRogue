@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class Map
 {
+    public static SoundManager SoundManager {get; set;}
     public const int TileWidth = 48;
     public const int TileHeight = 48;
     public int Width { get; private set; }

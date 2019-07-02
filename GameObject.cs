@@ -17,4 +17,10 @@ public abstract class GameObject
     }
 
     public abstract void Render(Map map);
+
+    public virtual void Move(int xDelta, int yDelta)
+    {
+        this.x += xDelta;
+        this.y += yDelta;
+    }    
 }

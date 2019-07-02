@@ -25,9 +25,9 @@ public abstract class Monster : GameObject
         map.MoveableDecorations[x,y].Add(new Decoration(this, null){AnimationClass = AnimationClass});
     }
 
-    public void Move(int xDelta, int yDelta)
+    public override void Move(int xDelta, int yDelta)
     {
-        this.x += xDelta;
-        this.y += yDelta;
+        base.Move(xDelta, yDelta);
+        Map.SoundManager.PlayWalkSound();
     }
 }

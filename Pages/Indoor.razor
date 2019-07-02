@@ -105,7 +105,7 @@
 
     async Task Focus(string controlId)
     {
-        await JsRuntime.InvokeAsync<string>("SetFocus", controlId);
+        await JsRuntime.InvokeAsync<string>("blazorroguefuncs.setFocus", controlId);
     }
 
     protected override async Task OnAfterRenderAsync()
@@ -115,6 +115,8 @@
         {
             return;
         }
+
+        Map.SoundManager = new SoundManager(JsRuntime);
 
         await Focus("start_button");
     }
@@ -129,7 +131,7 @@
         return dg.Map;
     }
 
-    private async Task OnClickStart(){
+    private void OnClickStart(){
         // TODO: Sadly doesn't work
 //        await JsRuntime.InvokeAsync<string>("HideById", "start_button_div");
 //        this.StateHasChanged();

@@ -730,9 +730,9 @@ public class DungeonGenerator
         // choose random floor-set for this room
         string floorset = GetRandomElement(BaseFloorSets);
         int[] floorIndexes = BaseFloorIndexes;
-        bool specialRoom = false;
+        //bool specialRoom = false;
         if(width >= SpecialRoomWidth && height >= SpecialRoomHeight && random.NextDouble() < PercentageChanceOfSpecialRoom){
-            specialRoom = true;
+            //specialRoom = true;
             (floorset, floorIndexes) = GetRandomElement(SpecialFloorSets);
         }
 
