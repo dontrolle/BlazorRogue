@@ -1,18 +1,22 @@
-using System;
+﻿using System;
 
-public class Player : GameObject
+namespace BlazorRogue
 {
-    public Player(int x, int y) : base(x,y) {
-    }
-
-    public override void Render(Map map)
+    public class Player : GameObject
     {
-        map.MoveableDecorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_templar"});
-    }
+        public Player(int x, int y) : base(x, y)
+        {
+        }
 
-    public override void Move(int xDelta, int yDelta)
-    {
-        base.Move(xDelta, yDelta);
-        Map.SoundManager.PlayWalkSound();
+        public override void Render(Map map)
+        {
+            map.MoveableDecorations[x, y].Add(new Decoration(this, null) { AnimationClass = "animated_templar" });
+        }
+
+        public override void Move(int xDelta, int yDelta)
+        {
+            base.Move(xDelta, yDelta);
+            Map.SoundManager.PlayWalkSound();
+        }
     }
 }

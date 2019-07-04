@@ -1,13 +1,17 @@
-using System;
+﻿using System;
 
-public class Torch : GameObject
+namespace BlazorRogue
 {
-    public Torch(int x, int y) : base(x,y) {
-    }
-
-    public override void Render(Map map)
+    public class Torch : GameObject
     {
-        map.Decorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_torch"});
-        map.Decorations[x,y].Add(new Decoration(this, null){AnimationClass = "animated_torch_floor", Offset = Map.TileHeight});
+        public Torch(int x, int y) : base(x, y)
+        {
+        }
+
+        public override void Render(Map map)
+        {
+            map.Decorations[x, y].Add(new Decoration(this, null) { AnimationClass = "animated_torch" });
+            map.Decorations[x, y].Add(new Decoration(this, null) { AnimationClass = "animated_torch_floor", Offset = Map.TileHeight });
+        }
     }
 }

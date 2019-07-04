@@ -1,14 +1,19 @@
-public class FloorDecoration : GameObject {
-    public FloorDecoration(int x, int y, string prefix, int index) : base(x, y)
+﻿namespace BlazorRogue
+{
+    public class FloorDecoration : GameObject
     {
-        Prefix = prefix;
-        Index = index;
-    }
+        public FloorDecoration(int x, int y, string prefix, int index) : base(x, y)
+        {
+            Prefix = prefix;
+            Index = index;
+        }
 
-    public string Prefix { get; }
-    public int Index { get; }
+        public string Prefix { get; }
+        public int Index { get; }
 
-    public override void Render(Map map){
-        map.Decorations[x,y].Add(new Decoration(this, $"{Prefix}_{Index}"));
+        public override void Render(Map map)
+        {
+            map.Decorations[x, y].Add(new Decoration(this, $"{Prefix}_{Index}"));
+        }
     }
 }

@@ -1,8 +1,11 @@
-using System;
+﻿using System;
 
-public class Goblin: Monster 
+namespace BlazorRogue
 {
-    public Goblin(int x, int y, AIComponent aIComponent) : base(x,y,aIComponent,"animated_goblin")
+    public class Goblin : Monster
     {
+        public Goblin(int x, int y, AIComponent aIComponent) : base(x, y, aIComponent, "animated_goblin")
+        {
+        }
     }
 }

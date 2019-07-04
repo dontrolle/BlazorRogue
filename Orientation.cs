@@ -1,4 +1,8 @@
-public enum Orientation {
-    Horizontal,
-    Vertical
+﻿namespace BlazorRogue
+{
+    public enum Orientation
+    {
+        Horizontal,
+        Vertical
+    }
 }

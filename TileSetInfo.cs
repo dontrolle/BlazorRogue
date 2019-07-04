@@ -1,15 +1,19 @@
-using System;
+﻿using System;
 // Various fairly static TileSet info - should really be config files, I guess
-public static class TileSetInfo
+namespace BlazorRogue
 {
-    public static string ToTileSetPrefix(this TileType tileType){
-        switch(tileType)
+    public static class TileSetInfo
+    {
+        public static string ToTileSetPrefix(this TileType tileType)
         {
-            case TileType.Black : return "floor";
-            case TileType.Floor : return "floor";
-            case TileType.Wall : return "wall"; 
-            case TileType.Ground : return "ground";
-            default : throw new InvalidOperationException("Unknown TileType" + tileType);
+            switch (tileType)
+            {
+                case TileType.Black: return "floor";
+                case TileType.Floor: return "floor";
+                case TileType.Wall: return "wall";
+                case TileType.Ground: return "ground";
+                default: throw new InvalidOperationException("Unknown TileType" + tileType);
+            }
         }
     }
 }

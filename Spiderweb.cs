@@ -1,17 +1,20 @@
-using System;
+﻿using System;
 
-public class SpiderWeb : GameObject
+namespace BlazorRogue
 {
-    private int SpiderwebIndex;
-    public int Offset {get; set;}    
-
-    public SpiderWeb(int x, int y, int spiderwebIndex) : base(x,y)
+    public class SpiderWeb : GameObject
     {
-        SpiderwebIndex = spiderwebIndex;
-    }
+        private int SpiderwebIndex;
+        public int Offset { get; set; }
 
-    public override void Render(Map map)
-    {
-        map.Decorations[x,y].Add(new Decoration(this, "web_" + SpiderwebIndex){Offset = Offset});
+        public SpiderWeb(int x, int y, int spiderwebIndex) : base(x, y)
+        {
+            SpiderwebIndex = spiderwebIndex;
+        }
+
+        public override void Render(Map map)
+        {
+            map.Decorations[x, y].Add(new Decoration(this, "web_" + SpiderwebIndex) { Offset = Offset });
+        }
     }
 }

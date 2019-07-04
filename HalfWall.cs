@@ -1,15 +1,18 @@
-using System;
+﻿using System;
 
-public class HalfWall : GameObject
+namespace BlazorRogue
 {
-    private int HalfWallIndex;
-    public HalfWall(int x, int y, int halfWallIndex) : base(x,y)
+    public class HalfWall : GameObject
     {
-        HalfWallIndex = halfWallIndex;
-    }
+        private int HalfWallIndex;
+        public HalfWall(int x, int y, int halfWallIndex) : base(x, y)
+        {
+            HalfWallIndex = halfWallIndex;
+        }
 
-    public override void Render(Map map)
-    {
-        map.Decorations[x,y].Add(new Decoration(this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex){Offset = -Map.TileHeight});
+        public override void Render(Map map)
+        {
+            map.Decorations[x, y].Add(new Decoration(this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex) { Offset = -Map.TileHeight });
+        }
     }
 }

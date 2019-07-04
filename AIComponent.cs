@@ -1,17 +1,16 @@
-using System;
+﻿using System;
 
-public abstract class AIComponent {
-    protected readonly Map Map;
-    protected Monster Owner;
-
-    public abstract void TakeTurn();
-
-    public AIComponent(Map map)
+namespace BlazorRogue
+{
+    public abstract class AIComponent : Component
     {
-        this.Map = map;
-    }
+        protected readonly Map Map;
 
-    public void SetOwner(Monster monster){
-        Owner = monster;
+        public abstract void TakeTurn();
+
+        public AIComponent(Map map) : base()
+        {
+            this.Map = map;
+        }
     }
 }
