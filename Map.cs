@@ -195,9 +195,19 @@ namespace BlazorRogue
 
         public void ForEachTile(Action<int, int> apply)
         {
-            for (int x = 0; x < Width; x++)
+            ForEachTile(apply, 0, Width, 0, Height);
+        }
+
+        public void ForEachTile(Action<int, int> apply, int xMin, int xMax, int yMin, int yMax)
+        {
+            xMin = Math.Max(0, xMin);
+            xMax = Math.Min(Width, xMax);
+            yMin = Math.Max(0, yMin);
+            yMax = Math.Min(Height, yMax);
+
+            for (int x = xMin; x < xMax; x++)
             {
-                for (int y = 0; y < Height; y++)
+                for (int y = yMin; y < yMax; y++)
                 {
                     apply(x, y);
                 }
@@ -290,6 +300,11 @@ namespace BlazorRogue
             else
                 return;
 
+            HandlePlayerMovement(numKey);
+        }
+
+        private void HandlePlayerMovement(char numKey)
+        {
             // Handle basic player movement
             int xDelta = 0;
             int yDelta = 0;
@@ -322,7 +337,25 @@ namespace BlazorRogue
                 RecomputeVisibility();
                 // and we need to update blocked status for the destination tile (for the benefit of other moveables)
                 BlocksMovementMap[destX, destY] = true;
+                // Post move updates
+                WakeVisibleMonsters(destX, destY, PlayerSightRadius);
             }
+            // else if() // add combat here - possibly make IsBlocked return type of blockage or just blocking gameobject(s) (also to open door)
+        }
+
+        private void WakeVisibleMonsters(int x, int y, int playerSightRadius)
+        {
+            ForEachTile((xx , yy) =>
+            {
+                if (IsVisibleMap[xx, yy])
+                {
+                    foreach (var mo in moveables.Where(m => m.x == xx && m.y == yy))
+                    {
+                        mo.AIComponent?.Wake();
+                    };
+                }
+            }, 
+            x - playerSightRadius, x + playerSightRadius + 1, y - playerSightRadius, y + playerSightRadius + 1);
         }
 
         private void RecomputeVisibility()

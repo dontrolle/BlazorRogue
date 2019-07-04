@@ -13,6 +13,13 @@ namespace BlazorRogue
         // random walk
         public override void TakeTurn()
         {
+            if (!Awake)
+            {
+                Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
+                return;
+            }
+                
+
             var dx = random.Next(-1, 2);
             var dy = random.Next(-1, 2);
 
