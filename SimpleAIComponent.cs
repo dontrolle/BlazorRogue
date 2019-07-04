@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BlazorRogue
 {
-    public class RandomWalkAIComponent : AIComponent
+    public class SimpleAIComponent : AIComponent
     {
-        Random random = new Random();
-
-        public RandomWalkAIComponent(Map map) : base(map)
+        public SimpleAIComponent(Map map) : base(map)
         {
         }
 
@@ -14,13 +15,12 @@ namespace BlazorRogue
         {
             if (!Awake)
             {
-                Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
+                // Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
                 return;
             }
-                
 
-            var dx = random.Next(-1, 2);
-            var dy = random.Next(-1, 2);
+            var dx = Math.Sign(Map.Player.x - Owner.x);
+            var dy = Math.Sign(Map.Player.y - Owner.y);
 
             int destX = Owner.x + dx;
             int destY = Owner.y + dy;

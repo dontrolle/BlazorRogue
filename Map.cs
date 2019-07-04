@@ -327,20 +327,43 @@ namespace BlazorRogue
             // Check for blocking Walls or GameObject's
             int destX = this.Player.x + xDelta;
             int destY = this.Player.y + yDelta;
+
+            bool stateChanged = false;
+
             if (!IsBlocked(destX, destY))
             {
                 // where we came from is definetely not blocking anymore, since we just vacated the tile
                 BlocksMovementMap[this.Player.x, this.Player.y] = false;
                 // do the move
                 Player.Move(xDelta, yDelta);
-                // we need to recompute visibility
-                RecomputeVisibility();
                 // and we need to update blocked status for the destination tile (for the benefit of other moveables)
                 BlocksMovementMap[destX, destY] = true;
+                stateChanged = true;
+            }
+            else
+            { 
+                foreach(var go in gameObjectByCoord[destX, destY].Where(g => g.Blocking))
+                {
+                    if(go is Door)
+                    {
+                        (go as Door).OnClick();
+                        UpdateBlocksLight(go.x, go.y);
+                        UpdateBlockMovement(go.x, go.y);
+                        RenderGameObjects(go.x, go.y);
+                        stateChanged = true;
+                    }
+                }
+
+                // TODO: add combat here - possibly make IsBlocked return type of blockage
+            }
+
+            if (stateChanged)
+            {
+                // we need to recompute visibility maps
+                RecomputeVisibility();
                 // Post move updates
                 WakeVisibleMonsters(destX, destY, PlayerSightRadius);
             }
-            // else if() // add combat here - possibly make IsBlocked return type of blockage or just blocking gameobject(s) (also to open door)
         }
 
         private void WakeVisibleMonsters(int x, int y, int playerSightRadius)
@@ -386,6 +409,25 @@ namespace BlazorRogue
                 return moveables.Where(m => m.Blocking).Any(m => m.x == x && m.y == y);
             }
         }
+
+        //public bool IsBlocked(int x, int y, out IEnumerable<GameObject> blockers)
+        //{
+        //    blockers = new List<GameObject>();
+        //    if (PostGenInitialized)
+        //        return BlocksMovementMap[x, y];
+        //    else
+        //    {
+        //        if (Tiles[x, y].Blocking)
+        //            return true;
+
+        //        var blockingStatics = gameObjectByCoord[x, y].Where(g => g.Blocking);
+        //        var blockingMoveables = moveables.Where(m => m.Blocking).Where(m => m.x == x && m.y == y);
+
+        //        blockers = blockingStatics.Concat(blockingMoveables);
+
+        //        return blockers.Any();
+        //    }
+        //}
 
         #region Simple functions - should be folded into a Visibility alg or deleted
 

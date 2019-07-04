@@ -19,5 +19,12 @@ namespace BlazorRogue
             var soundindex = random.Next(0, 10);
             await jsRuntime.InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{footstepDirtPrefix}{soundindex}.mp3");
         }
+
+        public async void PlayDoorSound(bool open)
+        {
+            var prefix = open ? "open" : "close";
+            var soundindex = random.Next(1, 3);
+            await jsRuntime.InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{prefix}_door_{soundindex}.mp3");
+        }
     }
 }

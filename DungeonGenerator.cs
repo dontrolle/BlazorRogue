@@ -143,7 +143,7 @@ namespace BlazorRogue
             var tile = GetRandomUnblockedMapTile();
 
             // Add monsters
-            Map.AddMonster(new Goblin(tile.Item1, tile.Item2, new RandomWalkAIComponent(Map)));
+            Map.AddMonster(new Goblin(tile.Item1, tile.Item2, new SimpleAIComponent(Map)));
 
             // initialize various maps and so on in Map (better place to do this?)
             Map.PostGenInitalize();
