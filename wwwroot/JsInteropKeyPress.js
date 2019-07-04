@@ -3,7 +3,7 @@
 window.AddOnKeyDownEvent = () => {
     document.onkeydown = function (evt) {
       evt = evt || window.event;
-      DotNet.invokeMethodAsync('WebApplication1', 'JsKeyDown', evt.keyCode);
+      DotNet.invokeMethodAsync('BlazorRogue', 'JsKeyDown', evt.keyCode);
   
       //Prevent all but F5 and F12
       if (evt.keyCode !== 116 && evt.keyCode !== 123)
@@ -14,7 +14,7 @@ window.AddOnKeyDownEvent = () => {
     document.onkeyup = function (evt) {
       evt = evt || window.event;
     //  alert(evt.keyCode);      
-      DotNet.invokeMethodAsync('WebApplication1', 'JsKeyUp', evt.keyCode);
+      DotNet.invokeMethodAsync('BlazorRogue', 'JsKeyUp', evt.keyCode);
       //Prevent all but F5 and F12
       if (evt.keyCode !== 116 && evt.keyCode !== 123)
         evt.preventDefault();

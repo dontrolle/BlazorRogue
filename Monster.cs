@@ -3,8 +3,8 @@ using System;
 public abstract class Monster : GameObject
 {
     public string AnimationClass { get; protected set; }
-
     public AIComponent AIComponent {get; protected set;}
+
     protected Monster(int x, int y, AIComponent aIComponent, string animationClass = null) : base(x,y) {
         InvisibleOutsideFov = true;
         Blocking = true;
