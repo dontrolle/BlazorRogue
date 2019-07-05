@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/WebApplication1.csproj"
+                "${workspaceFolder}/BlazorRogue.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/WebApplication1.csproj"
+                "${workspaceFolder}/BlazorRogue.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/WebApplication1.csproj"
+                "${workspaceFolder}/BlazorRogue.csproj"
             ],
             "problemMatcher": "$tsc"
         }
