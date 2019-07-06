@@ -28,7 +28,7 @@ namespace BlazorRogue
         public override void Move(int xDelta, int yDelta)
         {
             base.Move(xDelta, yDelta);
-            Map.SoundManager.PlayWalkSound();
+            Game.SoundManager.PlayWalkSound();
         }
     }
 }

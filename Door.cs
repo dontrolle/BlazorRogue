@@ -71,7 +71,7 @@ namespace BlazorRogue
             IsOpen = !IsOpen;
             Blocking = !Blocking;
             BlocksLight = !BlocksLight;
-            Map.SoundManager.PlayDoorSound(IsOpen);
+            Game.SoundManager.PlayDoorSound(IsOpen);
         }
     }
 }

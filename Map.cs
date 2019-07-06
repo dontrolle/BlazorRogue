@@ -6,7 +6,6 @@ namespace BlazorRogue
 {
     public class Map
     {
-        public static SoundManager SoundManager { get; set; }
         public const int TileWidth = 48;
         public const int TileHeight = 48;
         public int Width { get; private set; }
@@ -19,14 +18,7 @@ namespace BlazorRogue
 
         public List<string> DebugInfo = new List<string>();
 
-        private MapPosition[,] tiles;
-        public MapPosition[,] Tiles
-        {
-            get
-            {
-                return tiles;
-            }
-        }
+        public MapPosition[,] Tiles { get; }
 
         private List<GameObject> gameObjects;
         public IEnumerable<GameObject> GameObjects
@@ -65,26 +57,9 @@ namespace BlazorRogue
             }
         }
 
-        // Decorations are rendered gameobjects, effects, and other graphics
-        private List<Decoration>[,] decorations;
+        public List<Decoration>[,] Decorations { get; }
 
-        public List<Decoration>[,] Decorations
-        {
-            get
-            {
-                return decorations;
-            }
-        }
-
-        private List<Decoration>[,] moveableDecorations;
-
-        public List<Decoration>[,] MoveableDecorations
-        {
-            get
-            {
-                return moveableDecorations;
-            }
-        }
+        public List<Decoration>[,] MoveableDecorations { get; }
 
         /* Fragile... These aren't protected in any sence, currently... */
         public bool[,] IsMappedMap;
@@ -97,7 +72,7 @@ namespace BlazorRogue
 
         public IEnumerable<Decoration> AllDecorations(int x, int y)
         {
-            return decorations[x, y].Concat(moveableDecorations[x, y]);
+            return Decorations[x, y].Concat(MoveableDecorations[x, y]);
         }
 
         public Map(int width, int height, string dungeonWallSet)
@@ -105,9 +80,9 @@ namespace BlazorRogue
             DungeonWallSet = dungeonWallSet;
             Width = width;
             Height = height;
-            tiles = new MapPosition[width, height];
-            decorations = new List<Decoration>[width, height];
-            moveableDecorations = new List<Decoration>[width, height];
+            Tiles = new MapPosition[width, height];
+            Decorations = new List<Decoration>[width, height];
+            MoveableDecorations = new List<Decoration>[width, height];
             gameObjectByCoord = new List<GameObject>[width, height];
             IsMappedMap = new bool[width, height];
             IsVisibleMap = new bool[width, height];
@@ -118,7 +93,7 @@ namespace BlazorRogue
                 for (int j = 0; j < height; j++)
                 {
                     // initalize map with dark floor tiles                
-                    tiles[i, j] = new MapPosition(
+                    Tiles[i, j] = new MapPosition(
                         i,
                         j,
                         TileType.Black,
@@ -127,8 +102,8 @@ namespace BlazorRogue
                     )
                     { Blocking = true };
 
-                    decorations[i, j] = new List<Decoration>();
-                    moveableDecorations[i, j] = new List<Decoration>();
+                    Decorations[i, j] = new List<Decoration>();
+                    MoveableDecorations[i, j] = new List<Decoration>();
                     gameObjectByCoord[i, j] = new List<GameObject>();
                 }
             }
@@ -157,6 +132,8 @@ namespace BlazorRogue
             );
 
             RecomputeVisibility();
+            RenderGameObjects();
+            RenderMoveables();
         }
 
         public void PlayerTookTurn()
@@ -216,16 +193,16 @@ namespace BlazorRogue
 
         public void ClearMoveables()
         {
-            ClearTwoDimListArray(moveableDecorations);
+            ClearTwoDimListArray(MoveableDecorations);
         }
         private void ClearDecorations()
         {
-            ClearTwoDimListArray(decorations);
+            ClearTwoDimListArray(Decorations);
         }
 
         private void ClearDecorations(int x, int y)
         {
-            decorations[x, y].Clear();
+            Decorations[x, y].Clear();
         }
 
         // Renders GameObjects to Decorations, updating the latter

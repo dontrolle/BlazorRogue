@@ -7,13 +7,6 @@ namespace BlazorRogue
     public class DungeonGenerator
     {
         private Map map;
-        public Map Map
-        {
-            get
-            {
-                return map;
-            }
-        }
 
         Random random = new Random();
 
@@ -29,7 +22,7 @@ namespace BlazorRogue
         // Wall tiles 13 is special?
         // Wall tiles 14-19 have a front-face
         private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
-        private readonly String[] DungeonWallSets = new[] { "cave" };
+        private readonly String[] CaveWallSets = new[] { "cave" };
         private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
         private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
         private readonly double[] WallWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
@@ -105,17 +98,19 @@ namespace BlazorRogue
             // if(GetRandomBool())
             //     LevelType = Level.Cave;
 
-            var wallSet = GetRandomElement(WallSets);
-            if (LevelType == Level.Cave)
+            // choose random wall-set for this entire dungeon
+            string wallSet;
+            switch (LevelType)
             {
-                wallSet = DungeonWallSets[0];
+                case Level.Cave: wallSet = GetRandomElement(CaveWallSets); break;
+                case Level.Dungeon: wallSet = GetRandomElement(WallSets); break;
+                default: throw new InvalidOperationException($"Unknown level-type: {LevelType}");
             }
 
-            // choose random wall-set for this entire dungeon
             map = new Map(width, height, wallSet);
         }
 
-        public void Generate()
+        public Map GenerateMap()
         {
             Tuple<int, int> playerCoord;
 
@@ -143,10 +138,12 @@ namespace BlazorRogue
             var tile = GetRandomUnblockedMapTile();
 
             // Add monsters
-            Map.AddMonster(new Goblin(tile.Item1, tile.Item2, new SimpleAIComponent(Map)));
+            map.AddMonster(new Goblin(tile.Item1, tile.Item2, new SimpleAIComponent(map)));
 
             // initialize various maps and so on in Map (better place to do this?)
-            Map.PostGenInitalize();
+            map.PostGenInitalize();
+
+            return map;
         }
 
         private void AddDoors()
@@ -158,13 +155,13 @@ namespace BlazorRogue
                 if (map.Tiles[x, y].TileType == TileType.Floor)
                 {
                     // Check if horizontal makes sense
-                    if (x > 1 && x < Map.Width - 1 && map.Tiles[x - 1, y].TileType == TileType.Wall && map.Tiles[x + 1, y].TileType == TileType.Wall)
+                    if (x > 1 && x < map.Width - 1 && map.Tiles[x - 1, y].TileType == TileType.Wall && map.Tiles[x + 1, y].TileType == TileType.Wall)
                     {
                         if (!MapTileContainsDoor(x, y))
                             map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
                     }
                     // Check if vertical makes sense
-                    else if (y > 1 && y < Map.Height - 1 && map.Tiles[x, y - 1].TileType == TileType.Wall && map.Tiles[x, y + 1].TileType == TileType.Wall)
+                    else if (y > 1 && y < map.Height - 1 && map.Tiles[x, y - 1].TileType == TileType.Wall && map.Tiles[x, y + 1].TileType == TileType.Wall)
                     {
                         if (!MapTileContainsDoor(x, y))
                             map.AddGameObject(new Door(x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
@@ -175,18 +172,18 @@ namespace BlazorRogue
 
         private void AddWalls()
         {
-            // Depends on no rooms having been misplaced directly up Map-border
-            for (int x = 1; x < Map.Width - 1; x++)
+            // Depends on no rooms having been misplaced directly up map-border
+            for (int x = 1; x < map.Width - 1; x++)
             {
-                for (int y = 1; y < Map.Height - 1; y++)
+                for (int y = 1; y < map.Height - 1; y++)
                 {
-                    if (Map.Tiles[x, y].TileType == TileType.Floor)
+                    if (map.Tiles[x, y].TileType == TileType.Floor)
                     {
                         for (int dx = -1; dx < 2; dx++)
                         {
                             for (int dy = -1; dy < 2; dy++)
                             {
-                                if (Map.Tiles[x + dx, y + dy].TileType == TileType.Black)
+                                if (map.Tiles[x + dx, y + dy].TileType == TileType.Black)
                                 {
                                     PlaceWall(x + dx, y + dy);
                                 }
@@ -205,8 +202,8 @@ namespace BlazorRogue
             {
                 int w = random.Next(MinRoomWidth, MaxRoomWidth + 1);
                 int h = random.Next(MinRoomHeight, MaxRoomHeight + 1);
-                int x = random.Next(1, Map.Width - w - 1);
-                int y = random.Next(1, Map.Height - h - 1);
+                int x = random.Next(1, map.Width - w - 1);
+                int y = random.Next(1, map.Height - h - 1);
                 var newRoom = new Room(x, y, w, h);
                 bool intersect = false;
                 foreach (var r in Rooms)
@@ -221,7 +218,7 @@ namespace BlazorRogue
                 if (!intersect)
                 {
                     Rooms.Add(newRoom);
-                    //Map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
+                    //map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
                     CreateRoomFloor(newRoom);
 
                     if (lastRoom == null)
@@ -295,7 +292,7 @@ namespace BlazorRogue
                          genmap[x, y] = false;
                  };
 
-            Map.ForEachTile(initFill);
+            map.ForEachTile(initFill);
 
             bool[,] newmap = null;
             Action<int, int> generation1Fill = (x, y) =>
@@ -309,7 +306,7 @@ namespace BlazorRogue
             for (int i = 0; i < 4; i++)
             {
                 newmap = new bool[map.Width, map.Height];
-                Map.ForEachTile(generation1Fill);
+                map.ForEachTile(generation1Fill);
                 genmap = newmap;
             }
 
@@ -326,16 +323,16 @@ namespace BlazorRogue
             for (int i = 0; i < 3; i++)
             {
                 newmap = new bool[map.Width, map.Height];
-                Map.ForEachTile(generation2Fill);
+                map.ForEachTile(generation2Fill);
                 genmap = newmap;
             }
 
             // fill border area
-            for (int x = 0; x < Map.Width; x++)
+            for (int x = 0; x < map.Width; x++)
             {
-                for (int y = 0; y < Map.Height; y++)
+                for (int y = 0; y < map.Height; y++)
                 {
-                    if (x == 0 || x == Map.Width - 1 || y == 0 || y == Map.Height - 1)
+                    if (x == 0 || x == map.Width - 1 || y == 0 || y == map.Height - 1)
                         genmap[x, y] = true;
                 }
             }
@@ -354,7 +351,7 @@ namespace BlazorRogue
 
         private void FillMap(bool[,] genmap, string floorset, int[] floorIndexes)
         {
-            Map.ForEachTile(
+            map.ForEachTile(
                 (x, y) =>
                 {
                     if (genmap[x, y])
@@ -374,8 +371,8 @@ namespace BlazorRogue
                 for (int dy = -distance; dy < distance + 1; dy++)
                 {
                     // consider outside of map as walls
-                    // TODO: check Map - slightly wrong...
-                    if (x + dx < 0 || x + dx > Map.Width - 1 || y + dy < 0 || y + dy > Map.Height - 1)
+                    // TODO: check map - slightly wrong...
+                    if (x + dx < 0 || x + dx > map.Width - 1 || y + dy < 0 || y + dy > map.Height - 1)
                     {
                         noOfWalls++;
                     }
@@ -394,10 +391,10 @@ namespace BlazorRogue
             int MaxSearch = 200;
             for (int i = 0; i < MaxSearch; i++)
             {
-                var x = random.Next(0, Map.Width);
-                var y = random.Next(0, Map.Height);
+                var x = random.Next(0, map.Width);
+                var y = random.Next(0, map.Height);
 
-                if (!Map.IsBlocked(x, y))
+                if (!map.IsBlocked(x, y))
                     return Tuple.Create(x, y);
             }
             throw new Exception($"Couldn't find an unblocked tile on map in {MaxSearch} tries!");
@@ -418,8 +415,8 @@ namespace BlazorRogue
             int maxX = rightRoom.CenterX;
 
             // get the floor tile set of each room
-            var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
-            var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
+            var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
+            var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
             var possibleTileSets = (new string[] { from_floor_tileset, to_floor_tileset }).Intersect(BaseFloorSets).ToArray();
 
@@ -432,7 +429,7 @@ namespace BlazorRogue
 
             for (int x = minX; x < maxX + 1; x++)
             {
-                if (Map.Tiles[x, y].TileType != TileType.Floor)
+                if (map.Tiles[x, y].TileType != TileType.Floor)
                 {
                     PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
                 }
@@ -453,8 +450,8 @@ namespace BlazorRogue
             int maxY = lowerRoom.CenterY;
 
             // get the floor tile set of each room
-            var from_floor_tileset = Map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
-            var to_floor_tileset = Map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
+            var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
+            var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
             var possibleTileSets = (new string[] { from_floor_tileset, to_floor_tileset }).Intersect(BaseFloorSets).ToArray();
 
@@ -467,7 +464,7 @@ namespace BlazorRogue
 
             for (int y = minY; y < maxY + 1; y++)
             {
-                if (Map.Tiles[x, y].TileType != TileType.Floor)
+                if (map.Tiles[x, y].TileType != TileType.Floor)
                 {
                     PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
                 }
@@ -476,20 +473,20 @@ namespace BlazorRogue
 
         private void AddPlayer(int x, int y)
         {
-            Map.AddPlayer(new Player(x, y));
+            map.AddPlayer(new Player(x, y));
         }
 
         private void AddPostGenerationDecorations()
         {
-            for (int x = 0; x < Map.Width; x++)
+            for (int x = 0; x < map.Width; x++)
             {
-                for (int y = 0; y < Map.Height; y++)
+                for (int y = 0; y < map.Height; y++)
                 {
                     if (y > 0)
                     {
                         // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
                         // if tile above has door, select from 1-3, else from tiles 1-6
-                        if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y - 1].TileType == TileType.Floor || Map.Tiles[x, y - 1].TileType == TileType.Black))
+                        if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
                         {
                             int topHalfWallIndex = 6;
 
@@ -499,32 +496,32 @@ namespace BlazorRogue
                                 topHalfWallIndex = 3;
                             }
                             var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                            Map.AddGameObject(new HalfWall(x, y, halfWallIndex));
+                            map.AddGameObject(new HalfWall(x, y, halfWallIndex));
 
                             // add extra decs for specific tilesets
                             if (LevelType == Level.Cave)
                             {
                                 // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
-                                if (x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black))
+                                if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                                 {
-                                    Map.AddGameObject(new CaveEdge(x, y, 1, -Map.TileHeight, -Map.TileWidth));
-                                    //Map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
+                                    map.AddGameObject(new CaveEdge(x, y, 1, -Map.TileHeight, -Map.TileWidth));
+                                    //map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
                                 }
 
 
-                                if (x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black))
+                                if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                                 {
-                                    Map.AddGameObject(new CaveEdge(x, y, 2, -Map.TileHeight, Map.TileWidth));
-                                    //Map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
+                                    map.AddGameObject(new CaveEdge(x, y, 2, -Map.TileHeight, Map.TileWidth));
+                                    //map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
                                 }
                             }
                         }
                     }
 
-                    if (y < Map.Height - 1)
+                    if (y < map.Height - 1)
                     {
                         // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
-                        if (Map.Tiles[x, y].TileType == TileType.Wall && (Map.Tiles[x, y + 1].TileType == TileType.Floor || Map.Tiles[x, y + 1].TileType == TileType.Black))
+                        if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
                         {
                             var index = GetRandomElementWeighted(WallsWithFront, WallWeights);
                             bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
@@ -532,62 +529,62 @@ namespace BlazorRogue
                             {
                                 index = 14;
                             }
-                            Map.Tiles[x, y].TileIndex = index;
+                            map.Tiles[x, y].TileIndex = index;
 
                             // check for adding torch
-                            if (!mapTileBelowHasDoor && Map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch)
+                            if (!mapTileBelowHasDoor && map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch)
                             {
-                                Map.AddGameObject(new Torch(x, y));
-                                //Map.DebugInfo.Add($"Added torch at ({x},{y}).");
+                                map.AddGameObject(new Torch(x, y));
+                                //map.DebugInfo.Add($"Added torch at ({x},{y}).");
                             }
 
                             // add extra decs for specific tilesets
                             if (LevelType == Level.Cave)
                             {
                                 // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
-                                if (x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black))
+                                if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                                 {
-                                    Map.AddGameObject(new CaveEdge(x, y, 5, 0, -Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 5, 0, -Map.TileWidth));
                                 }
 
-                                if (x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black))
+                                if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                                 {
-                                    Map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.TileWidth));
                                 }
                             }
                         }
                     }
 
-                    if (Map.Tiles[x, y].TileType == TileType.Floor)
+                    if (map.Tiles[x, y].TileType == TileType.Floor)
                     {
                         if (random.NextDouble() < PercentageChanceOfBones)
                         {
-                            Map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
+                            map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
                         }
 
                         // in the following we rely on floors never being placed on the perimeter tiles, else we could do
                         //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
                         if (random.NextDouble() < PercentageChanceOfSpiderWeb)
                         {
-                            bool wallAbove = Map.Tiles[x, y - 1].TileType == TileType.Wall;
-                            bool wallBelow = Map.Tiles[x, y + 1].TileType == TileType.Wall;
-                            bool wallLeft = Map.Tiles[x - 1, y].TileType == TileType.Wall;
-                            bool wallRight = Map.Tiles[x + 1, y].TileType == TileType.Wall;
+                            bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
+                            bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
+                            bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
+                            bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
                             if (wallAbove && wallLeft)
                             {
-                                Map.AddGameObject(new SpiderWeb(x, y, 1) { Offset = -Map.TileHeight });
+                                map.AddGameObject(new SpiderWeb(x, y, 1) { Offset = -Map.TileHeight });
                             }
                             else if (wallBelow && wallLeft)
                             {
-                                Map.AddGameObject(new SpiderWeb(x, y, 2));
+                                map.AddGameObject(new SpiderWeb(x, y, 2));
                             }
                             else if (wallBelow && wallRight)
                             {
-                                Map.AddGameObject(new SpiderWeb(x, y, 3));
+                                map.AddGameObject(new SpiderWeb(x, y, 3));
                             }
                             else if (wallAbove && wallRight)
                             {
-                                Map.AddGameObject(new SpiderWeb(x, y, 4) { Offset = -Map.TileHeight });
+                                map.AddGameObject(new SpiderWeb(x, y, 4) { Offset = -Map.TileHeight });
                             }
                         }
                     }
@@ -596,16 +593,16 @@ namespace BlazorRogue
                     if (LevelType == Level.Cave)
                     {
                         // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
-                        if (Map.Tiles[x, y].TileType == TileType.Wall)
+                        if (map.Tiles[x, y].TileType == TileType.Wall)
                         {
-                            if (x > 0 && (Map.Tiles[x - 1, y].TileType == TileType.Floor || Map.Tiles[x - 1, y].TileType == TileType.Black))
+                            if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                             {
-                                Map.AddGameObject(new CaveEdge(x, y, 3, 0, -Map.TileWidth));
+                                map.AddGameObject(new CaveEdge(x, y, 3, 0, -Map.TileWidth));
                             }
 
-                            if (x < Map.Width - 1 && (Map.Tiles[x + 1, y].TileType == TileType.Floor || Map.Tiles[x + 1, y].TileType == TileType.Black))
+                            if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                             {
-                                Map.AddGameObject(new CaveEdge(x, y, 4, 0, Map.TileWidth));
+                                map.AddGameObject(new CaveEdge(x, y, 4, 0, Map.TileWidth));
                             }
                         }
                     }
@@ -615,7 +612,7 @@ namespace BlazorRogue
 
         private bool MapTileContainsDoor(int x, int y)
         {
-            return Map.GameObjectByCoord[x, y].Any(go => go is Door);
+            return map.GameObjectByCoord[x, y].Any(go => go is Door);
         }
         private T GetRandomElement<T>(T[] elements)
         {
@@ -654,19 +651,19 @@ namespace BlazorRogue
         private void PlaceWall(int x, int y, int[] WallIndexes)
         {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
-            Map.Tiles[x, y].TileSet = map.DungeonWallSet;
-            Map.Tiles[x, y].TileIndex = GetRandomElementWeighted(WallIndexes, WallWeights);
-            Map.Tiles[x, y].TileType = TileType.Wall;
-            Map.Tiles[x, y].Blocking = true;
+            map.Tiles[x, y].TileSet = map.DungeonWallSet;
+            map.Tiles[x, y].TileIndex = GetRandomElementWeighted(WallIndexes, WallWeights);
+            map.Tiles[x, y].TileType = TileType.Wall;
+            map.Tiles[x, y].Blocking = true;
         }
 
         private void PlaceFloor(int x, int y, string FloorSet, int[] FloorIndexes)
         {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.
-            Map.Tiles[x, y].TileSet = FloorSet;
-            Map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
-            Map.Tiles[x, y].TileType = TileType.Floor;
-            Map.Tiles[x, y].Blocking = false;
+            map.Tiles[x, y].TileSet = FloorSet;
+            map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
+            map.Tiles[x, y].TileType = TileType.Floor;
+            map.Tiles[x, y].Blocking = false;
         }
 
         // create a horizontal tunnel with a door in each end
@@ -685,8 +682,8 @@ namespace BlazorRogue
             // checks the floor tile set left (or right) of 'breaching' door, and 
             // sets the floor tile set of the door to the same tileset
             // TODO: Handle possible visual problem - connecting room may not have been created yet
-            var left_door_floor_tileset = Map.Tiles[left_door_x - 1, y].TileSet;
-            var right_door_floor_tileset = Map.Tiles[right_door_x + 1, y].TileSet;
+            var left_door_floor_tileset = map.Tiles[left_door_x - 1, y].TileSet;
+            var right_door_floor_tileset = map.Tiles[right_door_x + 1, y].TileSet;
 
             // Set floor tileset on door tiles
             PlaceFloor(left_door_x, y, left_door_floor_tileset, BaseFloorIndexes);
@@ -731,8 +728,8 @@ namespace BlazorRogue
             // checks the floor tile set above (or below) of 'breaching' door, and 
             // sets the floor tileset of the door to the same tileset
             // TODO: Handle possible visual problem - connecting room may not have been created yet
-            var upper_door_floor_tileset = Map.Tiles[x, upper_door_y - 1].TileSet;
-            var bottom_door_floor_tileset = Map.Tiles[x, bottom_door_y + 1].TileSet;
+            var upper_door_floor_tileset = map.Tiles[x, upper_door_y - 1].TileSet;
+            var bottom_door_floor_tileset = map.Tiles[x, bottom_door_y + 1].TileSet;
 
             // Set floor tileset on door tiles
             PlaceFloor(x, upper_door_y, upper_door_floor_tileset, BaseFloorIndexes);
