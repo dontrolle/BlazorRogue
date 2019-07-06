@@ -131,6 +131,7 @@
         game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
         game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
         game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
+    // TODO Don't I need to Render Moveables here also?
     }
 
     void KeyUp(UIKeyboardEventArgs e)

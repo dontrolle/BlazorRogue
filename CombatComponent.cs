@@ -14,10 +14,10 @@ namespace BlazorRogue
             get { return wounds; }
             private set
             {
-                wounds = value; if (wounds <= 0)
+                wounds = value;
+                if (wounds <= 0)
                 {
-                    //TODO: Handle hit 0 and possible death (possibly via event)
-                    System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {Wounds}W");
+                    Owner.Kill();
                 }
             }
         }
@@ -25,6 +25,7 @@ namespace BlazorRogue
         public int WeaponSkill { get; private set; }
         public int WeaponDamage { get; private set; }
         public int Toughness { get; private set; }
+        public int ToughnessBonus => Toughness / 10;
         public int ArmourPoints { get; private set; }
 
         public CombatComponent(int weaponSkill, int weaponDamage, int toughness, int armourPoints, int wounds)
@@ -52,7 +53,8 @@ namespace BlazorRogue
 
         public void ApplyDamage(int damage)
         {
-            Wounds -= (damage - Toughness - ArmourPoints);
+            Wounds -= (damage - ToughnessBonus - ArmourPoints);
+            System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {Wounds}W");
         }
 
         public void GainAdvantage(int number = 1)

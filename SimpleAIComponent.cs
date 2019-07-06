@@ -34,6 +34,14 @@ namespace BlazorRogue
                 // and we need to update blocked status for the destination tile (for the benefit of other moveables)
                 Map.BlocksMovementMap[destX, destY] = true;
             }
+            else
+            {
+                if(Map.Player.x == destX && Map.Player.y == destY)
+                {
+                    var hit = Map.Game.FightingSystem.CloseCombatAttack(Owner.CombatComponent, Map.Player.CombatComponent);
+                    Game.SoundManager.PlayCombatSound(hit);
+                }
+            }
         }
     }
 }

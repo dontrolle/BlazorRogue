@@ -187,3 +187,23 @@
     animation-duration: 1.5s;
     animation-iteration-count: infinite;
 }
+
+@keyframes hit_fx1 {
+  0% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_09.png');
+  }
+
+  33% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_08.png');
+  }
+
+  66% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_07.png');
+  }
+}
+
+.animated_hit_fx1 {
+  animation-name: hit_fx1;
+  animation-duration: 2s;
+  animation-iteration-count: 1;
+}

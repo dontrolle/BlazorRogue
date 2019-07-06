@@ -5,22 +5,25 @@ namespace BlazorRogue
 {
     public class FightingSystem
     {
-        public FightingSystem()
+        public Game Game { get; }
+
+        public FightingSystem(Game game)
         {
+            Game = game;
         }
 
-        public void CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
+        public bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
         {
+            Debug.WriteLine($"----------------------------");
             var toHitRoll = Dice.RollD100();
-            Debug.WriteLine($"toHitRoll {toHitRoll}");
-            Debug.WriteLine($"attacker adv {attacker.Advantage}");
+            Debug.WriteLine($"{attacker.Owner.Name} rolls {toHitRoll} and has adv {attacker.Advantage}");
             var attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
-            Debug.WriteLine($"att SL {attackerSL}");
+            Debug.WriteLine($" => SL {attackerSL}");
 
             var toDefendRoll = Dice.RollD100();
-            Debug.WriteLine($"defender adv {defender.Advantage}");
+            Debug.WriteLine($"{defender.Owner.Name} rolls {toDefendRoll} and has adv {defender.Advantage}");
             var defenderSL = Dice.GetSuccessLevel(toDefendRoll, defender.WeaponSkill + defender.Advantage);
-            Debug.WriteLine($"defenderSL {defenderSL}");
+            Debug.WriteLine($" => {defenderSL}");
 
             bool hit = false;
             var attackerSLAdvantage = attackerSL - defenderSL;
@@ -33,17 +36,18 @@ namespace BlazorRogue
                 hit = true;
             }
 
-            Debug.WriteLine($"hit? {hit}; SL {attackerSLAdvantage}");
+            var description = hit ? "hit" : "miss";
+            Debug.WriteLine($"Result: {description} with SL {attackerSLAdvantage}");
 
             if (hit)
             {
                 attacker.GainAdvantage();
                 defender.ResetAdvantage();
                 var hitLocation = Dice.ReverseD100(toHitRoll);
-                Debug.WriteLine($"hitLocation {hitLocation}");
+                Debug.WriteLine($" hit location {hitLocation}");
 
                 var damage = attacker.WeaponDamage + attackerSLAdvantage;
-                Debug.WriteLine($"damage {damage}");
+                Debug.WriteLine($" damage to apply {damage}");
                 defender.ApplyDamage(damage);
             }
             else
@@ -51,6 +55,9 @@ namespace BlazorRogue
                 defender.GainAdvantage();
                 attacker.ResetAdvantage();
             }
+
+            Debug.WriteLine($"----------------------------");
+            return hit;
 
             // TODO: If accrued no advantage this round, or end the round outnumbered, loose 1 adv
 

@@ -91,7 +91,9 @@ namespace BlazorRogue
 
         private Level LevelType;
 
-        public DungeonGenerator(int width, int height)
+        private Game Game { get; }
+
+        public DungeonGenerator(int width, int height, Game game)
         {
             // Choose random level-type
             LevelType = Level.Dungeon;
@@ -107,7 +109,8 @@ namespace BlazorRogue
                 default: throw new InvalidOperationException($"Unknown level-type: {LevelType}");
             }
 
-            map = new Map(width, height, wallSet);
+            map = new Map(width, height, wallSet, game);
+            Game = game;
         }
 
         public Map GenerateMap()
@@ -135,10 +138,13 @@ namespace BlazorRogue
             // Add Player in the corner of the first room - offset +1,+1 from left-top corner
             AddPlayer(playerCoord.Item1, playerCoord.Item2);
 
-            var tile = GetRandomUnblockedMapTile();
-
             // Add monsters
-            map.AddMonster(new Goblin(tile.Item1, tile.Item2, new SimpleAIComponent(map)));
+            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
+            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
+            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
+            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BlackGiant));
+            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
+            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
 
             // initialize various maps and so on in Map (better place to do this?)
             map.PostGenInitalize();

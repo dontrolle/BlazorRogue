@@ -12,6 +12,7 @@ namespace BlazorRogue
         public int Height { get; private set; }
 
         public string DungeonWallSet { get; private set; }
+        public Game Game { get; }
         public Player Player { get; private set; }
         public const int PlayerSightRadius = 6;
         public const int PlayerSightRadiusSquared = PlayerSightRadius * PlayerSightRadius;
@@ -75,9 +76,10 @@ namespace BlazorRogue
             return Decorations[x, y].Concat(MoveableDecorations[x, y]);
         }
 
-        public Map(int width, int height, string dungeonWallSet)
+        public Map(int width, int height, string dungeonWallSet, Game game)
         {
             DungeonWallSet = dungeonWallSet;
+            Game = game;
             Width = width;
             Height = height;
             Tiles = new MapPosition[width, height];
@@ -246,7 +248,14 @@ namespace BlazorRogue
         public void AddMonster(Monster monster)
         {
             AddMoveable(monster);
+            monster.GameObjectKilled += MonsterKilled;
             this.monsters.Add(monster);
+        }
+
+        private void MonsterKilled(object sender, EventArgs e)
+        {
+            monsters.Remove((Monster)sender);
+            moveables.Remove((Monster)sender);
         }
 
         public void AddMoveable(GameObject gameObject)
@@ -318,7 +327,14 @@ namespace BlazorRogue
                 stateChanged = true;
             }
             else
-            { 
+            {
+                // player skipped a turn; also prevents player from attacking oneself... ;)
+                if(xDelta == 0 && yDelta == 0)
+                {
+                    return;
+                }
+
+                // handle blocking GameObject's
                 foreach(var go in gameObjectByCoord[destX, destY].Where(g => g.Blocking))
                 {
                     if(go is Door)
@@ -331,7 +347,20 @@ namespace BlazorRogue
                     }
                 }
 
-                // TODO: add combat here - possibly make IsBlocked return type of blockage
+                // handle moveables - I take a copy as moveables may be modified, because of death 
+                // TODO: THIS MAY BE CLUNKY AS HELL...
+                foreach (var mo in moveables.Where(m => m.x == destX && m.y == destY).ToList())
+                {
+                    // what to do if it doesn't have a CombatComponent?
+                    if (mo.CombatComponent != null)
+                    {
+                        var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent, mo.CombatComponent);
+                        Game.SoundManager.PlayCombatSound(hit);
+                        RenderMoveables(); // for possible moveable death (can be optimized)
+                        UpdateBlockMovement(destX, destY);
+                        stateChanged = true;
+                    }
+                }
             }
 
             if (stateChanged)

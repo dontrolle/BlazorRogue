@@ -15,8 +15,8 @@ namespace BlazorRogue
 
         public Game()
         {
-            DungeonGenerator = new DungeonGenerator(Width, Height);
-            FightingSystem = new FightingSystem();
+            DungeonGenerator = new DungeonGenerator(Width, Height, this);
+            FightingSystem = new FightingSystem(this);
             Map = DungeonGenerator.GenerateMap();
         }
     }
