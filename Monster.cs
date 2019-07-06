@@ -6,7 +6,7 @@ namespace BlazorRogue
     {
         public string AnimationClass { get; protected set; }
 
-        protected Monster(int x, int y, AIComponent aIComponent, string animationClass = null) : base(x, y, aIComponent)
+        protected Monster(int x, int y, string name, AIComponent aIComponent, CombatComponent combatComponent, string animationClass = null) : base(x, y, name, aIComponent, combatComponent)
         {
             InvisibleOutsideFov = true;
             Blocking = true;

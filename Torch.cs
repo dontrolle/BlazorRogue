@@ -4,7 +4,7 @@ namespace BlazorRogue
 {
     public class Torch : GameObject
     {
-        public Torch(int x, int y) : base(x, y)
+        public Torch(int x, int y) : base(x, y, "Torch")
         {
         }
 

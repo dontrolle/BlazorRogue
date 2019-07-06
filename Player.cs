@@ -4,7 +4,7 @@ namespace BlazorRogue
 {
     public class Player : GameObject
     {
-        public Player(int x, int y) : base(x, y)
+        public Player(int x, int y) : base(x, y, "Player", combatComponent: new CombatComponent(50, 9, 40, 3, 20))
         {
         }
 

@@ -2,7 +2,7 @@
 {
     public class FloorDecoration : GameObject
     {
-        public FloorDecoration(int x, int y, string prefix, int index) : base(x, y)
+        public FloorDecoration(int x, int y, string prefix, int index) : base(x, y, prefix.FirstLetterToUpperCase())
         {
             Prefix = prefix;
             Index = index;

@@ -7,7 +7,7 @@ namespace BlazorRogue
         private int SpiderwebIndex;
         public int Offset { get; set; }
 
-        public SpiderWeb(int x, int y, int spiderwebIndex) : base(x, y)
+        public SpiderWeb(int x, int y, int spiderwebIndex) : base(x, y, "Spider web")
         {
             SpiderwebIndex = spiderwebIndex;
         }

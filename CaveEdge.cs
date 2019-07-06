@@ -8,7 +8,7 @@ namespace BlazorRogue
         private readonly int Offset;
         private readonly int HOffset;
 
-        public CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : base(x, y)
+        public CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : base(x, y, "CaveEdge")
         {
             CaveEdgeIndex = caveEdgeIndex;
             Offset = offset;

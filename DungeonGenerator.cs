@@ -614,6 +614,7 @@ namespace BlazorRogue
         {
             return map.GameObjectByCoord[x, y].Any(go => go is Door);
         }
+
         private T GetRandomElement<T>(T[] elements)
         {
             return elements[random.Next(0, elements.Length)];

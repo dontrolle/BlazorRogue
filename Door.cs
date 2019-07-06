@@ -11,7 +11,7 @@ namespace BlazorRogue
         public bool IsOpen { get; private set; }
         private string ImagePrefix { get => "door_" + DoorType + "_"; }
 
-        public Door(int x, int y, string doorType, int halfWallIndex, Orientation orientation, bool isOpen) : base(x, y)
+        public Door(int x, int y, string doorType, int halfWallIndex, Orientation orientation, bool isOpen) : base(x, y, "Door")
         {
             DoorType = doorType;
             HalfWallIndex = halfWallIndex;

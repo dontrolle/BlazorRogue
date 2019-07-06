@@ -5,7 +5,7 @@ namespace BlazorRogue
     public class HalfWall : GameObject
     {
         private int HalfWallIndex;
-        public HalfWall(int x, int y, int halfWallIndex) : base(x, y)
+        public HalfWall(int x, int y, int halfWallIndex) : base(x, y, "Halfwall")
         {
             HalfWallIndex = halfWallIndex;
         }

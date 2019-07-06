@@ -13,17 +13,23 @@ namespace BlazorRogue
         public bool Blocking { get; set; } = false;
         public bool BlocksLight { get; set; } = false;
         public bool InvisibleOutsideFov { get; set; } = false;
+        public string Name { get; private set; }
 
         // Components
         public AIComponent AIComponent { get; protected set; }
+        public CombatComponent CombatComponent { get; }
 
-        public GameObject(int x, int y, AIComponent aIComponent = null)
+        public GameObject(int x, int y, string name, AIComponent aIComponent = null, CombatComponent combatComponent = null)
         {
             this.x = x;
             this.y = y;
+            Name = name;
 
             AIComponent = aIComponent;
-            aIComponent?.SetOwner(this);
+            AIComponent?.SetOwner(this);
+
+            CombatComponent = combatComponent;
+            CombatComponent?.SetOwner(this);
         }
 
         public abstract void Render(Map map);
