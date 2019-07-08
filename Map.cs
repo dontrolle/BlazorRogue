@@ -278,10 +278,39 @@ namespace BlazorRogue
         public void OnKeyPress(string keyPressed)
         {
             char numKey;
+            // System.Diagnostics.Debug.WriteLine(keyPressed.ToLower());           
             // only handle numpad events for now
             if (keyPressed.ToLower().StartsWith("numpad"))
             {
                 numKey = keyPressed[6];
+            }
+            // fast hacky support for laptop-movement
+            else if(keyPressed.ToLower() == "keyq"){
+                numKey = '7';
+            }
+            else if(keyPressed.ToLower() == "keyw"){
+                numKey = '8';
+            }
+            else if(keyPressed.ToLower() == "keye"){
+                numKey = '9';
+            }
+            else if(keyPressed.ToLower() == "keya"){
+                numKey = '4';
+            }
+            else if(keyPressed.ToLower() == "keys"){
+                numKey = '5';
+            }
+            else if(keyPressed.ToLower() == "keyd"){
+                numKey = '6';
+            }
+            else if(keyPressed.ToLower() == "keyz"){
+                numKey = '1';
+            }
+            else if(keyPressed.ToLower() == "keyx"){
+                numKey = '2';
+            }
+            else if(keyPressed.ToLower() == "keyc"){
+                numKey = '3';
             }
             else
                 return;
