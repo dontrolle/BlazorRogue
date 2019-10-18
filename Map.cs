@@ -254,8 +254,20 @@ namespace BlazorRogue
 
         private void MonsterKilled(object sender, EventArgs e)
         {
-            monsters.Remove((Monster)sender);
-            moveables.Remove((Monster)sender);
+            var killedMonster = sender as Monster;
+            if (killedMonster == null)
+            {
+                throw new InvalidOperationException("MonsterKilled should only be invoked with GameObject's of type Monster.");
+            }
+
+            monsters.Remove(killedMonster);
+            moveables.Remove(killedMonster);
+
+            // Place a blood puddle
+            var puddleObject = new StaticDecoration(killedMonster.x, killedMonster.y, killedMonster.Name + "_puddle", "puddle_small_6");
+            AddGameObject(puddleObject);
+            // somewhat icky calling RenderXxx here...
+            RenderGameObjects(killedMonster.x, killedMonster.y);
         }
 
         public void AddMoveable(GameObject gameObject)
@@ -279,7 +291,6 @@ namespace BlazorRogue
         {
             char numKey;
             // System.Diagnostics.Debug.WriteLine(keyPressed.ToLower());           
-            // only handle numpad events for now
             if (keyPressed.ToLower().StartsWith("numpad"))
             {
                 numKey = keyPressed[6];
