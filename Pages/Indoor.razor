@@ -2,9 +2,8 @@
 
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
-@inject IComponentContext ComponentContext
 
-<div class="map" id="mapcontainer" onkeyup="@KeyUp">
+<div class="map" id="mapcontainer" @onkeyup="@KeyUp">
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < game.Map.Height; y++)
     {
@@ -72,7 +71,7 @@
                         }
 
                         if (decoration.OnClick != null){
-                            <button class="interact_button" onclick=@(() => OnClick(decoration)) /> 
+                            <button class="interact_button" @onclick=@(() => OnClick(decoration)) /> 
                         }
                     }
                 }
@@ -83,7 +82,7 @@
 
     <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
         <!-- Ugly start button for now; it's a placeholder for something we need to change. -->    
-        <button id="start_button" class="interact_button" onclick=@(OnClickStart)/> 
+        <button id="start_button" class="interact_button" @onclick=@(OnClickStart)/> 
     </div>
 </div>
 
@@ -100,18 +99,17 @@
   <source src="sound/Ambience_Cave_00.mp3" type="audio/mpeg">
 </audio>
 
-@functions {
+@code {
     Game game = new Game();
 
     async Task Focus(string controlId)
     {
-        await JsRuntime.InvokeAsync<string>("blazorroguefuncs.setFocus", controlId);
+        //await JsRuntime.InvokeAsync<string>("blazorroguefuncs.setFocus", controlId);
     }
 
-    protected override async Task OnAfterRenderAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // TODO: Sadly doesn't work        
-        if (!ComponentContext.IsConnected)
+        if (!firstRender)
         {
             return;
         }
@@ -134,7 +132,7 @@
     // TODO Don't I need to Render Moveables here also?
     }
 
-    void KeyUp(UIKeyboardEventArgs e)
+    void KeyUp(KeyboardEventArgs e)
     {
         game.Map.OnKeyPress(e.Code);
         game.Map.RenderMoveables();
