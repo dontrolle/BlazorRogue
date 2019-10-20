@@ -62,7 +62,7 @@ namespace BlazorRogue
 
         public List<Decoration>[,] MoveableDecorations { get; }
 
-        /* Fragile... These aren't protected in any sence, currently... */
+        /* Fragile... These aren't protected in any sense, currently... */
         public bool[,] IsMappedMap;
         public bool[,] IsVisibleMap;
         public bool[,] BlocksLightMap;
@@ -347,8 +347,6 @@ namespace BlazorRogue
             {
                 yDelta = 1;
             }
-
-            //TODO: If the player does an action, which may change visibility, call UpdateBlocksLight( , , true)
 
             // Check for blocking Walls or GameObject's
             int destX = this.Player.x + xDelta;

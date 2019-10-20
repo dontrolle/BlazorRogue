@@ -91,8 +91,6 @@ namespace BlazorRogue
 
         private Level LevelType;
 
-        private Game Game { get; }
-
         public DungeonGenerator(int width, int height, Game game)
         {
             // Choose random level-type
@@ -110,7 +108,6 @@ namespace BlazorRogue
             }
 
             map = new Map(width, height, wallSet, game);
-            Game = game;
         }
 
         public Map GenerateMap()
@@ -139,12 +136,23 @@ namespace BlazorRogue
             AddPlayer(playerCoord.Item1, playerCoord.Item2);
 
             // Add monsters
-            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
-            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
-            map.AddMonster(new Goblin(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map)));
-            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BlackGiant));
-            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
-            map.AddMonster(new Spider(GetRandomUnblockedMapTile().Item1, GetRandomUnblockedMapTile().Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
+            var pos1 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Goblin(pos1.Item1, pos1.Item2, new SimpleAIComponent(map)));
+
+            var pos2 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Goblin(pos2.Item1, pos2.Item2, new SimpleAIComponent(map)));
+
+            var pos3 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Goblin(pos3.Item1, pos3.Item2, new SimpleAIComponent(map)));
+
+            var pos4 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Spider(pos4.Item1, pos4.Item2, new SimpleAIComponent(map), Spider.Type.BlackGiant));
+
+            var pos5 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Spider(pos5.Item1, pos5.Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
+
+            var pos6 = GetRandomUnblockedMapTile();
+            map.AddMonster(new Spider(pos6.Item1, pos6.Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
 
             // initialize various maps and so on in Map (better place to do this?)
             map.PostGenInitalize();
