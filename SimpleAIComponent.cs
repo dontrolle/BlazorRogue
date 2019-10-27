@@ -7,6 +7,8 @@ namespace BlazorRogue
 {
     public class SimpleAIComponent : AIComponent
     {
+        public const string ComponentId = "SimpleAIComponent";
+
         public SimpleAIComponent(Map map) : base(map)
         {
         }

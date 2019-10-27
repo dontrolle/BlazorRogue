@@ -1,0 +1,40 @@
+﻿{
+    "monsters": [
+        {
+            "id": "goblin",
+            "name": "Goblin",
+            "weaponSkill": 25,
+            "weaponDamage": 7,
+            "toughness": 30,
+            "armour": 1,
+            "wounds": 11,
+            "animationClass": "animated_goblin",
+            "asciiCharacter": "g",
+            "asciiColour": "green"
+        },
+        {
+            "id": "blackGiantSpider",
+            "name": "Black Spider",
+            "weaponSkill": 35,
+            "weaponDamage": 5,
+            "toughness": 30,
+            "armour": 2,
+            "wounds": 15,
+            "animationClass": "animated_spider_black_giant",
+            "asciiCharacter": "s",
+            "asciiColour": "black"
+        },
+        {
+            "id": "blackBrownSpider",
+            "name": "Brown Spider",
+            "weaponSkill": 35,
+            "weaponDamage": 4,
+            "toughness": 35,
+            "armour": 1,
+            "wounds": 10,
+            "animationClass": "animated_spider_brown_giant",
+            "asciiCharacter": "s",
+            "asciiColour": "brown"
+        }
+    ]
+}
