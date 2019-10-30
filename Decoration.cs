@@ -1,4 +1,5 @@
 ﻿using System;
+using BlazorRogue.GameObjects;
 
 namespace BlazorRogue
 {

@@ -1,4 +1,4 @@
-﻿namespace BlazorRogue
+﻿namespace BlazorRogue.GameObjects
 {
     public class FloorDecoration : GameObject
     {

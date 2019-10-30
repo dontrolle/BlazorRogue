@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BlazorRogue
+namespace BlazorRogue.GameObjects
 {
     public class Door : GameObject
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorRogue
+namespace BlazorRogue.Combat.Warhammer
 {
     public class CombatComponent : Component
     {
@@ -53,13 +53,13 @@ namespace BlazorRogue
 
         public void ApplyDamage(int damage)
         {
-            Wounds -= (damage - ToughnessBonus - ArmourPoints);
+            Wounds -= damage - ToughnessBonus - ArmourPoints;
             System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {Wounds}W");
         }
 
         public void GainAdvantage(int number = 1)
         {
-            int adv = Advantage + number;
+            var adv = Advantage + number;
             Advantage = Math.Min(adv, AdvantageCap);
         }
 

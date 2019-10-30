@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorRogue
+namespace BlazorRogue.GameObjects
 {
     public class HalfWall : GameObject
     {

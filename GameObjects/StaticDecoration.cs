@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorRogue
+namespace BlazorRogue.GameObjects
 {
     public class StaticDecoration : GameObject
     {

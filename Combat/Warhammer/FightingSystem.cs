@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace BlazorRogue
+namespace BlazorRogue.Combat.Warhammer
 {
     public class FightingSystem
     {
@@ -25,9 +25,9 @@ namespace BlazorRogue
             var defenderSL = Dice.GetSuccessLevel(toDefendRoll, defender.WeaponSkill + defender.Advantage);
             Debug.WriteLine($" => {defenderSL}");
 
-            bool hit = false;
+            var hit = false;
             var attackerSLAdvantage = attackerSL - defenderSL;
-            if(attackerSLAdvantage > 0)
+            if (attackerSLAdvantage > 0)
             {
                 hit = true;
             }

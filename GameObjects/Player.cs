@@ -1,6 +1,7 @@
 ﻿using System;
+using BlazorRogue.Combat.Warhammer;
 
-namespace BlazorRogue
+namespace BlazorRogue.GameObjects
 {
     public class Player : GameObject
     {

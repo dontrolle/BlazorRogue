@@ -1,6 +1,7 @@
 ﻿using System;
+using BlazorRogue.Combat.Warhammer;
 
-namespace BlazorRogue
+namespace BlazorRogue.GameObjects
 {
     /// <summary>
     /// GameObjects are all sorts of objects.
@@ -39,8 +40,8 @@ namespace BlazorRogue
 
         public virtual void Move(int xDelta, int yDelta)
         {
-            this.x += xDelta;
-            this.y += yDelta;
+            x += xDelta;
+            y += yDelta;
         }
 
         protected virtual void OnGameObjectKilled(EventArgs e)

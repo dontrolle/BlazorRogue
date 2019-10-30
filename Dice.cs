@@ -7,8 +7,6 @@ namespace BlazorRogue
     {
         static Random random = new Random();
 
-
-
         public static int RollD100()
         {
             return random.Next(1, 101);
