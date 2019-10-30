@@ -26,20 +26,20 @@ namespace BlazorRogue
             DungeonGenerator = new DungeonGenerator(Width, Height, this);
             FightingSystem = new FightingSystem(this);
             var config = new Configuration();
-            config.Parse(); 
             // TODO pass as async to GenerateMap below 
             // TODO Use monsters in DungeonGenerator
             // TODO Deprecate old classes for monsters and ctor in Monster
-            Map = DungeonGenerator.GenerateMap();
+            Map = DungeonGenerator.GenerateMap(config);
         }
     }
 
     public class Configuration
     {
         const string MonsterFileName = "Data\\monsters.json";
-        public IReadOnlyList<MonsterType> MonsterTypes;
+        public Dictionary<string, MonsterType> monsterTypes = new Dictionary<string, MonsterType>();
+        public IReadOnlyDictionary<string, MonsterType> MonsterTypes => monsterTypes;
 
-        public void Parse()
+        public void Parse() // Task async
         {
             var options = new JsonDocumentOptions
             {
@@ -48,11 +48,9 @@ namespace BlazorRogue
 
             // parse Monsters
 
-            var monsterTypes = new List<MonsterType>();
-
             using (var monsterJson = File.OpenRead(MonsterFileName))
             {
-                using (JsonDocument doc = JsonDocument.Parse(monsterJson, options)) // TODO async
+                using (JsonDocument doc = JsonDocument.Parse(monsterJson, options)) // TODO await ... ParseAsync
                 {
                     var root = doc.RootElement;
                     foreach (JsonElement element in root.GetProperty("monsters").EnumerateArray())
@@ -68,15 +66,12 @@ namespace BlazorRogue
                         var asciiCharacter = element.GetProperty("asciiCharacter").GetString();
                         var asciiColour = element.GetProperty("asciiColour").GetString();
 
-                        var cc = new CombatComponent(weaponSkill, weaponDamage, toughness, armour, wounds);
-                        var newMonsterType = new MonsterType(id, name, cc, animationClass, asciiCharacter, asciiColour);
+                        var newMonsterType = new MonsterType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
 
-                        monsterTypes.Add(newMonsterType);
+                        monsterTypes.Add(id, newMonsterType);
                     }
                 }
             }
-
-            MonsterTypes = monsterTypes.AsReadOnly();
         }
     }
 

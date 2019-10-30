@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlazorRogue
 {
@@ -110,8 +111,11 @@ namespace BlazorRogue
             map = new Map(width, height, wallSet, game);
         }
 
-        public Map GenerateMap()
+        public Map GenerateMap(Configuration config)
         {
+            // NO ASYNC Task could be started earlier and passed as running, I guess
+            config.Parse(); // var configParsed = 
+
             Tuple<int, int> playerCoord;
 
             switch (LevelType)
@@ -135,26 +139,25 @@ namespace BlazorRogue
             // Add Player in the corner of the first room - offset +1,+1 from left-top corner
             AddPlayer(playerCoord.Item1, playerCoord.Item2);
 
+            // wait for config parse to finish
+            //configParsed.Wait(); // NO ASYNC 
+
             // Add monsters
-            var pos1 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Goblin(pos1.Item1, pos1.Item2, new SimpleAIComponent(map)));
+            int noOfRandomMonsters = 6;
 
-            var pos2 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Goblin(pos2.Item1, pos2.Item2, new SimpleAIComponent(map)));
+            for (int i = 0; i < noOfRandomMonsters; i++)
+            {
+                var pos = GetRandomUnblockedMapTile();
+                var monsterType = GetRandomElement(config.MonsterTypes);
+                var monster = new Monster(pos, new SimpleAIComponent(map), monsterType.Value);
+                map.AddMonster(monster);
+            }
 
-            var pos3 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Goblin(pos3.Item1, pos3.Item2, new SimpleAIComponent(map)));
+            var extraPos = GetRandomUnblockedMapTile();
+            var extraGoblin = new Monster(extraPos, new SimpleAIComponent(map), config.MonsterTypes["goblin"]);
+            map.AddMonster(extraGoblin);
 
-            var pos4 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Spider(pos4.Item1, pos4.Item2, new SimpleAIComponent(map), Spider.Type.BlackGiant));
-
-            var pos5 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Spider(pos5.Item1, pos5.Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
-
-            var pos6 = GetRandomUnblockedMapTile();
-            map.AddMonster(new Spider(pos6.Item1, pos6.Item2, new SimpleAIComponent(map), Spider.Type.BrownGiant));
-
-            // initialize various maps and so on in Map (better place to do this?)
+            // initialize various maps and so on in Map (it there a better place to do this?)
             map.PostGenInitalize();
 
             return map;
@@ -632,6 +635,11 @@ namespace BlazorRogue
         private T GetRandomElement<T>(T[] elements)
         {
             return elements[random.Next(0, elements.Length)];
+        }
+
+        private T GetRandomElement<T>(IEnumerable<T> elements)
+        {
+            return elements.ElementAt(random.Next(0, elements.Count()));
         }
 
         private T GetRandomElementWeighted<T>(T[] elements, double[] weights)

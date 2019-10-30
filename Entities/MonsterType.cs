@@ -7,22 +7,39 @@ namespace BlazorRogue.Entities
 {
     public class MonsterType
     {
-        public MonsterType(string id, string name, CombatComponent cc, string animationClass, string asciiCharacter, string asciiColour)
+        public MonsterType(
+            string id, 
+            string name, 
+            string animationClass, 
+            string asciiCharacter, 
+            string asciiColour, 
+            int weaponSkill, 
+            int weaponDamage, 
+            int toughness,
+            int armour,
+            int wounds)
         {
             Id = id;
             Name = name;
-            CombatComponent = cc;
             AnimationClass = animationClass;
             AsciiCharacter = asciiCharacter;
             AsciiColour = asciiColour;
+            WeaponSkill = weaponSkill;
+            WeaponDamage = weaponDamage;
+            Toughness = toughness;
+            Armour = armour;
+            Wounds = wounds;
         }
 
         public string AnimationClass { get; }
         public string Id { get; }
         public string Name { get; }
-        public CombatComponent CombatComponent { get; }
         public string AsciiCharacter { get; }
         public string AsciiColour { get; }
-
+        public int WeaponSkill { get; }
+        public int WeaponDamage { get; }
+        public int Toughness { get; }
+        public int Armour { get; }
+        public int Wounds { get; }
     }
 }

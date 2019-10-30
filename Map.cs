@@ -260,6 +260,8 @@ namespace BlazorRogue
                 throw new InvalidOperationException("MonsterKilled should only be invoked with GameObject's of type Monster.");
             }
 
+            System.Diagnostics.Debug.WriteLine(killedMonster.GetHashCode().ToString() + " dead");
+
             monsters.Remove(killedMonster);
             moveables.Remove(killedMonster);
 
