@@ -5,7 +5,7 @@ namespace BlazorRogue.GameObjects
 {
     /// <summary>
     /// GameObjects are all sorts of objects.
-    /// They know how to be rendered in to one of more decorations on this or the surrounding tiles. 
+    /// They know how to be rendered in to one of more Decorations on this or the surrounding tiles. 
     /// </summary>
     public abstract class GameObject
     {

@@ -5,14 +5,14 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue
 {
-    public class Monster : GameObject
+    public class Moveable : GameObject
     {
         public string AnimationClass { get; protected set; }
         public string Id { get; }
         public string AsciiCharacter { get; }
         public string AsciiColour { get; }
 
-        public Monster(int x, int y, AIComponent aIComponent, MonsterType monsterType) : 
+        public Moveable(int x, int y, AIComponent aIComponent, MoveableType monsterType) : 
             base(x, y, monsterType.Name, aIComponent, new CombatComponent(monsterType.WeaponSkill, monsterType.WeaponDamage, monsterType.Toughness, monsterType.Armour, monsterType.Wounds))
         {
             InvisibleOutsideFov = true;
@@ -22,10 +22,10 @@ namespace BlazorRogue
             AsciiCharacter = monsterType.AsciiCharacter;
             AsciiColour = monsterType.AsciiColour;
 
-            // Note, can't block light due to the way moveables are treated in Map
+            // Note, can't block light due to the way Moveables are treated in Map
         }
 
-        public Monster(Tuple<int, int> coord, AIComponent aIComponent, MonsterType monsterType) :
+        public Moveable(Tuple<int, int> coord, AIComponent aIComponent, MoveableType monsterType) :
             this(coord.Item1, coord.Item2, aIComponent, monsterType) 
         { }
 

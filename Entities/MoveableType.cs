@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace BlazorRogue.Entities
 {
-    public class MonsterType
+    public class MoveableType
     {
-        public MonsterType(
+        public MoveableType(
             string id, 
             string name, 
             string animationClass, 

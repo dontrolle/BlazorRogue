@@ -14,7 +14,7 @@ namespace BlazorRogue
 
         public string DungeonWallSet { get; private set; }
         public Game Game { get; }
-        public Player Player { get; private set; }
+        public Moveable Player { get; private set; }
         public const int PlayerSightRadius = 6;
         public const int PlayerSightRadiusSquared = PlayerSightRadius * PlayerSightRadius;
 
@@ -31,8 +31,9 @@ namespace BlazorRogue
             }
         }
 
-        private List<GameObject> moveables;
-        public IEnumerable<GameObject> Moveables
+        /* moveables contain both monsters and player */
+        private List<Moveable> moveables;
+        public IEnumerable<Moveable> Moveables
         {
             get
             {
@@ -40,9 +41,9 @@ namespace BlazorRogue
             }
         }
 
-        /* Actually, currently these are GameObject with AI */
-        private List<Monster> monsters;
-        public IEnumerable<Monster> Monsters
+        /* Actually, currently these are GameObjects with AI */
+        private List<Moveable> monsters;
+        public IEnumerable<Moveable> Monsters
         {
             get
             {
@@ -112,10 +113,10 @@ namespace BlazorRogue
             }
 
             gameObjects = new List<GameObject>();
-            moveables = new List<GameObject>();
+            moveables = new List<Moveable>();
             VisibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
 
-            monsters = new List<Monster>();
+            monsters = new List<Moveable>();
         }
 
         /// <summary>
@@ -240,13 +241,13 @@ namespace BlazorRogue
             gameObjectByCoord[gameObject.x, gameObject.y].Add(gameObject);
         }
 
-        public void AddPlayer(Player player)
+        public void AddPlayer(Moveable player)
         {
             AddMoveable(player);
             this.Player = player;
         }
 
-        public void AddMonster(Monster monster)
+        public void AddMonster(Moveable monster)
         {
             AddMoveable(monster);
             monster.GameObjectKilled += MonsterKilled;
@@ -255,7 +256,7 @@ namespace BlazorRogue
 
         private void MonsterKilled(object sender, EventArgs e)
         {
-            var killedMonster = sender as Monster;
+            var killedMonster = sender as Moveable;
             if (killedMonster == null)
             {
                 throw new InvalidOperationException("MonsterKilled should only be invoked with GameObject's of type Monster.");
@@ -273,9 +274,9 @@ namespace BlazorRogue
             RenderGameObjects(killedMonster.x, killedMonster.y);
         }
 
-        public void AddMoveable(GameObject gameObject)
+        public void AddMoveable(Moveable moveable)
         {
-            moveables.Add(gameObject);
+            moveables.Add(moveable);
         }
 
         public void RenderMoveables()

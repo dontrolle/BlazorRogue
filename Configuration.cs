@@ -14,11 +14,11 @@ namespace BlazorRogue
         const string MonsterFileName = "Data\\monsters.json";
         const string HeroesFileName = "Data\\heroes.json";
 
-        public Dictionary<string, MonsterType> monsterTypes = new Dictionary<string, MonsterType>();
-        public IReadOnlyDictionary<string, MonsterType> MonsterTypes => monsterTypes;
+        public Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
+        public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
 
-        public Dictionary<string, MonsterType> heroTypes = new Dictionary<string, MonsterType>();
-        public IReadOnlyDictionary<string, MonsterType> HeroTypes => heroTypes;
+        public Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
+        public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
         public void Parse() // Task async
         {
@@ -40,7 +40,7 @@ namespace BlazorRogue
                         int weaponSkill, weaponDamage, toughness, armour, wounds;
                         ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out asciiCharacter, out asciiColour);
 
-                        var newMonsterType = new MonsterType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
+                        var newMonsterType = new MoveableType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
 
                         monsterTypes.Add(id, newMonsterType);
                     }
@@ -58,7 +58,7 @@ namespace BlazorRogue
                         int weaponSkill, weaponDamage, toughness, armour, wounds;
                         ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out asciiCharacter, out asciiColour);
 
-                        var h = new MonsterType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
+                        var h = new MoveableType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
 
                         heroTypes.Add(id, h);
                     }

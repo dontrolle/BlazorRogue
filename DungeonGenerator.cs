@@ -117,17 +117,17 @@ namespace BlazorRogue
             // NO ASYNC Task could be started earlier and passed as running, I guess
             config.Parse(); // var configParsed = 
 
-            Tuple<int, int> playerCoord;
+            Tuple<int, int> playerPos;
 
             switch (LevelType)
             {
                 case Level.Dungeon:
-                    playerCoord = CreateFloorPlans();
+                    playerPos = CreateFloorPlans();
                     AddWalls();
                     break;
 
                 case Level.Cave:
-                    playerCoord = CreateCave();
+                    playerPos = CreateCave();
 
                     break;
                 default:
@@ -137,11 +137,15 @@ namespace BlazorRogue
             AddDoors();
             AddPostGenerationDecorations();
 
-            // Add Player in the corner of the first room - offset +1,+1 from left-top corner
-            AddPlayer(playerCoord.Item1, playerCoord.Item2);
-
             // wait for config parse to finish
             //configParsed.Wait(); // NO ASYNC 
+
+
+            // Add Player
+            var heroType = GetRandomElement(config.HeroTypes).Value;
+            var player = new Moveable(playerPos, null, heroType);
+
+            map.AddPlayer(player);
 
             // Add monsters
             int noOfRandomMonsters = 6;
@@ -149,13 +153,13 @@ namespace BlazorRogue
             for (int i = 0; i < noOfRandomMonsters; i++)
             {
                 var pos = GetRandomUnblockedMapTile();
-                var monsterType = GetRandomElement(config.MonsterTypes);
-                var monster = new Monster(pos, new SimpleAIComponent(map), monsterType.Value);
+                var monsterType = GetRandomElement(config.MonsterTypes).Value;
+                var monster = new Moveable(pos, new SimpleAIComponent(map), monsterType);
                 map.AddMonster(monster);
             }
 
             var extraPos = GetRandomUnblockedMapTile();
-            var extraGoblin = new Monster(extraPos, new SimpleAIComponent(map), config.MonsterTypes["goblin"]);
+            var extraGoblin = new Moveable(extraPos, new SimpleAIComponent(map), config.MonsterTypes["goblin"]);
             map.AddMonster(extraGoblin);
 
             // initialize various maps and so on in Map (it there a better place to do this?)
@@ -487,11 +491,6 @@ namespace BlazorRogue
                     PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
                 }
             }
-        }
-
-        private void AddPlayer(int x, int y)
-        {
-            map.AddPlayer(new Player(x, y));
         }
 
         private void AddPostGenerationDecorations()
