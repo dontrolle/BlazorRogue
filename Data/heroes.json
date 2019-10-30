@@ -1,0 +1,16 @@
+﻿{
+    "heroes": [
+        {
+            "id": "templar",
+            "name": "Templar",
+            "weaponSkill": 40,
+            "weaponDamage": 8,
+            "toughness": 30,
+            "armour": 3,
+            "wounds": 20,
+            "animationClass": "animated_templar",
+            "asciiCharacter": "@",
+            "asciiColour": "white"
+        }
+    ]
+}
