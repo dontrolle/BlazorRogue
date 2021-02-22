@@ -18,12 +18,12 @@ namespace BlazorRogue.GameObjects
         public string Name { get; private set; }
 
         // Components
-        public AIComponent AIComponent { get; protected set; }
-        public CombatComponent CombatComponent { get; }
+        public AIComponent? AIComponent { get; protected set; }
+        public CombatComponent? CombatComponent { get; }
 
-        public event EventHandler GameObjectKilled;
+        public event EventHandler? GameObjectKilled;
 
-        public GameObject(int x, int y, string name, AIComponent aIComponent = null, CombatComponent combatComponent = null)
+        public GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null)
         {
             this.x = x;
             this.y = y;

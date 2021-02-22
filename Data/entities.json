@@ -1,0 +1,28 @@
+{
+    "entities": [
+        {
+            "id": "torch",
+            "decoration": [
+                { "animationClass": "animated_torch" },
+                {
+                    "animationClass": "animated_torch_floor",
+                    "offset": "S"
+                }
+            ],
+            "asciiCharacter": "'",
+            "asciiColour": "yellow"
+        },
+        { /* PICKUP Need a nice way of DEFINING and USING a class of entities, like caveedges - typically separated by no's */
+            "id": "caveedge",
+            "decoration": [
+                { "image": "" },
+                {
+                    "animationClass": "animated_torch_floor",
+                    "offset": "S"
+                }
+            ],
+            "asciiCharacter": "'",
+            "asciiColour": "yellow"
+        }
+    ]
+}

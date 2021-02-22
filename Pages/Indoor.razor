@@ -1,88 +1,117 @@
-@page "/indoor"
+﻿@page "/indoor"
 
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
 
 <div class="map" id="mapcontainer" @onkeyup="@KeyUp">
+    @{ bool renderAscii = true; }
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < game.Map.Height; y++)
     {
         <div id="row_@y" class="row">
-        @for (int x = 0; x < game.Map.Width; x++)
-        {
-            string imgFileName = game.Map.Tiles[x,y].ImageName + ".png";
-            string tiletype = game.Map.Tiles[x,y].TileType.ToString();
-            string fovClass = game.Map.IsVisibleMap[x,y] ? "" : "outoffov";
-            string tileClass = $"tile {(fovClass)}";
+            @for (int x = 0; x < game.Map.Width; x++)
+            {
+                MapPosition tile = game.Map.Tiles[x, y];
+                string tileAsciiChar = tile.AsciiCharacter;
+                string tileAsciiColour = tile.AsciiColour;
+                string imgFileName = tile.ImageName + ".png";
+                string tiletype = tile.TileType.ToString();
+                string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
+                string tileClass = $"tile {(fovClass)}";
 
             <div id="@x,@y" class="cell">
-                @if (game.Map.IsMappedMap[x,y]){
-                    <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
+                @if (game.Map.IsMappedMap[x, y])
+                {
+                    if (renderAscii)
+                    {
+                        <div class="@tileClass" style="color:@tileAsciiColour" alt="@x,@y (@tiletype)">@tileAsciiChar</div>
+                    }
+                    else
+                    {
+                        <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
+                    }
 
-                    @foreach (var decoration in game.Map.AllDecorations(x,y))
+                    @foreach (var decoration in game.Map.AllDecorations(x, y))
                     {
                         // skip invisibles outside of fov
-                        if(decoration.GameObject.InvisibleOutsideFov && !game.Map.IsVisibleMap[x,y]){
+                        if (decoration.GameObject.InvisibleOutsideFov && !game.Map.IsVisibleMap[x, y])
+                        {
                             continue;
                         }
 
-                        // determine css class
                         bool renderDiv = false;
                         string cssclass = "decoration";
                         string animationClass = "";
-                        if(decoration.AnimationClass != null && decoration.AnimationClass != ""){
-                            animationClass = @decoration.AnimationClass;
-                            renderDiv = true;
-                        }
+                        string style = "";
+                        string divContent = "";
 
                         // - handle layer class
                         var layerClass = "decbehind";
-                        if(decoration.InFront){
+                        if (decoration.InFront)
+                        {
                             layerClass = "decinfront";
                         }
-
-                        cssclass = $"{cssclass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                        
-                        // determine css style
-                        string style = "";
-                        if(decoration.ImageName != null && decoration.ImageName != ""){
-                            string decImgFileName = decoration.ImageName + ".png";
-
-                            renderDiv = true;
-                            style = $"background-image: url('img/uf_terrain/{decImgFileName}');";
-                        }
-
-                        // - handle horizontal and vertical offset
-                        string offset = "";
-                        if (decoration.Offset != 0)
+                        if (renderAscii)
                         {
-                            offset = $"top: {decoration.Offset}px;";
+                            if(decoration.AsciiCharacter != null)
+                            {
+                                renderDiv = true;
+                                divContent = decoration.AsciiCharacter;
+                                style = $"color:{decoration.AsciiColour ?? "white"}";
+                            }
                         }
-                        if (decoration.HOffset != 0)
+                        else
                         {
-                            offset += $"left: {decoration.HOffset}px;";
+                            // determine css class
+                            if (decoration.AnimationClass != null && decoration.AnimationClass != "")
+                            {
+                                animationClass = @decoration.AnimationClass;
+                                renderDiv = true;
+                            }
+
+                            // determine css style
+                            if (decoration.ImageName != null && decoration.ImageName != "")
+                            {
+                                string decImgFileName = decoration.ImageName + ".png";
+
+                                renderDiv = true;
+                                style = $"background-image: url('img/uf_terrain/{decImgFileName}');";
+                            }
+
+                            // - handle horizontal and vertical offset
+                            string offset = "";
+                            if (decoration.Offset != 0)
+                            {
+                                offset = $"top: {decoration.Offset}px;";
+                            }
+                            if (decoration.HOffset != 0)
+                            {
+                                offset += $"left: {decoration.HOffset}px;";
+                            }
+
+                            style = $"{style}{offset}";
                         }
 
-                        style = $"{style}{offset}";
-
-                        if(renderDiv)
+                        if (renderDiv)
                         {
-                            <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)"> </div>
+                            cssclass = $"{cssclass} {(animationClass)} {(layerClass)} {(fovClass)}";
+                            <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)">@divContent</div>
                         }
 
-                        if (decoration.OnClick != null){
-                            <button class="interact_button" @onclick=@(() => OnClick(decoration)) /> 
+                        if (decoration.OnClick != null)
+                        {
+                            <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
                         }
                     }
                 }
             </div>
-        }
+            }
         </div>
     }
 
     <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
-        <!-- Ugly start button for now; it's a placeholder for something we need to change. -->    
-        <button id="start_button" class="interact_button" @onclick=@(OnClickStart)/> 
+        <!-- TODO: Ugly start button for now; it's a placeholder for something we need to change. -->
+        <button id="start_button" class="interact_button" @onclick=@(OnClickStart) />
     </div>
 </div>
 
