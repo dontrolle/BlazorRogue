@@ -521,14 +521,14 @@ namespace BlazorRogue
                                 // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
                                 if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                                 {
-                                    map.AddGameObject(new CaveEdge(x, y, 1, -Map.TileHeight, -Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 1, -Map.DEPRECATE_TileHeight, -Map.DEPRECATE_TileWidth));
                                     //map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
                                 }
 
 
                                 if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                                 {
-                                    map.AddGameObject(new CaveEdge(x, y, 2, -Map.TileHeight, Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 2, -Map.DEPRECATE_TileHeight, Map.DEPRECATE_TileWidth));
                                     //map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
                                 }
                             }
@@ -561,12 +561,12 @@ namespace BlazorRogue
                                 // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
                                 if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                                 {
-                                    map.AddGameObject(new CaveEdge(x, y, 5, 0, -Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 5, 0, -Map.DEPRECATE_TileWidth));
                                 }
 
                                 if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                                 {
-                                    map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.TileWidth));
+                                    map.AddGameObject(new CaveEdge(x, y, 6, 0, Map.DEPRECATE_TileWidth));
                                 }
                             }
                         }
@@ -589,7 +589,7 @@ namespace BlazorRogue
                             bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
                             if (wallAbove && wallLeft)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 1) { Offset = -Map.TileHeight });
+                                map.AddGameObject(new SpiderWeb(x, y, 1) { Offset = -Map.DEPRECATE_TileHeight });
                             }
                             else if (wallBelow && wallLeft)
                             {
@@ -601,7 +601,7 @@ namespace BlazorRogue
                             }
                             else if (wallAbove && wallRight)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 4) { Offset = -Map.TileHeight });
+                                map.AddGameObject(new SpiderWeb(x, y, 4) { Offset = -Map.DEPRECATE_TileHeight });
                             }
                         }
                     }
@@ -614,12 +614,12 @@ namespace BlazorRogue
                         {
                             if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                             {
-                                map.AddGameObject(new CaveEdge(x, y, 3, 0, -Map.TileWidth));
+                                map.AddGameObject(new CaveEdge(x, y, 3, 0, -Map.DEPRECATE_TileWidth));
                             }
 
                             if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
                             {
-                                map.AddGameObject(new CaveEdge(x, y, 4, 0, Map.TileWidth));
+                                map.AddGameObject(new CaveEdge(x, y, 4, 0, Map.DEPRECATE_TileWidth));
                             }
                         }
                     }

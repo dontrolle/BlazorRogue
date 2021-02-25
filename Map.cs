@@ -7,8 +7,11 @@ namespace BlazorRogue
 {
     public class Map
     {
-        public const int TileWidth = 48;
-        public const int TileHeight = 48;
+        // TODO: This is wrong --> 
+        // - Only used for determining an offset for decorations - mainly in DungeonGenerator - should be an offset of a number of tiles instead
+        // - rendering should handle pixel-offset
+        public const int DEPRECATE_TileWidth = 48;
+        public const int DEPRECATE_TileHeight = 48;
         public int Width { get; private set; }
         public int Height { get; private set; }
 

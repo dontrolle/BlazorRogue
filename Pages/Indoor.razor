@@ -59,7 +59,7 @@
                         {
                             baseCssClass += " decoration-ascii";
                             // weed out those decorations, which shouldn't be shown in ascii
-                            if (decoration.AsciiCharacter != null)
+                            if (!String.IsNullOrEmpty(decoration.AsciiCharacter))
                             {
                                 renderDiv = true;
                                 divContent = decoration.AsciiCharacter;

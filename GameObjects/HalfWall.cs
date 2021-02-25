@@ -12,7 +12,7 @@ namespace BlazorRogue.GameObjects
 
         public override void Render(Map map)
         {
-            map.Decorations[x, y].Add(new Decoration(this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex) { Offset = -Map.TileHeight });
+            map.Decorations[x, y].Add(new Decoration(this, "wall_" + map.DungeonWallSet + "_" + HalfWallIndex) { Offset = -Map.DEPRECATE_TileHeight, AsciiCharacter = "" });
         }
     }
 }
