@@ -4,22 +4,22 @@
 @inject IJSRuntime JsRuntime;
 
 <div class="map" id="mapcontainer" @onkeyup="@KeyUp">
-    @{ bool renderAscii = true; }
+    @{ bool renderAscii = false; }
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < game.Map.Height; y++)
     {
-        <div id="row_@y" class="row">
-            @for (int x = 0; x < game.Map.Width; x++)
-            {
-                MapPosition tile = game.Map.Tiles[x, y];
-                string tileAsciiChar = tile.AsciiCharacter;
-                string tileAsciiColour = tile.AsciiColour;
-                string imgFileName = tile.ImageName + ".png";
-                string tiletype = tile.TileType.ToString();
-                string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
-                string tileClass = $"tile {(fovClass)}";
+        @for (int x = 0; x < game.Map.Width; x++)
+        {
+            MapPosition tile = game.Map.Tiles[x, y];
+            string tileAsciiChar = tile.AsciiCharacter;
+            string tileAsciiColour = tile.AsciiColour;
+            string imgFileName = tile.ImageName + ".png";
+            string tiletype = tile.TileType.ToString();
+            string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
+            string tileClass = $"tile {(fovClass)}";
+            string cellClass = renderAscii ? "textCell" : "cell";
 
-            <div id="@x,@y" class="cell">
+            <div id="@x,@y" class="@cellClass">
                 @if (game.Map.IsMappedMap[x, y])
                 {
                     if (renderAscii)
@@ -53,7 +53,7 @@
                         }
                         if (renderAscii)
                         {
-                            if(decoration.AsciiCharacter != null)
+                            if (decoration.AsciiCharacter != null)
                             {
                                 renderDiv = true;
                                 divContent = decoration.AsciiCharacter;
@@ -105,8 +105,7 @@
                     }
                 }
             </div>
-            }
-        </div>
+        }
     }
 
     <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
@@ -117,15 +116,15 @@
 
 <div id="debuginfo">
     <ul>
-    @foreach (var debugInfo in game.Map.DebugInfo)
-    {
-        <li>@debugInfo</li>
-    }
+        @foreach (var debugInfo in game.Map.DebugInfo)
+        {
+            <li>@debugInfo</li>
+        }
     </ul>
 </div>
 
 <audio id="bgsound" autoplay loop>
-  <source src="sound/Ambience_Cave_00.mp3" type="audio/mpeg">
+    <source src="sound/Ambience_Cave_00.mp3" type="audio/mpeg">
 </audio>
 
 @code {
@@ -148,8 +147,8 @@
         await Focus("start_button");
     }
 
-    private void OnClickStart(){}
-    
+    private void OnClickStart() { }
+
     public void OnClick(Decoration decoration)
     {
         decoration.OnClick();
@@ -158,7 +157,7 @@
         game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
         game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
         game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
-    // TODO Don't I need to Render Moveables here also?
+        // TODO Don't I need to Render Moveables here also?
     }
 
     void KeyUp(KeyboardEventArgs e)
