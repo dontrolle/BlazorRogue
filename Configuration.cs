@@ -19,8 +19,11 @@ namespace BlazorRogue
         private Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
-        private Dictionary<string, FloorSet> floorSets = new Dictionary<string, FloorSet>();
-        public IReadOnlyDictionary<string, FloorSet> FloorSets => floorSets;
+        private Dictionary<string, FloorSet> standardFloorSets = new Dictionary<string, FloorSet>();
+        public IReadOnlyDictionary<string, FloorSet> StandardFloorSets => standardFloorSets;
+
+        private Dictionary<string, FloorSet> specialFloorSets = new Dictionary<string, FloorSet>();
+        public IReadOnlyDictionary<string, FloorSet> SpecialFloorSets => specialFloorSets;
 
         public void Parse() // Task async
         {
@@ -75,8 +78,19 @@ namespace BlazorRogue
             charFloor = element.GetProperty("char_floor").GetString();
             charColor = element.GetProperty("char_color").GetString();
 
-            var f = new FloorSet(id, special, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
-            floorSets.Add(id, f);
+
+            // TODO Pickup - to match better what I do in DungeonGenerator - consider making
+            //      two hashsets (or just arrays/lists) instead, with Tuple<img_prefix, [ img_indexes ], char_floor, char_color>
+            //      that's actually easier for me to refactor with.
+            var f = new FloorSet(id, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
+            if(special)
+            {
+                specialFloorSets.Add(id, f);
+            }
+            else
+            {
+                standardFloorSets.Add(id, f);
+            }
         }
 
         private static void ParseMoveableType(JsonElement element, Dictionary<string, MoveableType> moveableDictionary)

@@ -8,7 +8,8 @@ namespace BlazorRogue
 {
     public class DungeonGenerator
     {
-        private Map map;
+        private readonly Map map;
+        private readonly Configuration configuration;
 
         Random random = new Random();
 
@@ -97,7 +98,7 @@ namespace BlazorRogue
 
         private Level LevelType;
 
-        public DungeonGenerator(int width, int height, Game game)
+        public DungeonGenerator(int width, int height, Game game, Configuration configuration)
         {
             // Choose random level-type
             LevelType = Level.Dungeon;
@@ -114,12 +115,16 @@ namespace BlazorRogue
             }
 
             map = new Map(width, height, wallSet, game);
+            this.configuration = configuration;
         }
 
-        public Map GenerateMap(Configuration config)
+        public Map GenerateMap()
         {
             // NO ASYNC Task could be started earlier and passed as running, I guess
-            config.Parse(); // var configParsed = 
+            configuration.Parse(); // var configParsed = 
+
+            // wait for config parse to finish
+            //configParsed.Wait(); // NO ASYNC 
 
             Tuple<int, int> playerPos;
 
@@ -141,12 +146,9 @@ namespace BlazorRogue
             AddDoors();
             AddPostGenerationDecorations();
 
-            // wait for config parse to finish
-            //configParsed.Wait(); // NO ASYNC 
-
 
             // Add Player
-            var heroType = GetRandomElement(config.HeroTypes).Value;
+            var heroType = GetRandomElement(configuration.HeroTypes).Value;
             var player = new Moveable(playerPos, null, heroType);
 
             map.AddPlayer(player);
@@ -157,13 +159,13 @@ namespace BlazorRogue
             for (int i = 0; i < noOfRandomMonsters; i++)
             {
                 var pos = GetRandomUnblockedMapTile();
-                var monsterType = GetRandomElement(config.MonsterTypes).Value;
+                var monsterType = GetRandomElement(configuration.MonsterTypes).Value;
                 var monster = new Moveable(pos, new SimpleAIComponent(map), monsterType);
                 map.AddMonster(monster);
             }
 
             var extraPos = GetRandomUnblockedMapTile();
-            var extraGoblin = new Moveable(extraPos, new SimpleAIComponent(map), config.MonsterTypes["goblin"]);
+            var extraGoblin = new Moveable(extraPos, new SimpleAIComponent(map), configuration.MonsterTypes["goblin"]);
             map.AddMonster(extraGoblin);
 
             // initialize various maps and so on in Map (it there a better place to do this?)
