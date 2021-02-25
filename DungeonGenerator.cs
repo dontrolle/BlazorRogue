@@ -28,6 +28,10 @@ namespace BlazorRogue
         private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
         private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
         private readonly double[] WallWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
+
+        // TODO PICKUP : Floor sets are parsed - need to exchange the usage of following constants for parsed values in Configuration
+        // TODO - Do I need a switch to distinguish base sets and special sets...?
+
         private readonly String[] BaseFloorSets = new[] { "set_blue", "set_dark", "set_grey" };
         private readonly int[] BaseFloorIndexes = new[] { 1, 2, 3, 4, 5 };
         private readonly Tuple<string, int[]>[] SpecialFloorSets = new[] {

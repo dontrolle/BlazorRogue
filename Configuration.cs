@@ -1,17 +1,14 @@
-﻿using System.Collections.Generic;
-
-using System.Text.Json;
-
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-
+using System.Text.Json;
 using BlazorRogue.Entities;
 
 namespace BlazorRogue
 {
     public class Configuration
     {
-        // TODO Ensure that read files are from output dir
+        // TODO Ensure that read files are from output dir, i.e., built files
         const string MonsterFileName = "Data\\monsters.json";
         const string HeroesFileName = "Data\\heroes.json";
         const string FloorSetsFileName = "Data\\floorsets.json";
@@ -63,9 +60,11 @@ namespace BlazorRogue
         private void ParseFloorSetType(JsonElement element)
         {
             string id, imgPrefix, charFloor, charColor;
+            bool special;
             var imgFloorList = new List<int>();
 
             id = element.GetProperty("id").GetString();
+            special = element.GetProperty("id").GetBoolean();
             imgPrefix = element.GetProperty("img_prefix").GetString();
             var imgFloorElement = element.GetProperty("img_floor");
             foreach (var no in imgFloorElement.EnumerateArray())
@@ -76,7 +75,7 @@ namespace BlazorRogue
             charFloor = element.GetProperty("char_floor").GetString();
             charColor = element.GetProperty("char_color").GetString();
 
-            var f = new FloorSet(id, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
+            var f = new FloorSet(id, special, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
             floorSets.Add(id, f);
         }
 

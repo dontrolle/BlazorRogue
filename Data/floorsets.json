@@ -2,6 +2,7 @@
     "uf_floor_sets": [
         {
             "id": "blue",
+            "special": false,
             "img_prefix": "set_blue",
             "img_floor": [ 1, 2, 3, 4, 5 ],
             "char_floor": ".",
@@ -9,6 +10,7 @@
         },
         {
             "id": "dark",
+            "special": false,
             "img_prefix": "set_dark",
             "img_floor": [ 1, 2, 3, 4, 5 ],
             "char_floor": ".",
@@ -16,6 +18,7 @@
         },
         {
             "id": "grey",
+            "special": false,
             "img_prefix": "set_grey",
             "img_floor": [ 1, 2, 3, 4, 5 ],
             "char_floor": ".",
@@ -23,6 +26,7 @@
         },
         {
             "id": "diagonal_blue",
+            "special": true,
             "img_prefix": "diagonal_blue",
             "img_floor": [ 1, 2, 3, 4 ],
             "char_floor": ".",
@@ -30,6 +34,7 @@
         },
         {
             "id": "diagonal_red",
+            "special": true,
             "img_prefix": "diagonal_red",
             "img_floor": [ 1, 2, 3, 4 ],
             "char_floor": ".",
@@ -37,6 +42,7 @@
         },
         {
             "id": "crusted_grey",
+            "special": true,
             "img_prefix": "crusted_grey",
             "img_floor": [ 1, 2, 3, 4 ],
             "char_floor": ".",
@@ -44,6 +50,7 @@
         },
         {
             "id": "extra_1",
+            "special": true,
             "img_prefix": "extra",
             "img_floor": [ 1 ],
             "char_floor": ".",
@@ -51,6 +58,7 @@
         },
         {
             "id": "extra_2",
+            "special": true,
             "img_prefix": "extra",
             "img_floor": [ 2 ],
             "char_floor": ".",
