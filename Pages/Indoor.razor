@@ -3,8 +3,12 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
 
-<div class="map" id="mapcontainer" @onkeyup="@KeyUp">
-    @{ bool renderAscii = false; }
+@{ 
+    bool renderAscii = true;
+    string mapClass = renderAscii ? "map-ascii" : "map-img";
+}
+
+<div class="map @mapClass" id="mapcontainer" @onkeyup="@KeyUp">
     <!-- map is rendered row by row, top to bottom -->
     @for (int y = 0; y < game.Map.Height; y++)
     {
@@ -17,7 +21,7 @@
             string tiletype = tile.TileType.ToString();
             string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
             string tileClass = $"tile {(fovClass)}";
-            string cellClass = renderAscii ? "textCell" : "cell";
+            string cellClass = "cell";
 
             <div id="@x,@y" class="@cellClass">
                 @if (game.Map.IsMappedMap[x, y])
@@ -40,7 +44,7 @@
                         }
 
                         bool renderDiv = false;
-                        string cssclass = "decoration";
+                        string baseCssClass = "decoration";
                         string animationClass = "";
                         string style = "";
                         string divContent = "";
@@ -53,6 +57,8 @@
                         }
                         if (renderAscii)
                         {
+                            baseCssClass += " decoration-ascii";
+                            // weed out those decorations, which shouldn't be shown in ascii
                             if (decoration.AsciiCharacter != null)
                             {
                                 renderDiv = true;
@@ -94,8 +100,8 @@
 
                         if (renderDiv)
                         {
-                            cssclass = $"{cssclass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                            <div class="@cssclass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)">@divContent</div>
+                            baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
+                            <div class="@baseCssClass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)">@divContent</div>
                         }
 
                         if (decoration.OnClick != null)

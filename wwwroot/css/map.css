@@ -1,15 +1,24 @@
 .map {
-    display: grid;
-    position: relative;
-    top:0px;
-    left:0px;
-    bottom:0px;
-    right:0px;
-    height:100%;
-    background-color: black;
-    grid-template-rows: repeat(30, 48px);
-    grid-template-columns: repeat(38, 48px);
-    grid-gap: 0px;
+  display: grid;
+  position: relative;
+  top:0px;
+  left:0px;
+  bottom:0px;
+  right:0px;
+  height:100%;
+  background-color: black;
+}
+
+.map-ascii {
+  grid-template-rows: repeat(30, 24px);
+  grid-template-columns: repeat(38, 24px);
+  grid-gap: 0px;
+}
+
+.map-img {
+  grid-template-rows: repeat(30, 48px);
+  grid-template-columns: repeat(38, 48px);
+  grid-gap: 0px;
 }
 
 .cell {
@@ -25,6 +34,22 @@
   position: absolute;
   width: 100%;
   height: 100%;
+  justify-content: center;
+}
+
+.decoration {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  background-size: cover;
+  justify-content: center;
+}
+
+.decoration-ascii {
+  background-color: black;
 }
 
 .outoffov {
@@ -33,15 +58,6 @@
 
 .lit {
   filter: brightness(120%);
-}
-
-.decoration {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  background-size: cover;
 }
 
 .decinfront {
