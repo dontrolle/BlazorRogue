@@ -14,12 +14,16 @@ namespace BlazorRogue
         // TODO Ensure that read files are from output dir
         const string MonsterFileName = "Data\\monsters.json";
         const string HeroesFileName = "Data\\heroes.json";
+        const string FloorSetsFileName = "Data\\floorsets.json";
 
         private Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
 
         private Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
+
+        private Dictionary<string, FloorSet> floorSets = new Dictionary<string, FloorSet>();
+        public IReadOnlyDictionary<string, FloorSet> FloorSets => floorSets;
 
         public void Parse() // Task async
         {
@@ -29,10 +33,8 @@ namespace BlazorRogue
             };
 
             ParseDataFile(options, HeroesFileName, "heroes", e => ParseMoveableType(e, heroTypes));
-
             ParseDataFile(options, MonsterFileName, "monsters", e => ParseMoveableType(e, monsterTypes));
-
-            // "uf_floor_sets"
+            ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
         }
 
         /// <summary>
@@ -58,6 +60,26 @@ namespace BlazorRogue
             }
         }
 
+        private void ParseFloorSetType(JsonElement element)
+        {
+            string id, imgPrefix, charFloor, charColor;
+            var imgFloorList = new List<int>();
+
+            id = element.GetProperty("id").GetString();
+            imgPrefix = element.GetProperty("img_prefix").GetString();
+            var imgFloorElement = element.GetProperty("img_floor");
+            foreach (var no in imgFloorElement.EnumerateArray())
+            {
+                imgFloorList.Add(no.GetInt32());
+            }
+
+            charFloor = element.GetProperty("char_floor").GetString();
+            charColor = element.GetProperty("char_color").GetString();
+
+            var f = new FloorSet(id, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
+            floorSets.Add(id, f);
+        }
+
         private static void ParseMoveableType(JsonElement element, Dictionary<string, MoveableType> moveableDictionary)
         {
             string id, name, animationClass, asciiCharacter, asciiColour;
@@ -65,7 +87,6 @@ namespace BlazorRogue
             ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out asciiCharacter, out asciiColour);
 
             var m = new MoveableType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
-
             moveableDictionary.Add(id, m);
         }
 
