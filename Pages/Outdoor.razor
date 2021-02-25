@@ -1,4 +1,4 @@
-@page "/outdoor"
+﻿@page "/outdoor"
 
 <div class="map">
     <!-- map is rendered row by row, top to bottom (TODO: Means y-axis points downwards. Standard? -->
@@ -17,7 +17,7 @@
 </div>
 
 @functions {
-    MapPosition[,] positions = CreateMap(20, 12);
+    Tile[,] positions = CreateMap(20, 12);
     static String[] prefixes = new String[] { "ground" };
     static String[] middles = new String[] { 
         "crusted", 
@@ -29,9 +29,9 @@
         };
 
     // Create map
-    private static MapPosition[,] CreateMap(int width, int height)
+    private static Tile[,] CreateMap(int width, int height)
     {
-        var poss = new MapPosition[width, height];
+        var poss = new Tile[width, height];
         Random random = new Random();
 
         for (int x = 0; x < width; x++)
@@ -45,7 +45,7 @@
 
                 int number = random.Next(1, 4);
 
-                poss[x,y] = new MapPosition (x, y, TileType.Ground, middle, number);
+                poss[x,y] = new Tile (x, y, TileType.Ground, middle, number);
             }
         }
 

@@ -23,7 +23,7 @@ namespace BlazorRogue
 
         public List<string> DebugInfo = new List<string>();
 
-        public MapPosition[,] Tiles { get; }
+        public Tile[,] Tiles { get; }
 
         private List<GameObject> gameObjects;
         public IEnumerable<GameObject> GameObjects
@@ -87,7 +87,7 @@ namespace BlazorRogue
             Game = game;
             Width = width;
             Height = height;
-            Tiles = new MapPosition[width, height];
+            Tiles = new Tile[width, height];
             Decorations = new List<Decoration>[width, height];
             MoveableDecorations = new List<Decoration>[width, height];
             gameObjectByCoord = new List<GameObject>[width, height];
@@ -99,8 +99,8 @@ namespace BlazorRogue
             {
                 for (int j = 0; j < height; j++)
                 {
-                    // initalize map with dark floor tiles                
-                    Tiles[i, j] = new MapPosition(
+                    // initalize map with dark floor tiles
+                    Tiles[i, j] = new Tile(
                         i,
                         j,
                         TileType.Black,

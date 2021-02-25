@@ -1,0 +1,63 @@
+{
+    /* 
+        Floor sets are (for each of ascii or graphical set) be tuples pointing to img/char and [img-indexes]/char-color
+    */
+    "uf_floor_sets": [
+        {
+            "id": "blue",
+            "img_prefix": "set_blue",
+            "img_floor": [ 1, 2, 3, 4, 5 ],
+            "char_floor": [ "." ],
+            "char_color": "darkblue"
+        },
+        {
+            "id": "dark",
+            "img_prefix": "set_dark",
+            "img_floor": [ 1, 2, 3, 4, 5 ],
+            "char_floor": [ "." ],
+            "char_color": "#5E5D5D"
+        },
+        {
+            "id": "grey",
+            "img_prefix": "set_grey",
+            "img_floor": [ 1, 2, 3, 4, 5 ],
+            "char_floor": [ "." ],
+            "char_color": "gray"
+        },
+        {
+            "id": "diagonal_blue",
+            "img_prefix": "diagonal_blue",
+            "img_floor": [ 1, 2, 3, 4 ],
+            "char_floor": [ "." ],
+            "char_color": "blue"
+        },
+        {
+            "id": "diagonal_red",
+            "img_prefix": "diagonal_red",
+            "img_floor": [ 1, 2, 3, 4 ],
+            "char_floor": [ "." ],
+            "char_color": "darkred"
+        },
+        {
+            "id": "crusted_grey",
+            "img_prefix": "crusted_grey",
+            "img_floor": [ 1, 2, 3, 4 ],
+            "char_floor": [ "." ],
+            "char_color": "lightgray"
+        },
+        {
+            "id": "extra_1",
+            "img_prefix": "extra",
+            "img_floor": [ 1 ],
+            "char_floor": [ "." ],
+            "char_color": "#c68c53"
+        },
+        {
+            "id": "extra_2",
+            "img_prefix": "extra",
+            "img_floor": [ 2 ],
+            "char_floor": [ "." ],
+            "char_color": "#a3a375"
+        }
+    ]
+}

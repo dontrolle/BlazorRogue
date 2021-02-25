@@ -1,0 +1,31 @@
+﻿{ /*
+        // Walls with borders- "cave", "ruins", "stone"
+        // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
+        // and - in junction with this - to paste over bottom part of lowermost floors for same...
+        // Wall tiles 7-12 have no front-face
+        // Wall tiles 13 is special?
+        // Wall tiles 14-19 have a front-face
+        private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
+        private readonly String[] CaveWallSets = new[] { "cave" };
+        private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
+        private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
+        private readonly double[] WallWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
+    */
+
+    "uf_wall_sets": [
+        {
+            "id": "crypt",
+            "level_type": "dungeon",
+            "img_prefix": "crypt",
+            "img_withoutfront": [ 7, 8, 9, 10, 11, 12 ],
+            "img_withfront": [ 14, 15, 16, 17, 18, 19 ],
+            "img_weights": [ 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 ],
+            "char_withfront": [ "#" ],
+            "char_withoutfront": [ "#" ],
+            "char_color": "#5E5D5D"
+        },
+        {
+
+        }
+    ]
+}

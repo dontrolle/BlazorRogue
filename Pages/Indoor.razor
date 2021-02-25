@@ -4,7 +4,7 @@
 @inject IJSRuntime JsRuntime;
 
 @{ 
-    bool renderAscii = true;
+    bool renderAscii = false;
     string mapClass = renderAscii ? "map-ascii" : "map-img";
 }
 
@@ -14,7 +14,7 @@
     {
         @for (int x = 0; x < game.Map.Width; x++)
         {
-            MapPosition tile = game.Map.Tiles[x, y];
+            Tile tile = game.Map.Tiles[x, y];
             string tileAsciiChar = tile.AsciiCharacter;
             string tileAsciiColour = tile.AsciiColour;
             string imgFileName = tile.ImageName + ".png";
