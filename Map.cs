@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using BlazorRogue.GameObjects;
+using BlazorRogue.Entities;
 
 namespace BlazorRogue
 {
@@ -15,7 +16,7 @@ namespace BlazorRogue
         public int Width { get; private set; }
         public int Height { get; private set; }
 
-        public string DungeonWallSet { get; private set; }
+        public TileSet DungeonWallSet { get; private set; }
         public Game Game { get; }
         public Moveable Player { get; private set; }
         public const int PlayerSightRadius = 6;
@@ -81,7 +82,7 @@ namespace BlazorRogue
             return Decorations[x, y].Concat(MoveableDecorations[x, y]);
         }
 
-        public Map(int width, int height, string dungeonWallSet, Game game)
+        public Map(int width, int height, TileSet dungeonWallSet, Game game)
         {
             DungeonWallSet = dungeonWallSet;
             Game = game;
@@ -95,6 +96,10 @@ namespace BlazorRogue
             IsVisibleMap = new bool[width, height];
             BlocksLightMap = new bool[width, height];
             BlocksMovementMap = new bool[width, height];
+
+            // A field, if necessary?
+            var blackTileSet = new TileSet("black", TileType.Black, "extra", new[] { 11 }, null, "", "black");
+
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
@@ -103,8 +108,7 @@ namespace BlazorRogue
                     Tiles[i, j] = new Tile(
                         i,
                         j,
-                        TileType.Black,
-                        "extra",
+                        blackTileSet,
                         11
                     )
                     { Blocking = true };

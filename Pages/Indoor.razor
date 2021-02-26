@@ -4,7 +4,7 @@
 @inject IJSRuntime JsRuntime;
 
 @{ 
-    bool renderAscii = false;
+    bool renderAscii = true;
     string mapClass = renderAscii ? "map-ascii" : "map-img";
 }
 
@@ -15,8 +15,8 @@
         @for (int x = 0; x < game.Map.Width; x++)
         {
             Tile tile = game.Map.Tiles[x, y];
-            string tileAsciiChar = tile.AsciiCharacter;
-            string tileAsciiColour = tile.AsciiColour;
+            string character = tile.Character;
+            string charactercolor = tile.CharacterColor;
             string imgFileName = tile.ImageName + ".png";
             string tiletype = tile.TileType.ToString();
             string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
@@ -28,7 +28,7 @@
                 {
                     if (renderAscii)
                     {
-                        <div class="@tileClass" style="color:@tileAsciiColour" alt="@x,@y (@tiletype)">@tileAsciiChar</div>
+                        <div class="@tileClass" style="color:@charactercolor" alt="@x,@y (@tiletype)">@character</div>
                     }
                     else
                     {
@@ -59,11 +59,11 @@
                         {
                             baseCssClass += " decoration-ascii";
                             // weed out those decorations, which shouldn't be shown in ascii
-                            if (!String.IsNullOrEmpty(decoration.AsciiCharacter))
+                            if (!String.IsNullOrEmpty(decoration.Character))
                             {
                                 renderDiv = true;
-                                divContent = decoration.AsciiCharacter;
-                                style = $"color:{decoration.AsciiColour ?? "white"}";
+                                divContent = decoration.Character;
+                                style = $"color:{decoration.CharacterColor ?? "white"}";
                             }
                         }
                         else
@@ -101,7 +101,7 @@
                         if (renderDiv)
                         {
                             baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                            <div class="@baseCssClass" style="@style" alt="@x,@y (Blocking=@decoration.GameObject.Blocking)">@divContent</div>
+                            <div class="@baseCssClass" style="@style" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">@divContent</div>
                         }
 
                         if (decoration.OnClick != null)

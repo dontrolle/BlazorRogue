@@ -12,18 +12,25 @@ namespace BlazorRogue
         const string MonsterFileName = "Data\\monsters.json";
         const string HeroesFileName = "Data\\heroes.json";
         const string FloorSetsFileName = "Data\\floorsets.json";
+        const string WallSetsFileName = "Data\\wallsets.json";
 
-        private Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
+        private readonly Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
 
-        private Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
+        private readonly Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
-        private Dictionary<string, FloorSet> standardFloorSets = new Dictionary<string, FloorSet>();
-        public IReadOnlyDictionary<string, FloorSet> StandardFloorSets => standardFloorSets;
+        private readonly List<TileSet> standardFloorSets = new List<TileSet>();
+        public IEnumerable<TileSet> StandardFloorSets => standardFloorSets.AsReadOnly();
 
-        private Dictionary<string, FloorSet> specialFloorSets = new Dictionary<string, FloorSet>();
-        public IReadOnlyDictionary<string, FloorSet> SpecialFloorSets => specialFloorSets;
+        private readonly List<TileSet> specialFloorSets = new List<TileSet>();
+        public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
+
+        private readonly List<TileSet> dungeonWallSets = new List<TileSet>();
+        public IEnumerable<TileSet> DungeonWallSets => dungeonWallSets.AsReadOnly();
+
+        private readonly List<TileSet> caveWallSets = new List<TileSet>();
+        public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
         public void Parse() // Task async
         {
@@ -35,6 +42,7 @@ namespace BlazorRogue
             ParseDataFile(options, HeroesFileName, "heroes", e => ParseMoveableType(e, heroTypes));
             ParseDataFile(options, MonsterFileName, "monsters", e => ParseMoveableType(e, monsterTypes));
             ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
+            ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
         }
 
         /// <summary>
@@ -67,7 +75,7 @@ namespace BlazorRogue
             var imgFloorList = new List<int>();
 
             id = element.GetProperty("id").GetString();
-            special = element.GetProperty("id").GetBoolean();
+            special = element.GetProperty("special").GetBoolean();
             imgPrefix = element.GetProperty("img_prefix").GetString();
             var imgFloorElement = element.GetProperty("img_floor");
             foreach (var no in imgFloorElement.EnumerateArray())
@@ -75,35 +83,71 @@ namespace BlazorRogue
                 imgFloorList.Add(no.GetInt32());
             }
 
-            charFloor = element.GetProperty("char_floor").GetString();
+            charFloor = element.GetProperty("character").GetString();
             charColor = element.GetProperty("char_color").GetString();
 
-
-            // TODO Pickup - to match better what I do in DungeonGenerator - consider making
-            //      two hashsets (or just arrays/lists) instead, with Tuple<img_prefix, [ img_indexes ], char_floor, char_color>
-            //      that's actually easier for me to refactor with.
-            var f = new FloorSet(id, imgPrefix, imgFloorList.ToArray(), charFloor, charColor);
+            var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, charFloor, charColor);
             if(special)
             {
-                specialFloorSets.Add(id, f);
+                specialFloorSets.Add(t);
             }
             else
             {
-                standardFloorSets.Add(id, f);
+                standardFloorSets.Add(t);
+            }
+        }
+
+        private void ParseWallSetType(JsonElement element)
+        {
+            string id, imgPrefix, character, charColor;
+            string levelType;
+            var imgWallWithoutFrontList = new List<int>();
+            var imgWallWeightsList = new List<double>();
+
+            id = element.GetProperty("id").GetString();
+            levelType = element.GetProperty("level_type").GetString();
+            imgPrefix = element.GetProperty("img_prefix").GetString();
+            var imgWallWithoutFrontElement = element.GetProperty("img_withoutfront");
+            foreach (var no in imgWallWithoutFrontElement.EnumerateArray())
+            {
+                imgWallWithoutFrontList.Add(no.GetInt32());
+            }
+
+            var imgWallWeightsElement = element.GetProperty("img_weights");
+            foreach (var no in imgWallWeightsElement.EnumerateArray())
+            {
+                imgWallWeightsList.Add(no.GetDouble());
+            }
+
+            character = element.GetProperty("character").GetString();
+            charColor = element.GetProperty("char_color").GetString();
+
+            var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character, charColor);
+            if (levelType == "dungeon")
+            {
+                dungeonWallSets.Add(t);
+            }
+            else if(levelType == "cave")
+            {
+                caveWallSets.Add(t);
+            }
+            else
+            {
+                throw new Exception($"Unknown level_type '{levelType}' in wall-set with id: {id}.");
             }
         }
 
         private static void ParseMoveableType(JsonElement element, Dictionary<string, MoveableType> moveableDictionary)
         {
-            string id, name, animationClass, asciiCharacter, asciiColour;
+            string id, name, animationClass, character, characterColor;
             int weaponSkill, weaponDamage, toughness, armour, wounds;
-            ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out asciiCharacter, out asciiColour);
+            ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out character, out characterColor);
 
-            var m = new MoveableType(id, name, animationClass, asciiCharacter, asciiColour, weaponSkill, weaponDamage, toughness, armour, wounds);
+            var m = new MoveableType(id, name, animationClass, character, characterColor, weaponSkill, weaponDamage, toughness, armour, wounds);
             moveableDictionary.Add(id, m);
         }
 
-        private static void ParseMoveable(JsonElement element, out string id, out string name, out int weaponSkill, out int weaponDamage, out int toughness, out int armour, out int wounds, out string animationClass, out string asciiCharacter, out string asciiColour)
+        private static void ParseMoveable(JsonElement element, out string id, out string name, out int weaponSkill, out int weaponDamage, out int toughness, out int armour, out int wounds, out string animationClass, out string character, out string characterColor)
         {
             id = element.GetProperty("id").GetString();
             name = element.GetProperty("name").GetString();
@@ -113,8 +157,8 @@ namespace BlazorRogue
             armour = element.GetProperty("armour").GetInt32();
             wounds = element.GetProperty("wounds").GetInt32();
             animationClass = element.GetProperty("animationClass").GetString();
-            asciiCharacter = element.GetProperty("asciiCharacter").GetString();
-            asciiColour = element.GetProperty("asciiColour").GetString();
+            character = element.GetProperty("character").GetString();
+            characterColor = element.GetProperty("characterColor").GetString();
         }
     }
 

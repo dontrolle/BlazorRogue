@@ -16,11 +16,12 @@ namespace BlazorRogue
         
         public Game()
         {
-            DungeonGenerator = new DungeonGenerator(Width, Height, this);
-            FightingSystem = new FightingSystem(this);
             var config = new Configuration();
-            // TODO pass as async to GenerateMap below 
-            Map = DungeonGenerator.GenerateMap(config);
+            // TODO pass as async 
+            config.Parse();
+            DungeonGenerator = new DungeonGenerator(Width, Height, this, config);
+            FightingSystem = new FightingSystem(this);
+            Map = DungeonGenerator.GenerateMap();
         }
     }
 }

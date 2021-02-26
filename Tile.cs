@@ -1,27 +1,27 @@
-﻿namespace BlazorRogue
+﻿using BlazorRogue.Entities;
+
+namespace BlazorRogue
 {
     public class Tile
     {
-        public Tile(int x, int y, TileType tileType, string tileSet, int tileIndex, string asciiCharacter = "¤", string asciiColour = "fuchsia")
+        public Tile(int x, int y, TileSet tileSet, int tileIndex)
         {
             this.x = x;
             this.y = y;
-            TileType = tileType;
             TileSet = tileSet;
             TileIndex = tileIndex;
-            AsciiCharacter = asciiCharacter;
-            AsciiColour = asciiColour;
         }
 
-        public string ImageName { get => TileType.ToTileSetPrefix() + "_" + TileSet + "_" + TileIndex; }
-        public string TileSet { get; set; }
-        public int TileIndex { get; set; }
-        public TileType TileType { get; set; }
         public int x { get; }
         public int y { get; }
+        public TileSet TileSet { get; set; }
+        public int TileIndex { get; set; }
 
-        public string AsciiCharacter { get; }
-        public string AsciiColour { get; }
+        public string ImageName { get => TileSet.ImageName(TileIndex); }
+        public TileType TileType => TileSet.TileType;
+
+        public string Character => TileSet.Character;
+        public string CharacterColor => TileSet.CharacterColor;
 
         // For now, all blocking tiles also block light. If I make windows, this needs to change. 
         public bool Blocking { get; set; } = false;

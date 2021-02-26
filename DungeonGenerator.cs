@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BlazorRogue.GameObjects;
+using BlazorRogue.Entities;
 
 namespace BlazorRogue
 {
@@ -24,30 +25,13 @@ namespace BlazorRogue
         // Wall tiles 7-12 have no front-face
         // Wall tiles 13 is special?
         // Wall tiles 14-19 have a front-face
-        private readonly String[] WallSets = new[] { "crypt", "dungeon", "ruins" };
-        private readonly String[] CaveWallSets = new[] { "cave" };
-        private readonly int[] WallsWithoutFront = new[] { 7, 8, 9, 10, 11, 12 };
         private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
-        private readonly double[] WallWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
+        private readonly double[] WallsWithFrontWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
 
-        // TODO PICKUP : Floor sets are parsed - need to exchange the usage of following constants for parsed values in Configuration
-        // TODO - Do I need a switch to distinguish base sets and special sets...?
+        // TODO: 
+        // Step 2: Handle WallsWithFront and halfwalls as decoration; logically they should be able to be configured in relation to WallsWithoutFront, ..., hmmm
 
-        private readonly String[] BaseFloorSets = new[] { "set_blue", "set_dark", "set_grey" };
-        private readonly int[] BaseFloorIndexes = new[] { 1, 2, 3, 4, 5 };
-        private readonly Tuple<string, int[]>[] SpecialFloorSets = new[] {
-            Tuple.Create("diagonal_blue", new [] {1,2,3,4}),
-            Tuple.Create("diagonal_red", new [] {1,2,3,4}),
-            Tuple.Create("crusted_grey", new [] {1,2,3,4}),
-            Tuple.Create("extra", new int[] {19}),
-            Tuple.Create("extra", new int[] {17}),
-            Tuple.Create("extra", new int[] {7}),
-            Tuple.Create("extra", new int[] {4}),
-            Tuple.Create("extra", new int[] {3}),
-            Tuple.Create("extra", new int[] {2}),
-            Tuple.Create("extra", new int[] {1}),
-        };
-        private readonly String[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
+        private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
 
         // width and height are including walls
         private const int MaxRooms = 10;
@@ -59,8 +43,8 @@ namespace BlazorRogue
         const int SpecialRoomWidth = 8;
         const double PercentageChanceOfSpecialRoom = 1.0;
 
-        private List<Room> Rooms = new List<Room>();
-        private List<Tuple<int, int>> CandidateDoors = new List<Tuple<int, int>>();
+        private readonly List<Room> Rooms = new List<Room>();
+        private readonly List<Tuple<int, int>> CandidateDoors = new List<Tuple<int, int>>();
         class Room
         {
             public Room(int X, int Y, int width, int height)
@@ -106,11 +90,11 @@ namespace BlazorRogue
             //     LevelType = Level.Cave;
 
             // choose random wall-set for this entire dungeon
-            string wallSet;
+            TileSet wallSet;
             switch (LevelType)
             {
-                case Level.Cave: wallSet = GetRandomElement(CaveWallSets); break;
-                case Level.Dungeon: wallSet = GetRandomElement(WallSets); break;
+                case Level.Cave: wallSet = GetRandomElement(configuration.CaveWallSets); break;
+                case Level.Dungeon: wallSet = GetRandomElement(configuration.DungeonWallSets); break;
                 default: throw new InvalidOperationException($"Unknown level-type: {LevelType}");
             }
 
@@ -120,9 +104,6 @@ namespace BlazorRogue
 
         public Map GenerateMap()
         {
-            // NO ASYNC Task could be started earlier and passed as running, I guess
-            configuration.Parse(); // var configParsed = 
-
             // wait for config parse to finish
             //configParsed.Wait(); // NO ASYNC 
 
@@ -370,14 +351,20 @@ namespace BlazorRogue
 
         private Tuple<int, int> FinalizeCaveGen(bool[,] genmap)
         {
-            string floorset = "crusted_grey";
+            var caveGenTileSet = "crusted_grey";
+            TileSet? floorset = configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == caveGenTileSet);
+            if(floorset==null)
+            {
+                throw new Exception("Missing tileset " + caveGenTileSet + " in read configuration.");
+            }
+
             int[] floorIndexes = new[] { 1, 2, 3, 4 };
-            FillMap(genmap, floorset, floorIndexes);
+            FillMap(genmap, floorset);
 
             return GetRandomUnblockedMapTile();
         }
 
-        private void FillMap(bool[,] genmap, string floorset, int[] floorIndexes)
+        private void FillMap(bool[,] genmap, TileSet floorset)
         {
             map.ForEachTile(
                 (x, y) =>
@@ -385,7 +372,7 @@ namespace BlazorRogue
                     if (genmap[x, y])
                         PlaceWall(x, y);
                     else
-                        PlaceFloor(x, y, floorset, floorIndexes);
+                        PlaceFloor(x, y, floorset);
                 }
             );
         }
@@ -428,7 +415,7 @@ namespace BlazorRogue
             throw new Exception($"Couldn't find an unblocked tile on map in {MaxSearch} tries!");
         }
 
-        // TODO: Factor CreateXXXTunnelFloor into one method
+
         private void CreateHorizontalTunnelFloor(Room fromRoom, Room toRoom, int y)
         {
             Room leftRoom = toRoom;
@@ -443,13 +430,13 @@ namespace BlazorRogue
             int maxX = rightRoom.CenterX;
 
             // get the floor tile set of each room
-            var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
-            var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
+            TileSet from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
+            TileSet to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-            var possibleTileSets = (new string[] { from_floor_tileset, to_floor_tileset }).Intersect(BaseFloorSets).ToArray();
+            var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset }).Intersect(configuration.StandardFloorSets).ToArray();
 
             // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-            string tunnelFloorSet = GetRandomElement(BaseFloorSets);
+            var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
             if (possibleTileSets.Length > 0)
             {
                 tunnelFloorSet = GetRandomElement(possibleTileSets);
@@ -459,7 +446,7 @@ namespace BlazorRogue
             {
                 if (map.Tiles[x, y].TileType != TileType.Floor)
                 {
-                    PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
+                    PlaceFloor(x, y, tunnelFloorSet);
                 }
             }
         }
@@ -481,10 +468,10 @@ namespace BlazorRogue
             var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
             var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-            var possibleTileSets = (new string[] { from_floor_tileset, to_floor_tileset }).Intersect(BaseFloorSets).ToArray();
+            var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset }).Intersect(configuration.StandardFloorSets).ToArray();
 
             // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-            string tunnelFloorSet = GetRandomElement(BaseFloorSets);
+            var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
             if (possibleTileSets.Length > 0)
             {
                 tunnelFloorSet = GetRandomElement(possibleTileSets);
@@ -494,7 +481,7 @@ namespace BlazorRogue
             {
                 if (map.Tiles[x, y].TileType != TileType.Floor)
                 {
-                    PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
+                    PlaceFloor(x, y, tunnelFloorSet);
                 }
             }
         }
@@ -546,7 +533,7 @@ namespace BlazorRogue
                         // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
                         if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
                         {
-                            var index = GetRandomElementWeighted(WallsWithFront, WallWeights);
+                            var index = GetRandomElementWeighted(WallsWithFront, WallsWithFrontWeights);
                             bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
                             if (mapTileBelowHasDoor)
                             {
@@ -582,7 +569,7 @@ namespace BlazorRogue
                     {
                         if (random.NextDouble() < PercentageChanceOfBones)
                         {
-                            map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(0, 5)));
+                            map.AddGameObject(new FloorDecoration(x, y, "bones", random.Next(1, 5)));
                         }
 
                         // in the following we rely on floors never being placed on the perimeter tiles, else we could do
@@ -674,24 +661,17 @@ namespace BlazorRogue
 
         private void PlaceWall(int x, int y)
         {
-            PlaceWall(x, y, WallsWithoutFront);
-        }
-
-        private void PlaceWall(int x, int y, int[] WallIndexes)
-        {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
             map.Tiles[x, y].TileSet = map.DungeonWallSet;
-            map.Tiles[x, y].TileIndex = GetRandomElementWeighted(WallIndexes, WallWeights);
-            map.Tiles[x, y].TileType = TileType.Wall;
+            map.Tiles[x, y].TileIndex = GetRandomElementWeighted(map.DungeonWallSet.ImgIndexes, map.DungeonWallSet.ImgWeights);
             map.Tiles[x, y].Blocking = true;
         }
 
-        private void PlaceFloor(int x, int y, string FloorSet, int[] FloorIndexes)
+        private void PlaceFloor(int x, int y, TileSet FloorSet)
         {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.
             map.Tiles[x, y].TileSet = FloorSet;
-            map.Tiles[x, y].TileIndex = GetRandomElement(FloorIndexes);
-            map.Tiles[x, y].TileType = TileType.Floor;
+            map.Tiles[x, y].TileIndex = GetRandomElement(FloorSet.ImgIndexes);
             map.Tiles[x, y].Blocking = false;
         }
 
@@ -715,8 +695,8 @@ namespace BlazorRogue
             var right_door_floor_tileset = map.Tiles[right_door_x + 1, y].TileSet;
 
             // Set floor tileset on door tiles
-            PlaceFloor(left_door_x, y, left_door_floor_tileset, BaseFloorIndexes);
-            PlaceFloor(right_door_x, y, right_door_floor_tileset, BaseFloorIndexes);
+            PlaceFloor(left_door_x, y, left_door_floor_tileset);
+            PlaceFloor(right_door_x, y, right_door_floor_tileset);
 
             // put doors in tiles
             map.AddGameObject(new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
@@ -736,7 +716,7 @@ namespace BlazorRogue
             for (int x = left_door_x + 1; x < right_door_x; x++)
             {
                 PlaceWall(x, y - 1);
-                PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
+                PlaceFloor(x, y, tunnelFloorSet);
                 PlaceWall(x, y + 1);
             }
         }
@@ -761,8 +741,8 @@ namespace BlazorRogue
             var bottom_door_floor_tileset = map.Tiles[x, bottom_door_y + 1].TileSet;
 
             // Set floor tileset on door tiles
-            PlaceFloor(x, upper_door_y, upper_door_floor_tileset, BaseFloorIndexes);
-            PlaceFloor(x, bottom_door_y, bottom_door_floor_tileset, BaseFloorIndexes);
+            PlaceFloor(x, upper_door_y, upper_door_floor_tileset);
+            PlaceFloor(x, bottom_door_y, bottom_door_floor_tileset);
 
             // put doors in tiles
             map.AddGameObject(new Door(x, upper_door_y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
@@ -784,7 +764,7 @@ namespace BlazorRogue
             for (int y = upper_door_y + 1; y < bottom_door_y; y++)
             {
                 PlaceWall(x - 1, y);
-                PlaceFloor(x, y, tunnelFloorSet, BaseFloorIndexes);
+                PlaceFloor(x, y, tunnelFloorSet);
                 PlaceWall(x + 1, y);
             }
         }
@@ -804,13 +784,12 @@ namespace BlazorRogue
             bool placeWalls = !elideOuterWalls;
 
             // choose random floor-set for this room
-            string floorset = GetRandomElement(BaseFloorSets);
-            int[] floorIndexes = BaseFloorIndexes;
+            var floorset = GetRandomElement(configuration.StandardFloorSets);
             //bool specialRoom = false;
             if (width >= SpecialRoomWidth && height >= SpecialRoomHeight && random.NextDouble() < PercentageChanceOfSpecialRoom)
             {
                 //specialRoom = true;
-                (floorset, floorIndexes) = GetRandomElement(SpecialFloorSets);
+                (floorset) = GetRandomElement(configuration.SpecialFloorSets);
             }
 
             if (placeWalls)
@@ -842,7 +821,7 @@ namespace BlazorRogue
                     }
                     else
                     {
-                        PlaceFloor(x + left_x, y + top_y, floorset, floorIndexes);
+                        PlaceFloor(x + left_x, y + top_y, floorset);
                     }
                 }
             }

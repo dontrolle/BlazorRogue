@@ -13,8 +13,8 @@ namespace BlazorRogue
         public int HOffset { get; set; }
         public bool InFront { get; set; }
         public bool BlocksLight => GameObject.BlocksLight;
-        public string AsciiCharacter { get; set; } = "?";
-        public string AsciiColour { get; set; } = "orange";
+        public string Character { get; set; } = "?";
+        public string CharacterColor { get; set; } = "orange";
 
         public Decoration(GameObject gameObject, string? imageName)
         {

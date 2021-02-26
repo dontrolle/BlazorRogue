@@ -36,7 +36,7 @@ namespace BlazorRogue
                 throw new InvalidOperationException("AnimationClass not set.");
             }
 
-            map.MoveableDecorations[x, y].Add(new Decoration(this, null) { AnimationClass = AnimationClass, AsciiCharacter = AsciiCharacter, AsciiColour = AsciiColour });
+            map.MoveableDecorations[x, y].Add(new Decoration(this, null) { AnimationClass = AnimationClass, Character = AsciiCharacter, CharacterColor = AsciiColour });
         }
 
         public override void Move(int xDelta, int yDelta)

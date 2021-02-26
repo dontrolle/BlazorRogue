@@ -17,38 +17,39 @@
 </div>
 
 @functions {
-    Tile[,] positions = CreateMap(20, 12);
-    static String[] prefixes = new String[] { "ground" };
-    static String[] middles = new String[] { 
-        "crusted", 
-        "dirt_brown", 
+  Tile[,] positions = CreateMap(20, 12);
+  static String[] prefixes = new String[] { "ground" };
+  static String[] middles = new String[] {
+        "crusted",
+        "dirt_brown",
         "dirt_dark",
-        "grass", 
-        "grass_burnt", 
-        "sand" 
+        "grass",
+        "grass_burnt",
+        "sand"
         };
 
-    // Create map
-    private static Tile[,] CreateMap(int width, int height)
-    {
-        var poss = new Tile[width, height];
-        Random random = new Random();
+  // Create map
+  private static Tile[,] CreateMap(int width, int height)
+  {
+      var poss = new Tile[width, height];
+      Random random = new Random();
 
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++){
-                int prefixIndex = random.Next(0, prefixes.Length);
-                String prefix = prefixes[prefixIndex];
+      for (int x = 0; x < width; x++)
+      {
+          for (int y = 0; y < height; y++){
+              int prefixIndex = random.Next(0, prefixes.Length);
+              String prefix = prefixes[prefixIndex];
 
-                int middleIndex = random.Next(0, middles.Length);
-                String middle = middles[middleIndex];
+              int middleIndex = random.Next(0, middles.Length);
+              String middle = middles[middleIndex];
 
-                int number = random.Next(1, 4);
+              int index = random.Next(1, 4);
+              // TODO This is horrible, creating a new tileset for each x,y - but this is a throw-away demo, so not bothering to refactor
+              var tileset = new Entities.TileSet("ground_" + middle, TileType.Ground, middle, new[] { 1, 2, 3, 4 }, null, ".", "green");
+              poss[x,y] = new Tile (x, y, tileset, index);
+          }
+      }
 
-                poss[x,y] = new Tile (x, y, TileType.Ground, middle, number);
-            }
-        }
-
-        return poss;
-    }
+      return poss;
+  }
 }
