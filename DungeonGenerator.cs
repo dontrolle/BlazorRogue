@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Entities;
 
@@ -11,8 +10,7 @@ namespace BlazorRogue
     {
         private readonly Map map;
         private readonly Configuration configuration;
-
-        Random random = new Random();
+        readonly Random random = new Random();
 
         // Decorations
         private const double PercentageChanceOfBones = 0.05;

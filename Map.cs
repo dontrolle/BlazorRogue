@@ -388,7 +388,7 @@ namespace BlazorRogue
                 {
                     if(go is Door)
                     {
-                        (go as Door).OnClick();
+                        (go as Door)?.OnClick();
                         UpdateBlocksLight(go.x, go.y);
                         UpdateBlockMovement(go.x, go.y);
                         RenderGameObjects(go.x, go.y);
@@ -403,7 +403,7 @@ namespace BlazorRogue
                     // what to do if it doesn't have a CombatComponent?
                     if (mo.CombatComponent != null)
                     {
-                        var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent, mo.CombatComponent);
+                        var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
                         Game.SoundManager.PlayCombatSound(hit);
                         RenderMoveables(); // for possible moveable death (can be optimized)
                         UpdateBlockMovement(destX, destY);
