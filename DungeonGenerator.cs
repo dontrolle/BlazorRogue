@@ -29,7 +29,11 @@ namespace BlazorRogue
         private readonly double[] WallsWithFrontWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
 
         // TODO: 
-        // Step 2: Handle WallsWithFront and halfwalls as decoration; logically they should be able to be configured in relation to WallsWithoutFront, ..., hmmm
+        // Pickup - parse and configure decorations via config; carefully choose how fancy I want to get.
+        // Probable good first steps, either 
+        // 1. Basic visual decorations isolated to one tile, or,
+        // 2. Handle wall decorations, which should be rendered with +/- from tile (right?)
+        //    (Handle WallsWithFront and halfwalls as decoration; logically they should be able to be configured in relation to WallsWithoutFront, ..., hmmm)
 
         private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
 
