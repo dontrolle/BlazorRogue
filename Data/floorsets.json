@@ -5,15 +5,15 @@
             "special": false,
             "img_prefix": "set_blue",
             "img_floor": [ 1, 2, 3, 4, 5 ],
-            "char_floor": ".",
-            "char_color": "darkblue"
+            "character": ".",
+            "char_color": "blue"
         },
         {
             "id": "dark",
             "special": false,
             "img_prefix": "set_dark",
             "img_floor": [ 1, 2, 3, 4, 5 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "#5E5D5D"
         },
         {
@@ -21,7 +21,7 @@
             "special": false,
             "img_prefix": "set_grey",
             "img_floor": [ 1, 2, 3, 4, 5 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "gray"
         },
         {
@@ -29,15 +29,15 @@
             "special": true,
             "img_prefix": "diagonal_blue",
             "img_floor": [ 1, 2, 3, 4 ],
-            "char_floor": ".",
-            "char_color": "blue"
+            "character": ".",
+            "char_color": "lightblue"
         },
         {
             "id": "diagonal_red",
             "special": true,
             "img_prefix": "diagonal_red",
             "img_floor": [ 1, 2, 3, 4 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "darkred"
         },
         {
@@ -45,7 +45,7 @@
             "special": true,
             "img_prefix": "crusted_grey",
             "img_floor": [ 1, 2, 3, 4 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "lightgray"
         },
         {
@@ -53,7 +53,7 @@
             "special": true,
             "img_prefix": "extra",
             "img_floor": [ 1 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "#c68c53"
         },
         {
@@ -61,7 +61,7 @@
             "special": true,
             "img_prefix": "extra",
             "img_floor": [ 2 ],
-            "char_floor": ".",
+            "character": ".",
             "char_color": "#a3a375"
         }
     ]

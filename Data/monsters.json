@@ -9,8 +9,8 @@
             "armour": 1,
             "wounds": 11,
             "animationClass": "animated_goblin",
-            "asciiCharacter": "g",
-            "asciiColour": "green"
+            "character": "g",
+            "characterColor": "green"
         },
         {
             "id": "blackGiantSpider",
@@ -21,8 +21,8 @@
             "armour": 2,
             "wounds": 15,
             "animationClass": "animated_spider_black_giant",
-            "asciiCharacter": "s",
-            "asciiColour": "black"
+            "character": "s",
+            "characterColor": "black"
         },
         {
             "id": "brownGiantSpider",
@@ -33,8 +33,8 @@
             "armour": 1,
             "wounds": 10,
             "animationClass": "animated_spider_brown_giant",
-            "asciiCharacter": "s",
-            "asciiColour": "brown"
+            "character": "s",
+            "characterColor": "brown"
         }
     ]
 }

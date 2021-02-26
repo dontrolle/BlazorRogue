@@ -9,8 +9,8 @@
             "armour": 3,
             "wounds": 20,
             "animationClass": "animated_templar",
-            "asciiCharacter": "@",
-            "asciiColour": "white"
+            "character": "@",
+            "characterColor": "white"
         }
     ]
 }
