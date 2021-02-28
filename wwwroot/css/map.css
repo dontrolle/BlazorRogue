@@ -9,6 +9,12 @@
   grid-gap: 5px;
 }
 
+.left_menu {
+  justify-content: center;
+  grid-row-start: 1;
+  grid-row-end: 3;
+}
+
 .map {
   display: grid;
   position: relative;
@@ -89,20 +95,6 @@
   border: none;
   color: transparent;
   z-index: 2;
-}
-
-.red-square {
-    background-color: #FF4136;
-    width: 96px;
-    height: 96px;
-    position: fixed;
-    left: 5%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.left_menu{
-  justify-content: center;
 }
 
 .toggle_button {
