@@ -14,9 +14,4 @@ window.blazorroguefuncs = {
         document.getElementById(id).style.display = "none";
         return true;
     },
-
-    setFocus: function (div) {
-        document.getElementById(div).focus();
-        return true;
-    }
 }

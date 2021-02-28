@@ -1,11 +1,22 @@
+.main_window {
+  display: grid;
+  position: relative;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  background-color: lightgray;
+  grid-template-columns: 120px auto;
+  grid-gap: 5px;
+}
+
 .map {
   display: grid;
   position: relative;
-  top:0px;
-  left:0px;
-  bottom:0px;
-  right:0px;
-  height:100%;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  right: 0px;
+  height: 100%;
   background-color: black;
 }
 
@@ -88,6 +99,10 @@
     left: 5%;
     top: 50%;
     transform: translate(-50%, -50%);
+}
+
+.left_menu{
+  justify-content: center;
 }
 
 .toggle_button {

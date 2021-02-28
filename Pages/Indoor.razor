@@ -1,4 +1,4 @@
-﻿@page "/indoor"
+﻿@page "/"
 
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
@@ -7,130 +7,129 @@
     string mapClass = renderAscii ? "map-ascii" : "map-img";
 }
 
-<div class="map @mapClass" id="mapcontainer" @onkeyup="@KeyUp">
-    <!-- map is rendered row by row, top to bottom -->
-    @for (int y = 0; y < game.Map.Height; y++)
-    {
-        @for (int x = 0; x < game.Map.Width; x++)
+<div class="main_window">
+
+    <div id="left_menu" class="left_menu">
+        <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
+    </div>
+
+    <div class="map @mapClass" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
+        <!-- map is rendered row by row, top to bottom -->
+        @for (int y = 0; y < game.Map.Height; y++)
         {
-            Tile tile = game.Map.Tiles[x, y];
-            string character = tile.Character;
-            string charactercolor = tile.CharacterColor;
-            string imgFileName = tile.ImageName + ".png";
-            string tiletype = tile.TileType.ToString();
-            string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
-            string tileClass = $"tile {(fovClass)}";
-            string cellClass = "cell";
+            @for (int x = 0; x < game.Map.Width; x++)
+            {
+                Tile tile = game.Map.Tiles[x, y];
+                string character = tile.Character;
+                string charactercolor = tile.CharacterColor;
+                string imgFileName = tile.ImageName + ".png";
+                string tiletype = tile.TileType.ToString();
+                string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
+                string tileClass = $"tile {(fovClass)}";
+                string cellClass = "cell";
 
-            <div id="@x,@y" class="@cellClass">
-                @if (game.Map.IsMappedMap[x, y])
-                {
-                    if (renderAscii)
+                <div id="@x,@y" class="@cellClass">
+                    @if (game.Map.IsMappedMap[x, y])
                     {
-                        <div class="@tileClass" style="color:@charactercolor" alt="@x,@y (@tiletype)">@character</div>
-                    }
-                    else
-                    {
-                        <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
-                    }
-
-                    @foreach (var decoration in game.Map.AllDecorations(x, y))
-                    {
-                        // skip invisibles outside of fov
-                        if (decoration.GameObject.InvisibleOutsideFov && !game.Map.IsVisibleMap[x, y])
-                        {
-                            continue;
-                        }
-
-                        bool renderDiv = false;
-                        string baseCssClass = "decoration";
-                        string animationClass = "";
-                        string style = "";
-                        string divContent = "";
-
-                        // - handle layer class
-                        var layerClass = "decbehind";
-                        if (decoration.InFront)
-                        {
-                            layerClass = "decinfront";
-                        }
                         if (renderAscii)
                         {
-                            baseCssClass += " decoration-ascii";
-                            // weed out those decorations, which shouldn't be shown in ascii
-                            if (!String.IsNullOrEmpty(decoration.Character))
-                            {
-                                renderDiv = true;
-                                divContent = decoration.Character;
-                                style = $"color:{decoration.CharacterColor ?? "white"}";
-                            }
+                            <div class="@tileClass" style="color:@charactercolor" alt="@x,@y (@tiletype)">@character</div>
                         }
                         else
                         {
-                            // determine css class
-                            if (decoration.AnimationClass != null && decoration.AnimationClass != "")
-                            {
-                                animationClass = @decoration.AnimationClass;
-                                renderDiv = true;
-                            }
-
-                            // determine css style
-                            if (decoration.ImageName != null && decoration.ImageName != "")
-                            {
-                                string decImgFileName = decoration.ImageName + ".png";
-
-                                renderDiv = true;
-                                style = $"background-image: url('img/uf_terrain/{decImgFileName}');";
-                            }
-
-                            // - handle horizontal and vertical offset
-                            string offset = "";
-                            if (decoration.Offset != 0)
-                            {
-                                offset = $"top: {decoration.Offset}px;";
-                            }
-                            if (decoration.HOffset != 0)
-                            {
-                                offset += $"left: {decoration.HOffset}px;";
-                            }
-
-                            style = $"{style}{offset}";
+                            <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
                         }
 
-                        if (renderDiv)
+                        @foreach (var decoration in game.Map.AllDecorations(x, y))
                         {
-                            baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                            <div class="@baseCssClass" style="@style" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">@divContent</div>
-                        }
+                            // skip invisibles outside of fov
+                            if (decoration.GameObject.InvisibleOutsideFov && !game.Map.IsVisibleMap[x, y])
+                            {
+                                continue;
+                            }
 
-                        if (decoration.OnClick != null)
-                        {
-                            <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
+                            bool renderDiv = false;
+                            string baseCssClass = "decoration";
+                            string animationClass = "";
+                            string style = "";
+                            string divContent = "";
+
+                            // - handle layer class
+                            var layerClass = "decbehind";
+                            if (decoration.InFront)
+                            {
+                                layerClass = "decinfront";
+                            }
+                            if (renderAscii)
+                            {
+                                baseCssClass += " decoration-ascii";
+                                // weed out those decorations, which shouldn't be shown in ascii
+                                if (!String.IsNullOrEmpty(decoration.Character))
+                                {
+                                    renderDiv = true;
+                                    divContent = decoration.Character;
+                                    style = $"color:{decoration.CharacterColor ?? "white"}";
+                                }
+                            }
+                            else
+                            {
+                                // determine css class
+                                if (decoration.AnimationClass != null && decoration.AnimationClass != "")
+                                {
+                                    animationClass = @decoration.AnimationClass;
+                                    renderDiv = true;
+                                }
+
+                                // determine css style
+                                if (decoration.ImageName != null && decoration.ImageName != "")
+                                {
+                                    string decImgFileName = decoration.ImageName + ".png";
+
+                                    renderDiv = true;
+                                    style = $"background-image: url('img/uf_terrain/{decImgFileName}');";
+                                }
+
+                                // - handle horizontal and vertical offset
+                                string offset = "";
+                                if (decoration.Offset != 0)
+                                {
+                                    offset = $"top: {decoration.Offset}px;";
+                                }
+                                if (decoration.HOffset != 0)
+                                {
+                                    offset += $"left: {decoration.HOffset}px;";
+                                }
+
+                                style = $"{style}{offset}";
+                            }
+
+                            if (renderDiv)
+                            {
+                                baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
+                                <div class="@baseCssClass" style="@style" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">@divContent</div>
+                            }
+
+                            if (decoration.OnClick != null)
+                            {
+                                <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
+                            }
                         }
                     }
-                }
-            </div>
+                </div>
+            }
         }
-    }
-
-    <div id="start_button_div" class="red-square" style="background-image: url('img/uf_interface_641.png');">
-        <!-- TODO: Ugly start button for now; it's a placeholder for something we need to change. -->
-        <button id="start_button" type="button" class="interact_button" @onclick=@(OnClickStart) />
     </div>
-</div>
 
-<div id="mode_switch_div" class="mode-switch-div">
-    <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
-</div>
+    <div></div>
 
-<div id="debuginfo">
-    <ul>
-        @foreach (var debugInfo in game.Map.DebugInfo)
-        {
-            <li>@debugInfo</li>
-        }
-        <li>renderAscii=@renderAscii</li>
-    </ul>
+    <div id="debuginfo">
+        <ul>
+            @foreach (var debugInfo in game.Map.DebugInfo)
+            {
+                <li>@debugInfo</li>
+            }
+        </ul>
+    </div>
 </div>
 
 <audio id="bgsound" autoplay loop>
@@ -142,11 +141,6 @@
 
   Game game = new Game();
 
-  async Task Focus(string controlId)
-  {
-      //await JsRuntime.InvokeAsync<string>("blazorroguefuncs.setFocus", controlId);
-  }
-
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
       if (!firstRender)
@@ -155,11 +149,7 @@
       }
 
       Game.SoundManager = new SoundManager(JsRuntime);
-
-      await Focus("start_button");
   }
-
-  private void OnClickStart() { }
 
   public void OnClick(Decoration decoration)
   {
