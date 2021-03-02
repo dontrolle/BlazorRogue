@@ -3,22 +3,23 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
 
-@{
-    string mapClass = renderAscii ? "map-ascii" : "map-img";
-}
-
 <!--  PICKUP:
-    1. Black spiders are invisible - problem. To fix.
+    1. Black spiders are invisible in text - problem. To fix.
     2. Next step, probably more text rendering
     -->
+
+@{
+  int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize; 
+  string mapStyle = $"grid-template-rows: repeat({windowHeight}, {gridTileSize}px); grid-template-columns: repeat({windowWidth}, {gridTileSize}px);";
+}
 
 <div class="main_window">
 
     <div id="left_menu" class="left_menu">
         <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
     </div>
-
-    <div class="map @mapClass" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
+    
+    <div class="map" style="@mapStyle" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
         <!-- map is rendered row by row, top to bottom -->
         @for (int wY = 0; wY < windowHeight; wY++)
         {
@@ -148,6 +149,8 @@
 
 @code {
   bool renderAscii = true;
+  const int asciiGridTileSize = 20;
+  const int graphicGridTileSize = 48;
 
   Game game = new Game();
 

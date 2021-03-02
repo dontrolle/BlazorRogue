@@ -24,19 +24,6 @@
   right: 0px;
   height: 100%;
   background-color: black;
-}
-
-.map-ascii {
-  /* TODO Have to keep grid-template-rows and cols in sync with windowWidth and windowHeight, do I add them as style in blazor?*/
-  grid-template-rows: repeat(20, 20px);
-  grid-template-columns: repeat(25, 20px);
-  grid-gap: 0px;
-}
-
-.map-img {
-  /* TODO Same as above... */
-  grid-template-rows: repeat(20, 48px);
-  grid-template-columns: repeat(25, 48px);
   grid-gap: 0px;
 }
 
