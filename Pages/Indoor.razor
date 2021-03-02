@@ -22,10 +22,13 @@
 
     <div class="map @mapClass" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
         <!-- map is rendered row by row, top to bottom -->
-        @for (int y = 0; y < game.Map.Height; y++)
+        @for (int wY = 0; wY < windowHeight; wY++)
         {
-            @for (int x = 0; x < game.Map.Width; x++)
+            @for (int wX = 0; wX < windowWidth; wX++)
             {
+                int x = wX + windowXOffset;
+                int y = wY + windowYOffset;
+
                 Tile tile = game.Map.Tiles[x, y];
                 string character = tile.Character;
                 string charactercolor = tile.CharacterColor;
@@ -127,14 +130,16 @@
         }
     </div>
 
-    <div></div>
-
     <div id="debuginfo">
         <ul>
             @foreach (var debugInfo in game.Map.DebugInfo)
             {
                 <li>@debugInfo</li>
             }
+            <li>Player.x: @game.Map.Player.x </li>
+            <li>Player.y: @game.Map.Player.y </li>
+            <li>windowXOffset: @windowXOffset</li>
+            <li>windowYOffset: @windowYOffset</li>
         </ul>
     </div>
 </div>
@@ -147,6 +152,24 @@
   bool renderAscii = true;
 
   Game game = new Game();
+
+  int windowMoveBufferX = Map.PlayerSightRadius + 1;
+  int windowMoveBufferY = Map.PlayerSightRadius + 1;
+
+  int windowWidth = 25;
+  int windowHeight = 20;
+  int windowXOffset = Int32.MaxValue;
+  int windowYOffset = Int32.MaxValue;
+
+  protected override void OnInitialized()
+  {
+      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      windowXOffset = optimalXOffset.Clamp(0, game.Map.Width - windowWidth);
+
+      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      windowYOffset = optimalYOffset.Clamp(0, game.Map.Height - windowHeight);
+  }
+
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -174,5 +197,31 @@
       game.Map.OnKeyPress(e.Code);
       game.Map.RenderMoveables();
       game.Map.PlayerTookTurn();
+
+      // adjust window 
+      // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
+      if(game.Map.Player.x - windowXOffset < windowMoveBufferX)
+      {
+          windowXOffset--;
+      }
+
+      if(windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
+      {
+          windowXOffset++;
+      }
+
+      windowXOffset = windowXOffset.Clamp(0, game.Map.Width - windowWidth);
+
+      if(game.Map.Player.y - windowYOffset < windowMoveBufferY)
+      {
+          windowYOffset--;
+      }
+
+      if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
+      {
+          windowYOffset++;
+      }
+
+      windowYOffset = windowYOffset.Clamp(0, game.Map.Height - windowHeight);
   }
 }
