@@ -19,5 +19,10 @@ namespace BlazorRogue
             a[0] = char.ToUpper(a[0]);
             return new string(a);
         }
+
+        public static int Clamp(this int value, int min, int max)
+        {
+            return value < min ? min : value > max ? max : value;
+        }
     }
 }
