@@ -4,9 +4,9 @@
   top: 0px;
   left: 0px;
   height: 100%;
-  background-color: lightgray;
+  background-color: gray;
   grid-template-columns: 120px auto;
-  grid-gap: 5px;
+  grid-gap: 0;
 }
 
 .left_menu {
@@ -99,13 +99,15 @@
 
 .toggle_button {
   background-color: #4CAF50;
-  border: none;
+  border: black;
   color: white;
   padding: 15px 32px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
+  width: 120px;
+  margin-bottom: 5px;
 }
 
 /* Animations */
