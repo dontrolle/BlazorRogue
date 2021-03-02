@@ -27,14 +27,16 @@
 }
 
 .map-ascii {
-  grid-template-rows: repeat(30, 20px);
-  grid-template-columns: repeat(38, 20px);
+  /* TODO Have to keep grid-template-rows and cols in sync with windowWidth and windowHeight, do I add them as style in blazor?*/
+  grid-template-rows: repeat(20, 20px);
+  grid-template-columns: repeat(25, 20px);
   grid-gap: 0px;
 }
 
 .map-img {
-  grid-template-rows: repeat(30, 48px);
-  grid-template-columns: repeat(38, 48px);
+  /* TODO Same as above... */
+  grid-template-rows: repeat(20, 48px);
+  grid-template-columns: repeat(25, 48px);
   grid-gap: 0px;
 }
 
