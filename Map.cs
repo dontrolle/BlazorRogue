@@ -298,7 +298,7 @@ namespace BlazorRogue
             }
         }
 
-        public void OnKeyPress(string keyPressed)
+        public bool OnKeyPress(string keyPressed)
         {
             char numKey;
             // System.Diagnostics.Debug.WriteLine(keyPressed.ToLower());           
@@ -335,9 +335,10 @@ namespace BlazorRogue
                 numKey = '3';
             }
             else
-                return;
+                return false;
 
             HandlePlayerMovement(numKey);
+            return true;
         }
 
         private void HandlePlayerMovement(char numKey)
@@ -397,7 +398,7 @@ namespace BlazorRogue
                 }
 
                 // handle moveables - I take a copy as moveables may be modified, because of death 
-                // TODO: THIS MAY BE CLUNKY AS HELL...
+                // TODO: FIX, THIS IS CLUNKY AS HELL...
                 foreach (var mo in moveables.Where(m => m.x == destX && m.y == destY).ToList())
                 {
                     // what to do if it doesn't have a CombatComponent?
@@ -405,7 +406,6 @@ namespace BlazorRogue
                     {
                         var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
                         Game.SoundManager.PlayCombatSound(hit);
-                        RenderMoveables(); // for possible moveable death (can be optimized)
                         UpdateBlockMovement(destX, destY);
                         stateChanged = true;
                     }
