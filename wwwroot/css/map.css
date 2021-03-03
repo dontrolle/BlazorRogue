@@ -101,7 +101,23 @@
 
 /* Tooltips */
 
+div[data-tool-tip]::after {
+  content: attr(data-tool-tip);
+  display: block;
+  position: absolute;
+  background-color: burlywood;
+  border-radius: 5px;
+  font-size: 0.9em;
+  padding: 0.1em;
+  bottom: 100%;
+  left: 0;
+  white-space: nowrap;
+  visibility: hidden;
+}
 
+div[data-tool-tip]:hover::after {
+  visibility: visible;
+}
 
 /* Animations */
 

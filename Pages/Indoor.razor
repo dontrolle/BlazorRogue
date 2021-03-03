@@ -8,7 +8,7 @@
         * Why the fuck does the game page refresh and generate a new dungeon on startup?!
         * probably more text rendering
         * USE/INTERACT action on shift+MoveButton direction
-        * Info about gameobject on mouse-hover
+        * WIP Info about gameobject on mouse-hover
     -->
 
 @{
@@ -118,9 +118,10 @@
                             if (renderDiv)
                             {
                                 baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                                <div class="@baseCssClass" style="@style" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">@divContent</div>
+                                <div class="@baseCssClass" style="@style" data-tool-tip="@decoration.GameObject.Name" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
+                                    @divContent
+                                </div>
                             }
-
                             if (decoration.OnClick != null)
                             {
                                 <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
