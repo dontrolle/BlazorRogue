@@ -22,7 +22,7 @@
             "wounds": 15,
             "animationClass": "animated_spider_black_giant",
             "character": "s",
-            "characterColor": "black"
+            "characterColor": "gray"
         },
         {
             "id": "brownGiantSpider",
@@ -34,7 +34,7 @@
             "wounds": 10,
             "animationClass": "animated_spider_brown_giant",
             "character": "s",
-            "characterColor": "brown"
+            "characterColor": "#bf8040"
         }
     ]
 }
