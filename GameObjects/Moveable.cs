@@ -12,6 +12,8 @@ namespace BlazorRogue
         public string AsciiCharacter { get; }
         public string AsciiColour { get; }
 
+        public override string? InfoText => Name;
+
         public Moveable(int x, int y, AIComponent aIComponent, MoveableType monsterType) : 
             base(x, y, monsterType.Name, aIComponent, new CombatComponent(monsterType.WeaponSkill, monsterType.WeaponDamage, monsterType.Toughness, monsterType.Armour, monsterType.Wounds))
         {

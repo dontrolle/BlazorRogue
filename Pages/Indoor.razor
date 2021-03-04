@@ -4,11 +4,12 @@
 @inject IJSRuntime JsRuntime;
 
 <!--  PICKUP:
-    2. Next steps, 
+    Next steps, 
         * Why the fuck does the game page refresh and generate a new dungeon on startup?!
         * probably more text rendering
         * USE/INTERACT action on shift+MoveButton direction
-        * WIP Info about gameobject on mouse-hover
+        * Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
+          I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
     -->
 
 @{
@@ -118,10 +119,19 @@
                             if (renderDiv)
                             {
                                 baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
-                                <div class="@baseCssClass" style="@style" data-tool-tip="@decoration.GameObject.Name" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
+
+                                string? datatooltip = null;
+                                string infoText = decoration.GameObject.InfoText;
+                                if (!String.IsNullOrEmpty(infoText))
+                                {
+                                    datatooltip = infoText;
+                                }
+
+                                <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
                                     @divContent
                                 </div>
                             }
+
                             if (decoration.OnClick != null)
                             {
                                 <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
