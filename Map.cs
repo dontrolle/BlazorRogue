@@ -298,47 +298,73 @@ namespace BlazorRogue
             }
         }
 
-        public bool OnKeyPress(string keyPressed, bool shiftKeyDown)
+        public bool OnKeyPress(string key, string keyCode, bool shiftKey)
         {
             char numKey;
-            // System.Diagnostics.Debug.WriteLine(keyPressed.ToLower());           
-            if (keyPressed.ToLower().StartsWith("numpad"))
+            // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
+
+            if (keyCode.ToLower().StartsWith("numpad"))
             {
-                numKey = keyPressed[6];
+                numKey = keyCode[6];
+
+                // handle shift + numpad
+                if (key != numKey.ToString())
+                {
+                    // we know shiftKey must have been held, as else we have, for all single digits X
+                    //   key=="X"  iff  numKey=="NumpadX"
+                    shiftKey = true;
+                }
             }
+
             // fast hacky support for laptop-movement
-            else if(keyPressed.ToLower() == "keyq"){
+            else if (keyCode.ToLower() == "keyq")
+            {
                 numKey = '7';
             }
-            else if(keyPressed.ToLower() == "keyw"){
+            else if (keyCode.ToLower() == "keyw")
+            {
                 numKey = '8';
             }
-            else if(keyPressed.ToLower() == "keye"){
+            else if (keyCode.ToLower() == "keye")
+            {
                 numKey = '9';
             }
-            else if(keyPressed.ToLower() == "keya"){
+            else if (keyCode.ToLower() == "keya")
+            {
                 numKey = '4';
             }
-            else if(keyPressed.ToLower() == "keys"){
+            else if (keyCode.ToLower() == "keys")
+            {
                 numKey = '5';
             }
-            else if(keyPressed.ToLower() == "keyd"){
+            else if (keyCode.ToLower() == "keyd")
+            {
                 numKey = '6';
             }
-            else if(keyPressed.ToLower() == "keyz"){
+            else if (keyCode.ToLower() == "keyz")
+            {
                 numKey = '1';
             }
-            else if(keyPressed.ToLower() == "keyx"){
+            else if (keyCode.ToLower() == "keyx")
+            {
                 numKey = '2';
             }
-            else if(keyPressed.ToLower() == "keyc"){
+            else if (keyCode.ToLower() == "keyc")
+            {
                 numKey = '3';
             }
             else
                 return false;
 
+            // TODO The stuff above doesn't really belong in Map
+
+            return PlayerAction(shiftKey, numKey);
+        }
+
+        public bool PlayerAction(bool shiftKey, char numKey)
+        {
             bool stateChanged = false;
-            if (shiftKeyDown)
+            if (shiftKey)
             {
                 stateChanged = HandlePlayerInteraction(numKey);
             }
@@ -355,7 +381,7 @@ namespace BlazorRogue
                 // wake visible monsters (visibility is reflexive)
                 WakeVisibleMonsters(Player.x, Player.y, PlayerSightRadius);
             }
-            
+
             return true;
         }
 

@@ -5,7 +5,7 @@
 <!--  PICKUP:
     Next steps,
         * Probably more text rendering of decorations
-        * (Bug) USE/INTERACT action only works with shift+letters
+        * (Bug) USE/INTERACT action only works with shift+letters (for some reason ShiftKey isn't set on NumPad-numbers...?)
         * (Perf/bug) Why the fuck does the game page refresh and generate a new dungeon on startup?!
         * (Perf/bug) Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
           I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
@@ -209,7 +209,7 @@
 
   void KeyUp(KeyboardEventArgs e)
   {
-      if (game.Map.OnKeyPress(e.Code, e.ShiftKey))
+      if (game.Map.OnKeyPress(e.Key, e.Code, e.ShiftKey))
       {
           game.Map.RenderMoveables();
           game.Map.PlayerTookTurn();
