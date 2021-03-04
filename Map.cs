@@ -298,79 +298,16 @@ namespace BlazorRogue
             }
         }
 
-        public bool OnKeyPress(string key, string keyCode, bool shiftKey)
-        {
-            char numKey;
-            // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
-
-            if (keyCode.ToLower().StartsWith("numpad"))
-            {
-                numKey = keyCode[6];
-
-                // handle shift + numpad
-                if (key != numKey.ToString())
-                {
-                    // we know shiftKey must have been held, as else we have, for all single digits X
-                    //   key=="X"  iff  numKey=="NumpadX"
-                    shiftKey = true;
-                }
-            }
-
-            // fast hacky support for laptop-movement
-            else if (keyCode.ToLower() == "keyq")
-            {
-                numKey = '7';
-            }
-            else if (keyCode.ToLower() == "keyw")
-            {
-                numKey = '8';
-            }
-            else if (keyCode.ToLower() == "keye")
-            {
-                numKey = '9';
-            }
-            else if (keyCode.ToLower() == "keya")
-            {
-                numKey = '4';
-            }
-            else if (keyCode.ToLower() == "keys")
-            {
-                numKey = '5';
-            }
-            else if (keyCode.ToLower() == "keyd")
-            {
-                numKey = '6';
-            }
-            else if (keyCode.ToLower() == "keyz")
-            {
-                numKey = '1';
-            }
-            else if (keyCode.ToLower() == "keyx")
-            {
-                numKey = '2';
-            }
-            else if (keyCode.ToLower() == "keyc")
-            {
-                numKey = '3';
-            }
-            else
-                return false;
-
-            // TODO The stuff above doesn't really belong in Map
-
-            return PlayerAction(shiftKey, numKey);
-        }
-
-        public bool PlayerAction(bool shiftKey, char numKey)
+        public bool HandlePlayerAction(bool shiftKey, char numKey)
         {
             bool stateChanged = false;
             if (shiftKey)
             {
-                stateChanged = HandlePlayerInteraction(numKey);
+                stateChanged = HandlePlayerUse(numKey);
             }
             else
             {
-                stateChanged = HandlePlayerMovement(numKey);
+                stateChanged = HandlePlayerMove(numKey);
             }
 
             if (stateChanged)
@@ -385,7 +322,7 @@ namespace BlazorRogue
             return true;
         }
 
-        private bool HandlePlayerInteraction(char numKey)
+        private bool HandlePlayerUse(char numKey)
         {
             CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
 
@@ -408,7 +345,7 @@ namespace BlazorRogue
             return stateChanged;
         }
 
-        private bool HandlePlayerMovement(char numKey)
+        private bool HandlePlayerMove(char numKey)
         {
             // Handle basic player movement
             CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
