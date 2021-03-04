@@ -2,19 +2,18 @@
 
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
-
 <!--  PICKUP:
-    Next steps, 
-        * Why the fuck does the game page refresh and generate a new dungeon on startup?!
-        * probably more text rendering
+    Next steps,
+        * Probably more text rendering of decorations
         * USE/INTERACT action on shift+MoveButton direction
-        * Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
+        * (Perf/bug) Why the fuck does the game page refresh and generate a new dungeon on startup?!
+        * (Perf/bug) Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
           I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
     -->
 
 @{
-  int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize; 
-  string mapStyle = $"grid-template-rows: repeat({windowHeight}, {gridTileSize}px); grid-template-columns: repeat({windowWidth}, {gridTileSize}px);";
+    int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+    string mapStyle = $"grid-template-rows: repeat({windowHeight}, {gridTileSize}px); grid-template-columns: repeat({windowWidth}, {gridTileSize}px);";
 }
 
 <div class="main_window">
@@ -22,7 +21,7 @@
     <div id="left_menu" class="left_menu">
         <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
     </div>
-    
+
     <div class="map" style="@mapStyle" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
         <!-- map is rendered row by row, top to bottom -->
         @for (int wY = 0; wY < windowHeight; wY++)
@@ -163,83 +162,83 @@
 
 @code {
 
-    bool renderAscii = false;
-    const int asciiGridTileSize = 20;
-    const int graphicGridTileSize = 48;
+  bool renderAscii = false;
+  const int asciiGridTileSize = 20;
+  const int graphicGridTileSize = 48;
 
-    Game game = new Game();
+  Game game = new Game();
 
-    int windowMoveBufferX = Map.PlayerSightRadius + 1;
-    int windowMoveBufferY = Map.PlayerSightRadius + 1;
+  int windowMoveBufferX = Map.PlayerSightRadius + 1;
+  int windowMoveBufferY = Map.PlayerSightRadius + 1;
 
-    int windowWidth = 25;
-    int windowHeight = 20;
-    int windowXOffset = Int32.MaxValue;
-    int windowYOffset = Int32.MaxValue;
+  int windowWidth = 25;
+  int windowHeight = 20;
+  int windowXOffset = Int32.MaxValue;
+  int windowYOffset = Int32.MaxValue;
 
-    protected override void OnInitialized()
-    {
-        int optimalXOffset = game.Map.Player.x - windowWidth / 2;
-        windowXOffset = optimalXOffset.Clamp(0, game.Map.Width - windowWidth);
+  protected override void OnInitialized()
+  {
+      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      windowXOffset = optimalXOffset.Clamp(0, game.Map.Width - windowWidth);
 
-        int optimalYOffset = game.Map.Player.y - windowHeight / 2;
-        windowYOffset = optimalYOffset.Clamp(0, game.Map.Height - windowHeight);
-    }
+      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      windowYOffset = optimalYOffset.Clamp(0, game.Map.Height - windowHeight);
+  }
 
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+      if (!firstRender)
+      {
+          return;
+      }
 
-        Game.SoundManager = new SoundManager(JsRuntime);
-    }
+      Game.SoundManager = new SoundManager(JsRuntime);
+  }
 
-    public void OnClick(Decoration decoration)
-    {
-        decoration.OnClick();
-        // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
-        //       When I begin to do effecs, I may need to revisit this...
-        game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
-        game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
-        game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
-        // TODO Don't I need to Render Moveables here also?
-    }
+  public void OnClick(Decoration decoration)
+  {
+      decoration.OnClick();
+      // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
+      //       When I begin to do effecs, I may need to revisit this...
+      game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
+      game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
+      game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
+      // TODO Don't I need to Render Moveables here also?
+  }
 
-    void KeyUp(KeyboardEventArgs e)
-    {
-        if (game.Map.OnKeyPress(e.Code))
-        {
-            game.Map.RenderMoveables();
-            game.Map.PlayerTookTurn();
+  void KeyUp(KeyboardEventArgs e)
+  {
+      if (game.Map.OnKeyPress(e.Code, e.ShiftKey))
+      {
+          game.Map.RenderMoveables();
+          game.Map.PlayerTookTurn();
 
-            // adjust window 
-            // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
-            if (game.Map.Player.x - windowXOffset < windowMoveBufferX)
-            {
-                windowXOffset--;
-            }
+          // adjust window
+          // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
+          if (game.Map.Player.x - windowXOffset < windowMoveBufferX)
+          {
+              windowXOffset--;
+          }
 
-            if (windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
-            {
-                windowXOffset++;
-            }
+          if (windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
+          {
+              windowXOffset++;
+          }
 
-            windowXOffset = windowXOffset.Clamp(0, game.Map.Width - windowWidth);
+          windowXOffset = windowXOffset.Clamp(0, game.Map.Width - windowWidth);
 
-            if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
-            {
-                windowYOffset--;
-            }
+          if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
+          {
+              windowYOffset--;
+          }
 
-            if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
-            {
-                windowYOffset++;
-            }
+          if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
+          {
+              windowYOffset++;
+          }
 
-            windowYOffset = windowYOffset.Clamp(0, game.Map.Height - windowHeight);
-        }
-    }
+          windowYOffset = windowYOffset.Clamp(0, game.Map.Height - windowHeight);
+      }
+  }
 }

@@ -55,5 +55,7 @@ namespace BlazorRogue.GameObjects
             Game.SoundManager.PlayKillMonsterSound();
             OnGameObjectKilled(new EventArgs());
         }
+
+        public virtual void Use() {}
     }
 }

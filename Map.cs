@@ -298,7 +298,7 @@ namespace BlazorRogue
             }
         }
 
-        public bool OnKeyPress(string keyPressed)
+        public bool OnKeyPress(string keyPressed, bool shiftKeyDown)
         {
             char numKey;
             // System.Diagnostics.Debug.WriteLine(keyPressed.ToLower());           
@@ -337,35 +337,59 @@ namespace BlazorRogue
             else
                 return false;
 
-            HandlePlayerMovement(numKey);
+            bool stateChanged = false;
+            if (shiftKeyDown)
+            {
+                stateChanged = HandlePlayerInteraction(numKey);
+            }
+            else
+            {
+                stateChanged = HandlePlayerMovement(numKey);
+            }
+
+            if (stateChanged)
+            {
+                // we need to recompute visibility maps
+                RecomputeVisibility();
+
+                // wake visible monsters (visibility is reflexive)
+                WakeVisibleMonsters(Player.x, Player.y, PlayerSightRadius);
+            }
+            
             return true;
         }
 
-        private void HandlePlayerMovement(char numKey)
+        private bool HandlePlayerInteraction(char numKey)
         {
-            // Handle basic player movement
-            int xDelta = 0;
-            int yDelta = 0;
-            if ("147".IndexOf(numKey) > -1)
-                xDelta = -1;
-            else if ("369".IndexOf(numKey) > -1)
-            {
-                xDelta = 1;
-            }
-
-            if ("789".IndexOf(numKey) > -1)
-                yDelta = -1;
-            else if ("123".IndexOf(numKey) > -1)
-            {
-                yDelta = 1;
-            }
-
-            // Check for blocking Walls or GameObject's
-            int destX = this.Player.x + xDelta;
-            int destY = this.Player.y + yDelta;
+            CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
 
             bool stateChanged = false;
 
+            // handle use'able GameObject's
+            foreach (var go in gameObjectByCoord[destX, destY])
+            {
+                go.Use();
+                stateChanged = true;
+            }
+
+            if (stateChanged)
+            {
+                UpdateBlocksLight(destX, destY);
+                UpdateBlockMovement(destX, destY);
+                RenderGameObjects(destX, destY);
+            }
+
+            return stateChanged;
+        }
+
+        private bool HandlePlayerMovement(char numKey)
+        {
+            // Handle basic player movement
+            CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
+
+            bool stateChanged = false;
+
+            // Check for blocking Walls or GameObject's
             if (!IsBlocked(destX, destY))
             {
                 // where we came from is definetely not blocking anymore, since we just vacated the tile
@@ -379,22 +403,9 @@ namespace BlazorRogue
             else
             {
                 // player skipped a turn; also prevents player from attacking oneself... ;)
-                if(xDelta == 0 && yDelta == 0)
+                if (xDelta == 0 && yDelta == 0)
                 {
-                    return;
-                }
-
-                // handle blocking GameObject's
-                foreach(var go in gameObjectByCoord[destX, destY].Where(g => g.Blocking))
-                {
-                    if(go is Door)
-                    {
-                        (go as Door)?.OnClick();
-                        UpdateBlocksLight(go.x, go.y);
-                        UpdateBlockMovement(go.x, go.y);
-                        RenderGameObjects(go.x, go.y);
-                        stateChanged = true;
-                    }
+                    return false;
                 }
 
                 // handle moveables - I take a copy as moveables may be modified, because of death 
@@ -412,13 +423,29 @@ namespace BlazorRogue
                 }
             }
 
-            if (stateChanged)
+            return stateChanged;
+        }
+
+        private void CalculateDeltaAndDest(char numKey, out int xDelta, out int yDelta, out int destX, out int destY)
+        {
+            xDelta = 0;
+            yDelta = 0;
+            if ("147".IndexOf(numKey) > -1)
+                xDelta = -1;
+            else if ("369".IndexOf(numKey) > -1)
             {
-                // we need to recompute visibility maps
-                RecomputeVisibility();
-                // Post move updates
-                WakeVisibleMonsters(destX, destY, PlayerSightRadius);
+                xDelta = 1;
             }
+
+            if ("789".IndexOf(numKey) > -1)
+                yDelta = -1;
+            else if ("123".IndexOf(numKey) > -1)
+            {
+                yDelta = 1;
+            }
+
+            destX = this.Player.x + xDelta;
+            destY = this.Player.y + yDelta;
         }
 
         private void WakeVisibleMonsters(int x, int y, int playerSightRadius)

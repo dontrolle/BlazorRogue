@@ -63,10 +63,10 @@ namespace BlazorRogue.GameObjects
             }
 
             // add a button (without own graphic) to interact with the door
-            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = OnClick });
+            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = Use });
         }
 
-        public void OnClick()
+        public override void Use()
         {
             IsOpen = !IsOpen;
             Blocking = !Blocking;
