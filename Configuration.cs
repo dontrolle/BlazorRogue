@@ -55,16 +55,12 @@ namespace BlazorRogue
         /// <param name="parseElement">Parse function for each element.</param>
         private static void ParseDataFile(JsonDocumentOptions options, string fileName, string rootProperty, Action<JsonElement> parseElement)
         {
-            using (var jsonFile = File.OpenRead(fileName))
+            using var jsonFile = File.OpenRead(fileName);
+            using JsonDocument doc = JsonDocument.Parse(jsonFile, options);
+            var root = doc.RootElement.GetProperty(rootProperty);
+            foreach (JsonElement element in root.EnumerateArray())
             {
-                using (JsonDocument doc = JsonDocument.Parse(jsonFile, options)) // TODO await ... ParseAsync
-                {
-                    var root = doc.RootElement.GetProperty(rootProperty);
-                    foreach (JsonElement element in root.EnumerateArray())
-                    {
-                        parseElement(element);
-                    }
-                }
+                parseElement(element);
             }
         }
 
@@ -139,15 +135,35 @@ namespace BlazorRogue
 
         private static void ParseMoveableType(JsonElement element, Dictionary<string, MoveableType> moveableDictionary)
         {
-            string id, name, animationClass, character, characterColor;
-            int weaponSkill, weaponDamage, toughness, armour, wounds;
-            ParseMoveable(element, out id, out name, out weaponSkill, out weaponDamage, out toughness, out armour, out wounds, out animationClass, out character, out characterColor);
+            ParseMoveable(
+                element, 
+                out string id, 
+                out string name, 
+                out int weaponSkill, 
+                out int weaponDamage, 
+                out int toughness, 
+                out int armour, 
+                out int wounds, 
+                out string animationClass, 
+                out string character, 
+                out string characterColor);
 
             var m = new MoveableType(id, name, animationClass, character, characterColor, weaponSkill, weaponDamage, toughness, armour, wounds);
             moveableDictionary.Add(id, m);
         }
 
-        private static void ParseMoveable(JsonElement element, out string id, out string name, out int weaponSkill, out int weaponDamage, out int toughness, out int armour, out int wounds, out string animationClass, out string character, out string characterColor)
+        private static void ParseMoveable(
+            JsonElement element, 
+            out string id, 
+            out string name, 
+            out int weaponSkill, 
+            out int weaponDamage, 
+            out int toughness, 
+            out int armour, 
+            out int wounds, 
+            out string animationClass, 
+            out string character, 
+            out string characterColor)
         {
             id = element.GetProperty("id").GetString();
             name = element.GetProperty("name").GetString();
