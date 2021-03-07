@@ -571,7 +571,7 @@ namespace BlazorRogue
                     {
                         if (random.NextDouble() < PercentageChanceOfBones)
                         {
-                            map.AddGameObject(new StaticDecoration(x, y, "Bones", $"bones_{random.Next(1, 5)}"));
+                            map.AddGameObject(new StaticDecorativeObject(x, y, "Bones", $"bones_{random.Next(1, 5)}"));
                         }
 
                         // in the following we rely on floors never being placed on the perimeter tiles, else we could do

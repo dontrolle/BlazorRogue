@@ -275,7 +275,7 @@ namespace BlazorRogue
             moveables.Remove(killedMonster);
 
             // Place a blood puddle
-            var puddleObject = new StaticDecoration(killedMonster.x, killedMonster.y, killedMonster.Name + "_puddle", "puddle_small_6", $"Blood puddle of {killedMonster.Name}");
+            var puddleObject = new StaticDecorativeObject(killedMonster.x, killedMonster.y, killedMonster.Name + "_puddle", "puddle_small_6", $"Blood puddle of {killedMonster.Name}");
             AddGameObject(puddleObject);
             // somewhat icky calling RenderXxx here...
             RenderGameObjects(killedMonster.x, killedMonster.y);
