@@ -2,6 +2,7 @@
 // Various fairly static TileSet info - should really be config files, I guess
 namespace BlazorRogue
 {
+    // TODO: UF
     public static class TileSetInfo
     {
         public static string ToTileSetPrefix(this TileType tileType)

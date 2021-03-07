@@ -18,6 +18,7 @@ namespace BlazorRogue
         private readonly double PercentageChanceOfSpiderWeb = 0.25;
         private readonly double PercentageChanceOfTorch = 0.25;
 
+        // TODO: UF
         // Walls with borders- "cave", "ruins", "stone"
         // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
         // and - in junction with this - to paste over bottom part of lowermost floors for same...
@@ -34,6 +35,7 @@ namespace BlazorRogue
         // 2. Handle wall decorations, which should be rendered with +/- from tile (right?)
         //    (Handle WallsWithFront and halfwalls as decoration; logically they should be able to be configured in relation to WallsWithoutFront, ..., hmmm)
 
+        // TODO: UF
         private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
 
         // width and height are including walls
@@ -203,7 +205,7 @@ namespace BlazorRogue
         private Tuple<int, int> CreateFloorPlans()
         {
             var playerCoord = Tuple.Create(-1, -1);
-            Room lastRoom = null;
+            Room? lastRoom = null;
             for (int i = 0; i < MaxRooms; i++)
             {
                 int w = random.Next(MinRoomWidth, MaxRoomWidth + 1);
@@ -348,6 +350,7 @@ namespace BlazorRogue
 
         private Tuple<int, int> FinalizeCaveGen(bool[,] genmap)
         {
+            // TODO: UF
             var caveGenTileSet = "crusted_grey";
             TileSet? floorset = configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == caveGenTileSet);
             if(floorset==null)
@@ -483,6 +486,7 @@ namespace BlazorRogue
             }
         }
 
+        // TODO: UF
         private void AddPostGenerationDecorations()
         {
             for (int x = 0; x < map.Width; x++)

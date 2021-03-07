@@ -74,6 +74,7 @@ namespace BlazorRogue
             BlocksLightMap = new bool[width, height];
             BlocksMovementMap = new bool[width, height];
 
+            // TODO: UF
             // A field, if necessary?
             var blackTileSet = new TileSet("black", TileType.Black, "extra", new[] { 11 }, null, "", "black");
 
@@ -128,7 +129,7 @@ namespace BlazorRogue
         {
             foreach (var monster in Monsters)
             {
-                monster.AIComponent.TakeTurn();
+                monster.AIComponent?.TakeTurn();
             }
         }
 
@@ -251,6 +252,7 @@ namespace BlazorRogue
             monsters.Remove(killedMonster);
             moveables.Remove(killedMonster);
 
+            // TODO: UF
             // Place a blood puddle
             var puddleObject = new StaticDecorativeObject(killedMonster.x, killedMonster.y, killedMonster.Name + "_puddle", "puddle_small_6", $"Blood puddle of {killedMonster.Name}");
             AddGameObject(puddleObject);
