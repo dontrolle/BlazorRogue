@@ -180,10 +180,10 @@
     protected override void OnInitialized()
     {
         int optimalXOffset = game.Map.Player.x - windowWidth / 2;
-        windowXOffset = optimalXOffset.Clamp(0, game.Map.Width - windowWidth);
+        windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
         int optimalYOffset = game.Map.Player.y - windowHeight / 2;
-        windowYOffset = optimalYOffset.Clamp(0, game.Map.Height - windowHeight);
+        windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
     }
 
 
@@ -227,7 +227,7 @@
                 windowXOffset++;
             }
 
-            windowXOffset = windowXOffset.Clamp(0, game.Map.Width - windowWidth);
+            windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
 
             if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
             {
@@ -239,7 +239,7 @@
                 windowYOffset++;
             }
 
-            windowYOffset = windowYOffset.Clamp(0, game.Map.Height - windowHeight);
+            windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
         }
     }
 
