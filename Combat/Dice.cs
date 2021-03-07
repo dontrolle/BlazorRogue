@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace BlazorRogue
+namespace BlazorRogue.Combat
 {
     public static class Dice
     {
@@ -20,7 +20,7 @@ namespace BlazorRogue
             if (d100Roll == 100)
                 return 100;
 
-            (int t, int o) = GetD100Digits(d100Roll);
+            (var t, var o) = GetD100Digits(d100Roll);
             return int.Parse($"{o}{t}");
         }
 
@@ -29,7 +29,7 @@ namespace BlazorRogue
         /// </summary>
         /// <param name="d100Roll">A valid d100 dice roll, between 1 and 100.</param>
         /// <returns>A tuple of the tes: A number between 0 and 10, and the remainder: A number between 0 and 9.</returns>
-        public static Tuple<int,int> GetD100Digits(int d100Roll)
+        public static Tuple<int, int> GetD100Digits(int d100Roll)
         {
             CheckValidD100Value(d100Roll);
 
