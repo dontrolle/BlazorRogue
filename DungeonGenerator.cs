@@ -581,21 +581,31 @@ namespace BlazorRogue
                             bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
                             bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
                             bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
+                            int webIndex = -1;
+                            int offset = 0;
                             if (wallAbove && wallLeft)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 1) { Offset = -Map.DEPRECATE_TileHeight });
+                                webIndex = 1;
+                                offset = -Map.DEPRECATE_TileHeight;
                             }
                             else if (wallBelow && wallLeft)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 2));
+                                webIndex = 2;
                             }
                             else if (wallBelow && wallRight)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 3));
+                                webIndex = 3;
                             }
                             else if (wallAbove && wallRight)
                             {
-                                map.AddGameObject(new SpiderWeb(x, y, 4) { Offset = -Map.DEPRECATE_TileHeight });
+                                webIndex = 4;
+                                offset = -Map.DEPRECATE_TileHeight;
+                            }
+
+                            if(webIndex != -1)
+                            {
+                                // i.e., we found a suitable spot for a spiderweb
+                                map.AddGameObject(new StaticDecorativeObject(x, y, "Spider web", "web_" + webIndex, null, offset));
                             }
                         }
                     }
