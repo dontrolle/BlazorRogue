@@ -24,7 +24,7 @@ namespace BlazorRogue.GameObjects
 
         public event EventHandler? GameObjectKilled;
 
-        public GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null)
+        protected GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null)
         {
             this.x = x;
             this.y = y;

@@ -14,14 +14,24 @@ namespace BlazorRogue.Combat.Warhammer
 
         public bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
         {
+            if (attacker is null)
+            {
+                throw new ArgumentNullException(nameof(attacker));
+            }
+
+            if (defender is null)
+            {
+                throw new ArgumentNullException(nameof(defender));
+            }
+
             Debug.WriteLine($"----------------------------");
             var toHitRoll = Dice.RollD100();
-            Debug.WriteLine($"{attacker.Owner.Name} rolls {toHitRoll} and has adv {attacker.Advantage}");
+            Debug.WriteLine($"{attacker.Owner!.Name} rolls {toHitRoll} and has adv {attacker.Advantage}");
             var attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
             Debug.WriteLine($" => SL {attackerSL}");
 
             var toDefendRoll = Dice.RollD100();
-            Debug.WriteLine($"{defender.Owner.Name} rolls {toDefendRoll} and has adv {defender.Advantage}");
+            Debug.WriteLine($"{defender.Owner!.Name} rolls {toDefendRoll} and has adv {defender.Advantage}");
             var defenderSL = Dice.GetSuccessLevel(toDefendRoll, defender.WeaponSkill + defender.Advantage);
             Debug.WriteLine($" => {defenderSL}");
 

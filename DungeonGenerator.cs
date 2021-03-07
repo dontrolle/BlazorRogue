@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Entities;
+using BlazorRogue.AI;
 
 namespace BlazorRogue
 {
@@ -14,8 +15,8 @@ namespace BlazorRogue
 
         // Decorations
         private const double PercentageChanceOfBones = 0.05;
-        private double PercentageChanceOfSpiderWeb = 0.25;
-        private double PercentageChanceOfTorch = 0.25;
+        private readonly double PercentageChanceOfSpiderWeb = 0.25;
+        private readonly double PercentageChanceOfTorch = 0.25;
 
         // Walls with borders- "cave", "ruins", "stone"
         // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
@@ -82,24 +83,18 @@ namespace BlazorRogue
             Cave
         }
 
-        private Level LevelType;
+        private readonly Level LevelType;
 
         public DungeonGenerator(int width, int height, Game game, Configuration configuration)
         {
             // Choose random level-type
             LevelType = Level.Dungeon;
-            // if(GetRandomBool())
-            //     LevelType = Level.Cave;
-
-            // choose random wall-set for this entire dungeon
-            TileSet wallSet;
-            switch (LevelType)
+            var wallSet = LevelType switch
             {
-                case Level.Cave: wallSet = GetRandomElement(configuration.CaveWallSets); break;
-                case Level.Dungeon: wallSet = GetRandomElement(configuration.DungeonWallSets); break;
-                default: throw new InvalidOperationException($"Unknown level-type: {LevelType}");
-            }
-
+                Level.Cave => GetRandomElement(configuration.CaveWallSets),
+                Level.Dungeon => GetRandomElement(configuration.DungeonWallSets),
+                _ => throw new InvalidOperationException($"Unknown level-type: {LevelType}"),
+            };
             map = new Map(width, height, wallSet, game);
             this.configuration = configuration;
         }
@@ -675,100 +670,6 @@ namespace BlazorRogue
             map.Tiles[x, y].TileSet = FloorSet;
             map.Tiles[x, y].TileIndex = GetRandomElement(FloorSet.ImgIndexes);
             map.Tiles[x, y].Blocking = false;
-        }
-
-        // create a horizontal tunnel with a door in each end
-        // positive length means go left
-        // negative length means go right
-        // checks the floor tile set left (or right) of 'breaching' door, and 
-        // sets the floor tile set of the door to the same tileset
-        private void HorizontalTunnel(int start_x, int y, int length)
-        {
-            // handle possible 'negative' length tunnel
-            int door_0_x = start_x;
-            int door_1_x = start_x + length + (Math.Sign(length) * -1);
-            int left_door_x = Math.Min(door_0_x, door_1_x);
-            int right_door_x = Math.Max(door_0_x, door_1_x);
-
-            // checks the floor tile set left (or right) of 'breaching' door, and 
-            // sets the floor tile set of the door to the same tileset
-            // TODO: Handle possible visual problem - connecting room may not have been created yet
-            var left_door_floor_tileset = map.Tiles[left_door_x - 1, y].TileSet;
-            var right_door_floor_tileset = map.Tiles[right_door_x + 1, y].TileSet;
-
-            // Set floor tileset on door tiles
-            PlaceFloor(left_door_x, y, left_door_floor_tileset);
-            PlaceFloor(right_door_x, y, right_door_floor_tileset);
-
-            // put doors in tiles
-            map.AddGameObject(new Door(left_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
-            map.AddGameObject(new Door(right_door_x, y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
-
-            // Change tile above door to WallWithFront type
-            // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
-            // TODO: Superflouos, if wall-front'age is determined as a decorative post-gen. pass
-            PlaceWall(left_door_x, y - 1);
-            PlaceWall(right_door_x, y - 1);
-
-            // Randomly choose either floor set for the tunnel
-            var tunnelFloorSet = random.Next(0, 2) == 0 ? left_door_floor_tileset : right_door_floor_tileset;
-
-            // set floors in tunnel
-            // create walls around tunnel
-            for (int x = left_door_x + 1; x < right_door_x; x++)
-            {
-                PlaceWall(x, y - 1);
-                PlaceFloor(x, y, tunnelFloorSet);
-                PlaceWall(x, y + 1);
-            }
-        }
-
-        // create a vertical tunnel with a door in each end
-        // positive length means go down
-        // negative length means go up
-        // checks the floor tile set above (or below) of 'breaching' door, and 
-        // sets the floor tile set of the door to the same tileset
-        private void VerticalTunnel(int x, int start_y, int length)
-        {
-            // handle possible 'negative' length tunnel
-            int door_0_y = start_y;
-            int door_1_y = start_y + length + (Math.Sign(length) * -1);
-            int upper_door_y = Math.Min(door_0_y, door_1_y);
-            int bottom_door_y = Math.Max(door_0_y, door_1_y);
-
-            // checks the floor tile set above (or below) of 'breaching' door, and 
-            // sets the floor tileset of the door to the same tileset
-            // TODO: Handle possible visual problem - connecting room may not have been created yet
-            var upper_door_floor_tileset = map.Tiles[x, upper_door_y - 1].TileSet;
-            var bottom_door_floor_tileset = map.Tiles[x, bottom_door_y + 1].TileSet;
-
-            // Set floor tileset on door tiles
-            PlaceFloor(x, upper_door_y, upper_door_floor_tileset);
-            PlaceFloor(x, bottom_door_y, bottom_door_floor_tileset);
-
-            // put doors in tiles
-            map.AddGameObject(new Door(x, upper_door_y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
-            map.AddGameObject(new Door(x, bottom_door_y, GetRandomElement(DoorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
-
-            // Change tile left and right of doors to WallWithoutFront type
-            // TODO: Nice to have: Restrict tile-types to simpler ones without decoration (will be obscured by door)
-            // TODO: Superflouos, if wall-front'age is determined as a decorative post-gen. pass
-            PlaceWall(x - 1, upper_door_y);
-            PlaceWall(x + 1, upper_door_y);
-            PlaceWall(x - 1, bottom_door_y);
-            PlaceWall(x + 1, bottom_door_y);
-
-            // Randomly choose either floor set for the tunnel
-            var tunnelFloorSet = random.Next(0, 2) == 0 ? upper_door_floor_tileset : bottom_door_floor_tileset;
-
-            // set floors in tunnel
-            // create walls around tunnel
-            for (int y = upper_door_y + 1; y < bottom_door_y; y++)
-            {
-                PlaceWall(x - 1, y);
-                PlaceFloor(x, y, tunnelFloorSet);
-                PlaceWall(x + 1, y);
-            }
         }
 
         private void CreateRoomFloor(Room room)

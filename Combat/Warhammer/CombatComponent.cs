@@ -17,7 +17,7 @@ namespace BlazorRogue.Combat.Warhammer
                 wounds = value;
                 if (wounds <= 0)
                 {
-                    Owner.Kill();
+                    Owner!.Kill();
                 }
             }
         }

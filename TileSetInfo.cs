@@ -6,14 +6,14 @@ namespace BlazorRogue
     {
         public static string ToTileSetPrefix(this TileType tileType)
         {
-            switch (tileType)
+            return tileType switch
             {
-                case TileType.Black: return "floor";
-                case TileType.Floor: return "floor";
-                case TileType.Wall: return "wall";
-                case TileType.Ground: return "ground";
-                default: throw new InvalidOperationException("Unknown TileType" + tileType);
-            }
+                TileType.Black => "floor",
+                TileType.Floor => "floor",
+                TileType.Wall => "wall",
+                TileType.Ground => "ground",
+                _ => throw new InvalidOperationException("Unknown TileType" + tileType),
+            };
         }
     }
 }

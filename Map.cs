@@ -26,43 +26,19 @@ namespace BlazorRogue
 
         public Tile[,] Tiles { get; }
 
-        private List<GameObject> gameObjects;
-        public IEnumerable<GameObject> GameObjects
-        {
-            get
-            {
-                return gameObjects;
-            }
-        }
+        private readonly List<GameObject> gameObjects;
+        public IEnumerable<GameObject> GameObjects => gameObjects;
 
         /* moveables contain both monsters and player */
-        private List<Moveable> moveables;
-        public IEnumerable<Moveable> Moveables
-        {
-            get
-            {
-                return moveables;
-            }
-        }
+        private readonly List<Moveable> moveables;
+        public IEnumerable<Moveable> Moveables => moveables;
 
         /* Actually, currently these are GameObjects with AI */
-        private List<Moveable> monsters;
-        public IEnumerable<Moveable> Monsters
-        {
-            get
-            {
-                return monsters;
-            }
-        }
+        private readonly List<Moveable> monsters;
+        public IEnumerable<Moveable> Monsters => monsters;
 
-        private List<GameObject>[,] gameObjectByCoord;
-        public IEnumerable<GameObject>[,] GameObjectByCoord
-        {
-            get
-            {
-                return gameObjectByCoord;
-            }
-        }
+        private readonly List<GameObject>[,] gameObjectByCoord;
+        public IEnumerable<GameObject>[,] GameObjectByCoord => gameObjectByCoord;
 
         public List<Decoration>[,] Decorations { get; }
 
@@ -74,7 +50,7 @@ namespace BlazorRogue
         public bool[,] BlocksLightMap;
         public bool[,] BlocksMovementMap;
 
-        private Visibility VisibilityAlgorithm;
+        private readonly Visibility VisibilityAlgorithm;
         private bool PostGenInitialized = false;
 
         public IEnumerable<Decoration> AllDecorations(int x, int y)
@@ -300,7 +276,7 @@ namespace BlazorRogue
 
         public bool HandlePlayerAction(bool shiftKey, char numKey)
         {
-            bool stateChanged = false;
+            bool stateChanged;
             if (shiftKey)
             {
                 stateChanged = HandlePlayerUse(numKey);
@@ -455,50 +431,6 @@ namespace BlazorRogue
             }
         }
 
-        //public bool IsBlocked(int x, int y, out IEnumerable<GameObject> blockers)
-        //{
-        //    blockers = new List<GameObject>();
-        //    if (PostGenInitialized)
-        //        return BlocksMovementMap[x, y];
-        //    else
-        //    {
-        //        if (Tiles[x, y].Blocking)
-        //            return true;
-
-        //        var blockingStatics = gameObjectByCoord[x, y].Where(g => g.Blocking);
-        //        var blockingMoveables = moveables.Where(m => m.Blocking).Where(m => m.x == x && m.y == y);
-
-        //        blockers = blockingStatics.Concat(blockingMoveables);
-
-        //        return blockers.Any();
-        //    }
-        //}
-
-        #region Simple functions - should be folded into a Visibility alg or deleted
-
-        private void SimpleUpdateFoVMapsAfterPlayerMove(int xDelta, int yDelta)
-        {
-            ForEachTile(
-                (x, y) =>
-                {
-                    bool xyVisible = SimpleIsPlayerVisible(x, y);
-                    if (xyVisible)
-                        SetVisible(x, y);
-                    else
-                        IsVisibleMap[x, y] = false;
-                }
-            );
-        }
-
-        private bool SimpleIsPlayerVisible(int x, int y)
-        {
-            if (x < 0 || x >= Width || y < 0 || y >= Height)
-                return false;
-
-            return ((Player.x - x) * (Player.x - x) + (Player.y - y) * (Player.y - y)) < PlayerSightRadiusSquared;
-        }
-        #endregion
-
         public bool BlocksLight(int x, int y)
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height)
@@ -516,13 +448,13 @@ namespace BlazorRogue
             IsMappedMap[x, y] = true;
         }
 
-        public int GetDistance(int x, int y)
+        public static int GetDistance(int x, int y)
         {
             // we are ok with truncation here
             return (int)Math.Sqrt(x * x + y * y);
         }
 
-        public int GetDistanceSquared(int x, int y)
+        public static int GetDistanceSquared(int x, int y)
         {
             return x * x + y * y;
         }

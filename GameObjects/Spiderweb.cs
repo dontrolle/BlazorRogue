@@ -4,7 +4,7 @@ namespace BlazorRogue.GameObjects
 {
     public class SpiderWeb : GameObject
     {
-        private int SpiderwebIndex;
+        private readonly int SpiderwebIndex;
         public int Offset { get; set; }
 
         public SpiderWeb(int x, int y, int spiderwebIndex) : base(x, y, "Spider web")

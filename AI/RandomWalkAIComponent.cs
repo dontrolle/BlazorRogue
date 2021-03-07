@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace BlazorRogue
+namespace BlazorRogue.AI
 {
     public class RandomWalkAIComponent : AIComponent
     {
-        Random random = new Random();
+        readonly Random random = new Random();
 
         public RandomWalkAIComponent(Map map) : base(map)
         {
@@ -17,13 +17,13 @@ namespace BlazorRogue
                 Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
                 return;
             }
-                
+
 
             var dx = random.Next(-1, 2);
             var dy = random.Next(-1, 2);
 
-            int destX = Owner.x + dx;
-            int destY = Owner.y + dy;
+            var destX = Owner!.x + dx;
+            var destY = Owner.y + dy;
 
             if (!Map.IsBlocked(destX, destY))
             {

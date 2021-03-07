@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace BlazorRogue
+namespace BlazorRogue.AI
 {
     public class SimpleAIComponent : AIComponent
     {
@@ -21,11 +18,11 @@ namespace BlazorRogue
                 return;
             }
 
-            var dx = Math.Sign(Map.Player.x - Owner.x);
+            var dx = Math.Sign(Map.Player.x - Owner!.x);
             var dy = Math.Sign(Map.Player.y - Owner.y);
 
-            int destX = Owner.x + dx;
-            int destY = Owner.y + dy;
+            var destX = Owner.x + dx;
+            var destY = Owner.y + dy;
 
             if (!Map.IsBlocked(destX, destY))
             {
@@ -38,9 +35,9 @@ namespace BlazorRogue
             }
             else
             {
-                if(Map.Player.x == destX && Map.Player.y == destY)
+                if (Map.Player.x == destX && Map.Player.y == destY)
                 {
-                    var hit = Map.Game.FightingSystem.CloseCombatAttack(Owner.CombatComponent, Map.Player.CombatComponent);
+                    var hit = Map.Game.FightingSystem.CloseCombatAttack(Owner.CombatComponent!, Map.Player.CombatComponent!);
                     Game.SoundManager.PlayCombatSound(hit);
                 }
             }
