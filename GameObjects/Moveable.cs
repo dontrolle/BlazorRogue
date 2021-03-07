@@ -1,4 +1,5 @@
 ﻿using System;
+using BlazorRogue.AI;
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;

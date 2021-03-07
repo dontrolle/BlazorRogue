@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorRogue
+namespace BlazorRogue.AI
 {
     public abstract class AIComponent : Component
     {
@@ -16,7 +16,7 @@ namespace BlazorRogue
 
         public AIComponent(Map map) : base()
         {
-            this.Map = map;
+            Map = map;
         }
     }
 }

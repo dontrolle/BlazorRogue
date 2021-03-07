@@ -1,4 +1,4 @@
-﻿namespace BlazorRogue
+﻿namespace BlazorRogue.Vision
 {
     public struct LevelPoint
     {
