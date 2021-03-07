@@ -1,4 +1,4 @@
-﻿namespace BlazorRogue
+﻿namespace BlazorRogue.Vision
 {
     abstract class Visibility
     {

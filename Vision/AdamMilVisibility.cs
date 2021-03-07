@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorRogue
+namespace BlazorRogue.Vision
 {
 
     // Code mostly unchanged from the great http://www.adammil.net/blog/v125_roguelike_vision_algorithms.html#mine
@@ -43,7 +43,7 @@ namespace BlazorRogue
 
         void Compute(uint octant, LevelPoint origin, int rangeLimit, uint x, Slope top, Slope bottom)
         {
-            int rangeLimitSquared = rangeLimit * rangeLimit;
+            var rangeLimitSquared = rangeLimit * rangeLimit;
             // throughout this function there are references to various parts of tiles. a tile's coordinates refer to its
             // center, and the following diagram shows the parts of the tile and the vectors from the origin that pass through
             // those parts. given a part of a tile with vector u, a vector v passes above it if v > u and below it if v < u
@@ -111,7 +111,7 @@ namespace BlazorRogue
                         // larger than a wall diamond, so if it wouldn't pass through a wall diamond then it can't be visible, so
                         // there's no point in incrementing topY even if light passes through the corner of the tile above. so we
                         // might as well use the bottom center for both cases.
-                        uint ax = x * 2; // center
+                        var ax = x * 2; // center
                         if (BlocksLight(x + 1, topY + 1, octant, origin)) ax++; // use bottom-right if the tile above and right is a wall
                         if (top.Greater(topY * 2 + 1, ax)) topY++;
                     }
@@ -138,19 +138,19 @@ namespace BlazorRogue
                 }
 
                 // go through the tiles in the column now that we know which ones could possibly be visible
-                int wasOpaque = -1; // 0:false, 1:true, -1:not applicable
-                for (uint y = topY; (int)y >= (int)bottomY; y--) // use a signed comparison because y can wrap around when decremented
+                var wasOpaque = -1; // 0:false, 1:true, -1:not applicable
+                for (var y = topY; (int)y >= (int)bottomY; y--) // use a signed comparison because y can wrap around when decremented
                 {
                     if (rangeLimit < 0 || GetDistanceSquared((int)x, (int)y) <= rangeLimitSquared) // skip the tile if it's out of visual range
                     {
-                        bool isOpaque = BlocksLight(x, y, octant, origin);
+                        var isOpaque = BlocksLight(x, y, octant, origin);
                         // every tile where topY > y > bottomY is guaranteed to be visible. also, the code that initializes topY and
                         // bottomY guarantees that if the tile is opaque then it's visible. so we only have to do extra work for the
                         // case where the tile is clear and y == topY or y == bottomY. if y == topY then we have to make sure that
                         // the top vector is above the bottom-right corner of the inner square. if y == bottomY then we have to make
                         // sure that the bottom vector is below the top-left corner of the inner square
-                        bool isVisible =
-                          isOpaque || ((y != topY || top.Greater(y * 4 - 1, x * 4 + 1)) && (y != bottomY || bottom.Less(y * 4 + 1, x * 4 - 1)));
+                        var isVisible =
+                          isOpaque || (y != topY || top.Greater(y * 4 - 1, x * 4 + 1)) && (y != bottomY || bottom.Less(y * 4 + 1, x * 4 - 1));
                         // NOTE: if you want the algorithm to be either fully or mostly symmetrical, replace the line above with the
                         // following line (and uncomment the Slope.LessOrEqual method). the line ensures that a clear tile is visible
                         // only if there's an unobstructed line to its center. if you want it to be fully symmetrical, also remove

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Entities;
+using BlazorRogue.Vision;
 
 namespace BlazorRogue
 {
