@@ -6,6 +6,16 @@ using BlazorRogue.Entities;
 
 namespace BlazorRogue
 {
+    /// <summary>
+    /// Parse and present json-based configuration for rest of game.
+    /// </summary>
+    /// <remarks>
+    /// Designed for tilesets from Ultimate Fantasy set, right now.
+    /// Not too hard to generalize, though; simply work with together with generalization of <see cref="TileSet"/> to point only to images for tiles 
+    /// and their positions.
+    /// 
+    /// Allows only a single character + color for a tileset.
+    /// </remarks>
     public class Configuration
     {
         // TODO Ensure that read files are from output dir, i.e., built files
