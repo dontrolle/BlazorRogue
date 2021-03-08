@@ -11,7 +11,7 @@ namespace BlazorRogue.GameObjects
         public bool IsOpen { get; private set; }
         private string ImagePrefix { get => "door_" + DoorType + "_"; }
 
-        public Door(int x, int y, string doorType, int halfWallIndex, Orientation orientation, bool isOpen) : base(x, y, "Door")
+        public Door(int x, int y, string doorType, int halfWallIndex, Orientation orientation, bool isOpen) : base(x, y, "Door", null, null, new UseableComponent(Use))
         {
             DoorType = doorType;
             HalfWallIndex = halfWallIndex;
@@ -63,15 +63,23 @@ namespace BlazorRogue.GameObjects
             }
 
             // add a button (without own graphic) to interact with the door
-            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = Use });
+            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = UseableComponent.Use });
+            // TODO: Not too happy about this; seems wrong to add mouse interaction decentralized like this, and call UseableComponent.Use from here
         }
 
-        public override void Use()
+        internal static void Use(GameObject go)
         {
-            IsOpen = !IsOpen;
-            Blocking = !Blocking;
-            BlocksLight = !BlocksLight;
-            Game.SoundManager.PlayDoorSound(IsOpen);
+            if (go is Door door)
+            {
+                door.IsOpen = !door.IsOpen;
+                door.Blocking = !door.Blocking;
+                door.BlocksLight = !door.BlocksLight;
+                Game.SoundManager.PlayDoorSound(door.IsOpen);
+            }
+            else
+            {
+                throw new Exception($"{nameof(Door.Use)} called with {nameof(GameObject)} not of type {nameof(Door)}.");
+            }
         }
     }
 }

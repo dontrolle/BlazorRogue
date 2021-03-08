@@ -310,8 +310,10 @@ namespace BlazorRogue
             // handle use'able GameObject's
             foreach (var go in gameObjectByCoord[destX, destY])
             {
-                go.Use();
-                stateChanged = true;
+                if(go.UseableComponent != null) {
+                    go.UseableComponent.Use();
+                    stateChanged = true;
+                }
             }
 
             if (stateChanged)

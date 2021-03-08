@@ -22,10 +22,11 @@ namespace BlazorRogue.GameObjects
         // Components
         public AIComponent? AIComponent { get; protected set; }
         public CombatComponent? CombatComponent { get; }
+        public UseableComponent? UseableComponent { get; }
 
         public event EventHandler? GameObjectKilled;
 
-        protected GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null)
+        protected GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null, UseableComponent? useableComponent = null)
         {
             this.x = x;
             this.y = y;
@@ -36,6 +37,9 @@ namespace BlazorRogue.GameObjects
 
             CombatComponent = combatComponent;
             CombatComponent?.SetOwner(this);
+
+            UseableComponent = useableComponent;
+            UseableComponent?.SetOwner(this);
         }
 
         public abstract void Render(Map map);
@@ -56,7 +60,5 @@ namespace BlazorRogue.GameObjects
             Game.SoundManager.PlayKillMonsterSound();
             OnGameObjectKilled(new EventArgs());
         }
-
-        public virtual void Use() {}
     }
 }
