@@ -90,7 +90,8 @@ namespace BlazorRogue
         public DungeonGenerator(int width, int height, Game game, Configuration configuration)
         {
             // Choose random level-type
-            LevelType = Level.Dungeon;
+            LevelType = Level.Dungeon; // hardwire for now (TODO: maybe have DungeonGen and Game-level config in the long run.)
+
             var wallSet = LevelType switch
             {
                 Level.Cave => GetRandomElement(configuration.CaveWallSets),
