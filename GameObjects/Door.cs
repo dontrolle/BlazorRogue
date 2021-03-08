@@ -28,7 +28,7 @@ namespace BlazorRogue.GameObjects
                 if (IsOpen)
                 {
                     // place 3 just above door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 3) { Offset = -Map.DEPRECATE_TileHeight });
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 3) { VerticalOffset = -Map.DEPRECATE_TileHeight });
                     // place 7 on door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 7));
                     // place 10 on door tile - raised 1 z-index, to be in front of player
@@ -37,7 +37,7 @@ namespace BlazorRogue.GameObjects
                 else
                 {
                     // place 2 just above door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 2) { Offset = -Map.DEPRECATE_TileHeight });
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 2) { VerticalOffset = -Map.DEPRECATE_TileHeight });
                     // place 6 on door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 6));
                 }
@@ -47,18 +47,18 @@ namespace BlazorRogue.GameObjects
                 if (IsOpen)
                 {
                     // place 1 above door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 1) { Offset = -Map.DEPRECATE_TileHeight });
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 1) { VerticalOffset = -Map.DEPRECATE_TileHeight });
                     // place 5 on door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 5));
                     // place 9 below door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 9) { Offset = +Map.DEPRECATE_TileHeight });
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 9) { VerticalOffset = +Map.DEPRECATE_TileHeight });
                 }
                 else
                 {
                     // place 4 on door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 4));
                     // place 8 below door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 8) { Offset = +Map.DEPRECATE_TileHeight });
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 8) { VerticalOffset = +Map.DEPRECATE_TileHeight });
                 }
             }
 

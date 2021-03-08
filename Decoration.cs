@@ -9,8 +9,8 @@ namespace BlazorRogue
         public string? ImageName { get; private set; }
         public string? AnimationClass { get; set; }
         public Action? OnClick { get; set; }
-        public int Offset { get; set; }
-        public int HOffset { get; set; }
+        public int VerticalOffset { get; set; }
+        public int HorizontalOffset { get; set; }
         public bool InFront { get; set; }
         public bool BlocksLight => GameObject.BlocksLight;
         public string Character { get; set; } = "?";

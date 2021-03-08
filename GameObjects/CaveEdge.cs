@@ -17,7 +17,7 @@ namespace BlazorRogue.GameObjects
 
         public override void Render(Map map)
         {
-            map.Decorations[x, y].Add(new Decoration(this, "wall_cave_edge_" + CaveEdgeIndex) { HOffset = HOffset, Offset = Offset });
+            map.Decorations[x, y].Add(new Decoration(this, "wall_cave_edge_" + CaveEdgeIndex) { HorizontalOffset = HOffset, VerticalOffset = Offset });
         }
     }
 }

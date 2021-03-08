@@ -25,7 +25,7 @@ namespace BlazorRogue.GameObjects
 
         public override void Render(Map map)
         {
-            map.Decorations[x, y].Add(new Decoration(this, png) { Offset = offset, Character = character, CharacterColor = characterColor });
+            map.Decorations[x, y].Add(new Decoration(this, png) { VerticalOffset = offset, Character = character, CharacterColor = characterColor });
         }
     }
 }

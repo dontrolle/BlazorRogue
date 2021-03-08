@@ -112,13 +112,13 @@
 
                                 // - handle horizontal and vertical offset
                                 string offset = "";
-                                if (decoration.Offset != 0)
+                                if (decoration.VerticalOffset != 0)
                                 {
-                                    offset = $"top: {decoration.Offset}px;";
+                                    offset = $"top: {decoration.VerticalOffset}px;";
                                 }
-                                if (decoration.HOffset != 0)
+                                if (decoration.HorizontalOffset != 0)
                                 {
-                                    offset += $"left: {decoration.HOffset}px;";
+                                    offset += $"left: {decoration.HorizontalOffset}px;";
                                 }
 
                                 style = $"{style}{offset}";
