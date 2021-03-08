@@ -20,11 +20,15 @@ namespace BlazorRogue
         private readonly Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
+        private readonly HashSet<string> floorSetIds = new HashSet<string>();
+
         private readonly List<TileSet> standardFloorSets = new List<TileSet>();
         public IEnumerable<TileSet> StandardFloorSets => standardFloorSets.AsReadOnly();
 
         private readonly List<TileSet> specialFloorSets = new List<TileSet>();
         public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
+
+        private readonly HashSet<string> wallSetIds = new HashSet<string>();
 
         private readonly List<TileSet> dungeonWallSets = new List<TileSet>();
         public IEnumerable<TileSet> DungeonWallSets => dungeonWallSets.AsReadOnly();
@@ -83,7 +87,13 @@ namespace BlazorRogue
             charColor = element.GetProperty("char_color").GetString();
 
             var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, charFloor, charColor);
-            if(special)
+
+            if (!floorSetIds.Add(id))
+            {
+                throw new Exception($"Found another floor-set with id: {id}.");
+            }
+
+            if (special)
             {
                 specialFloorSets.Add(t);
             }
@@ -110,6 +120,12 @@ namespace BlazorRogue
             charColor = element.GetProperty("char_color").GetString();
 
             var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character, charColor);
+
+            if (!wallSetIds.Add(id))
+            {
+                throw new Exception($"Found another wall-set with id: {id}.");
+            }
+
             if (levelType == "dungeon")
             {
                 dungeonWallSets.Add(t);
