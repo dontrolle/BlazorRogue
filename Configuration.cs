@@ -103,17 +103,8 @@ namespace BlazorRogue
             id = element.GetProperty("id").GetString();
             levelType = element.GetProperty("level_type").GetString();
             imgPrefix = element.GetProperty("img_prefix").GetString();
-            var imgWallWithoutFrontElement = element.GetProperty("img_withoutfront");
-            foreach (var no in imgWallWithoutFrontElement.EnumerateArray())
-            {
-                imgWallWithoutFrontList.Add(no.GetInt32());
-            }
 
-            var imgWallWeightsElement = element.GetProperty("img_weights");
-            foreach (var no in imgWallWeightsElement.EnumerateArray())
-            {
-                imgWallWeightsList.Add(no.GetDouble());
-            }
+            ParseIndexAndWeights(element, "img_base", imgWallWithoutFrontList, imgWallWeightsList);
 
             character = element.GetProperty("character").GetString();
             charColor = element.GetProperty("char_color").GetString();
@@ -123,13 +114,28 @@ namespace BlazorRogue
             {
                 dungeonWallSets.Add(t);
             }
-            else if(levelType == "cave")
+            else if (levelType == "cave")
             {
                 caveWallSets.Add(t);
             }
             else
             {
                 throw new Exception($"Unknown level_type '{levelType}' in wall-set with id: {id}.");
+            }
+        }
+
+        private static void ParseIndexAndWeights(JsonElement element, string imgName, List<int> imgArray, List<double> imgWeightArray)
+        {
+            var indexAndWeights = element.GetProperty(imgName);
+            foreach (var indexAndWeight in indexAndWeights.EnumerateArray())
+            {
+                if (indexAndWeight.GetArrayLength() != 2)
+                {
+                    throw new Exception($"All elements of {imgName} must be tuples of [<index>,<weight>], i.e., JSON arrays of length 2.");
+                }
+
+                imgArray.Add(indexAndWeight[0].GetInt32());
+                imgWeightArray.Add(indexAndWeight[1].GetDouble());
             }
         }
 
