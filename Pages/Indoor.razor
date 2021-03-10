@@ -7,7 +7,6 @@
         * (Bug) InfoText gets wrong textcolor (tile's color?) in ascii mode
         * Probably more text rendering of decorations
             Notes:
-            * ! Port all usage of Map.TileWidth and Map.TileHeight to using tile-offsets instead (fix in decorations, also)
             * HalfWalls, WallWithFront, and CaveEdge should be configured as part of wallsets.json, somehow
             * StaticDecorativeObject's cover static single-tile, single png, simple visual decorations, which typically (always?) have no ascii representation
             * Torch is two animations... special animated decorations?
@@ -114,11 +113,11 @@
                                 string offset = "";
                                 if (decoration.VerticalOffset != 0)
                                 {
-                                    offset = $"top: {decoration.VerticalOffset}px;";
+                                    offset = $"top: {decoration.VerticalOffset * gridTileSize}px;";
                                 }
                                 if (decoration.HorizontalOffset != 0)
                                 {
-                                    offset += $"left: {decoration.HorizontalOffset}px;";
+                                    offset += $"left: {decoration.HorizontalOffset * gridTileSize}px;";
                                 }
 
                                 style = $"{style}{offset}";
