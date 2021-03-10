@@ -10,7 +10,7 @@
             "wounds": 20,
             "animationClass": "animated_templar",
             "character": "@",
-            "characterColor": "white"
+            "character_color": "white"
         }
     ]
 }

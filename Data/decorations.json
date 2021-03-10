@@ -1,0 +1,14 @@
+{
+        /* Pickup: Support arrays of static decorations ...?? */
+    "static_decorations": [
+        {
+            "id": "bones_1",
+            "name": "Bones",
+            "image": "bones_1",
+            "info_text": "",
+            "vertical_offset": 0,
+            "character": "",
+            "character_color": ""
+        },
+    ]
+}

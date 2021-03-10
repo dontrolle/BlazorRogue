@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.Entities;
 
 namespace BlazorRogue.GameObjects
 {
@@ -10,7 +11,7 @@ namespace BlazorRogue.GameObjects
 
         private readonly string png;
         private readonly string? infoText;
-        private readonly int offset;
+        private readonly int verticalOffset;
         private readonly string character;
         private readonly string characterColor;
 
@@ -18,14 +19,23 @@ namespace BlazorRogue.GameObjects
         {
             this.png = png;
             this.infoText = infoText;
-            this.offset = offset;
+            verticalOffset = offset;
             this.character = character;
             this.characterColor = characterColor;
         }
 
+        public StaticDecorativeObject(int x, int y, StaticDecorativeObjectType staticDecorativeObjectType) : base(x, y, staticDecorativeObjectType.Name)
+        {
+            png = staticDecorativeObjectType.Image;
+            infoText = staticDecorativeObjectType.InfoText;
+            verticalOffset = staticDecorativeObjectType.VerticalOffset;
+            character = staticDecorativeObjectType.Character;
+            characterColor = staticDecorativeObjectType.CharacterColor;
+        }
+
         public override void Render(Map map)
         {
-            map.Decorations[x, y].Add(new Decoration(this, png) { VerticalOffset = offset, Character = character, CharacterColor = characterColor });
+            map.Decorations[x, y].Add(new Decoration(this, png) { VerticalOffset = verticalOffset, Character = character, CharacterColor = characterColor });
         }
     }
 }

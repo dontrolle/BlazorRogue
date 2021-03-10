@@ -23,12 +23,16 @@ namespace BlazorRogue
         const string HeroesFileName = "Data\\heroes.json";
         const string FloorSetsFileName = "Data\\floorsets.json";
         const string WallSetsFileName = "Data\\wallsets.json";
+        const string DecorationsFileName = "Data\\decorations.json";
 
         private readonly Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
 
         private readonly Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
         public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
+
+        private readonly Dictionary<string, StaticDecorativeObjectType> staticDecorativeObjectTypes = new Dictionary<string, StaticDecorativeObjectType>();
+        public IReadOnlyDictionary<string, StaticDecorativeObjectType> StaticDecorativeObjectTypes => staticDecorativeObjectTypes;
 
         private readonly HashSet<string> floorSetIds = new HashSet<string>();
 
@@ -57,6 +61,7 @@ namespace BlazorRogue
             ParseDataFile(options, MonsterFileName, "monsters", e => ParseMoveableType(e, monsterTypes));
             ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
             ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
+            ParseDataFile(options, DecorationsFileName, "static_decorations", ParseStaticDecorativeType);
         }
 
         /// <summary>
@@ -127,7 +132,7 @@ namespace BlazorRogue
             ParseIndexAndWeights(element, "img_base", imgWallWithoutFrontList, imgWallWeightsList);
 
             character = element.GetProperty("character").GetString();
-            charColor = element.GetProperty("char_color").GetString();
+            charColor = element.GetProperty("character_color").GetString();
 
             var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character, charColor);
 
@@ -206,8 +211,21 @@ namespace BlazorRogue
             wounds = element.GetProperty("wounds").GetInt32();
             animationClass = element.GetProperty("animationClass").GetString();
             character = element.GetProperty("character").GetString();
-            characterColor = element.GetProperty("characterColor").GetString();
+            characterColor = element.GetProperty("character_color").GetString();
+        }
+
+        private void ParseStaticDecorativeType(JsonElement element)
+        {
+            string id = element.GetProperty("id").GetString();
+            string name = element.GetProperty("name").GetString();
+            string image = element.GetProperty("image").GetString();
+            string infoText = element.GetProperty("info_text").GetString();
+            int verticalOffset = element.GetProperty("vertical_offset").GetInt32();
+            string character = element.GetProperty("character").GetString();
+            string characterColor = element.GetProperty("character_color").GetString();
+
+            var dec = new StaticDecorativeObjectType(id, name, image, infoText, verticalOffset, character, characterColor);
+            staticDecorativeObjectTypes.Add(id, dec); 
         }
     }
-
 }

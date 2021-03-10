@@ -21,7 +21,7 @@
                 [ 19, 0.1 ]
             ],
             "character": "#",
-            "char_color": "#5E5D5D"
+            "character_color": "#5E5D5D"
         },
         {
             "id": "dungeon",
@@ -44,7 +44,7 @@
                 [ 19, 0.1 ]
             ],
             "character": "#",
-            "char_color": "darkgray"
+            "character_color": "darkgray"
         },
         {
             "id": "ruins",
@@ -67,7 +67,7 @@
                 [ 19, 0.1 ]
             ],
             "character": "#",
-            "char_color": "#B5651D"
+            "character_color": "#B5651D"
         },
         {
             "id": "cave",
@@ -90,7 +90,7 @@
                 [ 19, 0.1 ]
             ],
             "character": "#",
-            "char_color": "#DB8C44"
+            "character_color": "#DB8C44"
         }
     ]
 }
