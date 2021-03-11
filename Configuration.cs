@@ -99,7 +99,7 @@ namespace BlazorRogue
             }
 
             charFloor = element.GetProperty("character").GetString();
-            charColor = element.GetProperty("char_color").GetString();
+            charColor = element.GetProperty("character_color").GetString();
 
             var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, charFloor, charColor);
 
@@ -218,13 +218,32 @@ namespace BlazorRogue
         {
             string id = element.GetProperty("id").GetString();
             string name = element.GetProperty("name").GetString();
-            string image = element.GetProperty("image").GetString();
+
+            List<string> images = new List<string>();
+            const string imagePropertyName = "image";
+            var imageProperty = element.GetProperty(imagePropertyName);
+            if(imageProperty.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var iElem in imageProperty.EnumerateArray())
+                {
+                    images.Add(iElem.GetString());
+                }
+            }
+            else if(imageProperty.ValueKind == JsonValueKind.String)
+            {
+                images.Add(imageProperty.GetString());
+            }
+            else
+            {
+                throw new Exception($"{imagePropertyName} should be either a single string or an array of strings.");
+            }
+
             string infoText = element.GetProperty("info_text").GetString();
             int verticalOffset = element.GetProperty("vertical_offset").GetInt32();
             string character = element.GetProperty("character").GetString();
             string characterColor = element.GetProperty("character_color").GetString();
 
-            var dec = new StaticDecorativeObjectType(id, name, image, infoText, verticalOffset, character, characterColor);
+            var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor);
             staticDecorativeObjectTypes.Add(id, dec); 
         }
     }

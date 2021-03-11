@@ -87,8 +87,10 @@ namespace BlazorRogue
 
         private readonly Level LevelType;
 
-        public DungeonGenerator(int width, int height, Game game, Configuration configuration)
+        public DungeonGenerator(int width, int height, Game game)
         {
+            configuration = game.Configuration;
+
             // Choose random level-type
             LevelType = Level.Dungeon; // hardwire for now (TODO: maybe have DungeonGen and Game-level config in the long run.)
 
@@ -98,8 +100,8 @@ namespace BlazorRogue
                 Level.Dungeon => GetRandomElement(configuration.DungeonWallSets),
                 _ => throw new InvalidOperationException($"Unknown level-type: {LevelType}"),
             };
+
             map = new Map(width, height, wallSet, game);
-            this.configuration = configuration;
         }
 
         public Map GenerateMap()
@@ -571,42 +573,43 @@ namespace BlazorRogue
                     {
                         if (random.NextDouble() < PercentageChanceOfBones)
                         {
-                            map.AddGameObject(new StaticDecorativeObject(x, y, "Bones", $"bones_{random.Next(1, 5)}"));
+                            map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
                         }
 
                         // in the following we rely on floors never being placed on the perimeter tiles, else we could do
                         //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
                         if (random.NextDouble() < PercentageChanceOfSpiderWeb)
                         {
+                            // UF - reliant on knowledge of how the indexed spiderwebs are oriented
                             bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
                             bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
                             bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
                             bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
                             int webIndex = -1;
-                            int offset = 0;
+                            int verticalOffset = 0;
                             if (wallAbove && wallLeft)
                             {
-                                webIndex = 1;
-                                offset = -1;
+                                webIndex = 0;
+                                verticalOffset = -1;
                             }
                             else if (wallBelow && wallLeft)
                             {
-                                webIndex = 2;
+                                webIndex = 1;
                             }
                             else if (wallBelow && wallRight)
                             {
-                                webIndex = 3;
+                                webIndex = 2;
                             }
                             else if (wallAbove && wallRight)
                             {
-                                webIndex = 4;
-                                offset = -1;
+                                webIndex = 3;
+                                verticalOffset = -1;
                             }
 
                             if(webIndex != -1)
                             {
                                 // i.e., we found a suitable spot for a spiderweb
-                                map.AddGameObject(new StaticDecorativeObject(x, y, "Spider web", "web_" + webIndex, null, offset));
+                                map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["spiderweb"], webIndex, verticalOffset));
                             }
                         }
                     }
