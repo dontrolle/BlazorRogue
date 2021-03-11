@@ -1,14 +1,31 @@
 {
-        /* Pickup: Support arrays of static decorations ...?? */
     "static_decorations": [
         {
-            "id": "bones_1",
+            "id": "bones",
             "name": "Bones",
-            "image": "bones_1",
+            "image": [ "bones_1", "bones_2", "bones_3", "bones_4", "bones_5" ],
             "info_text": "",
             "vertical_offset": 0,
             "character": "",
             "character_color": ""
         },
+        {
+            "id": "spiderweb",
+            "name": "Spider web",
+            "image": [ "web_1", "web_2", "web_3", "web_4" ],
+            "info_text": "",
+            "vertical_offset": 0,
+            "character": "",
+            "character_color": ""
+        },
+        {
+            "id": "puddle",
+            "name": "Puddle",
+            "image": "puddle_small_6",
+            "info_text": "",
+            "vertical_offset": 0,
+            "character": "",
+            "character_color": ""
+        }
     ]
 }
