@@ -505,7 +505,7 @@ namespace BlazorRogue
         {
             if (map.Tiles[x, y].TileType == TileType.Floor)
             {
-                if (random.NextDouble() < PercentageChanceOfBones)
+                if (random.NextDouble() < PercentageChanceOfBones && !MapTileContainsDoor(x,y))
                 {
                     map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
                 }
@@ -558,15 +558,15 @@ namespace BlazorRogue
             {
                 if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
                 {
-                    int topHalfWallIndex = 6;
+                    var halfwallIndexes = map.DungeonWallSet.ImageEdgeNorthIndexes;
 
                     bool restrictToSimplerHalfWall = MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
                     if (restrictToSimplerHalfWall)
                     {
-                        topHalfWallIndex = 3;
+                        halfwallIndexes = map.DungeonWallSet.ImageSimpleEdgeNorthIndexes;
                     }
-                    var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                    map.AddGameObject(new HalfWall(x, y, halfWallIndex));
+
+                    map.AddGameObject(new HalfWall(x, y, GetRandomElement(halfwallIndexes)));
 
                     // add extra decs for specific tilesets
                     if (LevelType == Level.Cave)
