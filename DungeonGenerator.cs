@@ -19,23 +19,6 @@ namespace BlazorRogue
         private readonly double PercentageChanceOfTorch = 0.25;
 
         // TODO: UF
-        // Walls with borders- "cave", "ruins", "stone"
-        // Wall-sets have tiles 1-6 halved; can be used to round off the top for iso effect
-        // and - in junction with this - to paste over bottom part of lowermost floors for same...
-        // Wall tiles 7-12 have no front-face
-        // Wall tiles 13 is special?
-        // Wall tiles 14-19 have a front-face
-        private readonly int[] WallsWithFront = new[] { 14, 15, 16, 17, 18, 19 };
-        private readonly double[] WallsWithFrontWeights = new[] { 1.0, 0.1, 0.1, 0.1, 0.1, 0.1 };
-
-        // TODO: 
-        // Pickup - parse and configure decorations via config; carefully choose how fancy I want to get.
-        // Probable good first steps, either 
-        // 1. Basic visual decorations isolated to one tile, or,
-        // 2. Handle wall decorations, which should be rendered with +/- from tile (right?)
-        //    (Handle WallsWithFront and halfwalls as decoration; logically they should be able to be configured in relation to WallsWithoutFront, ..., hmmm)
-
-        // TODO: UF
         private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
 
         // width and height are including walls
@@ -549,7 +532,6 @@ namespace BlazorRogue
             }
         }
 
-        // TODO: UF
         private void AddPostGenWallDecorations(int x, int y)
         {
             // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
@@ -569,6 +551,7 @@ namespace BlazorRogue
                     map.AddGameObject(new HalfWall(x, y, GetRandomElement(halfwallIndexes)));
 
                     // add extra decs for specific tilesets
+                    // TODO: UF
                     if (LevelType == Level.Cave)
                     {
                         // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
@@ -593,15 +576,17 @@ namespace BlazorRogue
             {
                 if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
                 {
-                    var index = GetRandomElementWeighted(WallsWithFront, WallsWithFrontWeights);
+                    var index = GetRandomElementWeighted(map.DungeonWallSet.ImageSouthEdgeIndexes, map.DungeonWallSet.ImageSouthEdgeWeights);
                     bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
                     if (mapTileBelowHasDoor)
                     {
+                        // TODO: UF
                         index = 14;
                     }
                     map.Tiles[x, y].TileIndex = index;
 
                     // check for adding torch
+                    // TODO: UF
                     if (!mapTileBelowHasDoor && map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch)
                     {
                         map.AddGameObject(new Torch(x, y));
@@ -609,6 +594,7 @@ namespace BlazorRogue
                     }
 
                     // add extra decs for specific tilesets
+                    // TODO: UF
                     if (LevelType == Level.Cave)
                     {
                         // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
