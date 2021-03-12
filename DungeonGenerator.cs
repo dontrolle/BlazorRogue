@@ -489,147 +489,158 @@ namespace BlazorRogue
             }
         }
 
-        // TODO: UF
         private void AddPostGenerationDecorations()
         {
             for (int x = 0; x < map.Width; x++)
             {
                 for (int y = 0; y < map.Height; y++)
                 {
-                    if (y > 0)
+                    AddPostGenWallDecorations(x, y);
+
+                    AddPostGenFloorDecorations(x, y);
+                }
+            }
+        }
+
+        // TODO: UF
+        private void AddPostGenFloorDecorations(int x, int y)
+        {
+            if (map.Tiles[x, y].TileType == TileType.Floor)
+            {
+                if (random.NextDouble() < PercentageChanceOfBones)
+                {
+                    map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
+                }
+
+                // in the following we rely on floors never being placed on the perimeter tiles, else we could do
+                //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
+                if (random.NextDouble() < PercentageChanceOfSpiderWebInCorner)
+                {
+                    bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
+                    bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
+                    bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
+                    bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
+
+                    string corner = "";
+                    int verticalOffset = 0;
+                    if (wallAbove && wallLeft)
                     {
-                        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
-                        // if tile above has door, select from 1-3, else from tiles 1-6
-                        if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
-                        {
-                            int topHalfWallIndex = 6;
-
-                            bool restrictToSimplerHalfWall = MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
-                            if (restrictToSimplerHalfWall)
-                            {
-                                topHalfWallIndex = 3;
-                            }
-                            var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
-                            map.AddGameObject(new HalfWall(x, y, halfWallIndex));
-
-                            // add extra decs for specific tilesets
-                            if (LevelType == Level.Cave)
-                            {
-                                // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
-                                if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
-                                {
-                                    map.AddGameObject(new CaveEdge(x, y, 1, -1, -1));
-                                    //map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
-                                }
-
-
-                                if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
-                                {
-                                    map.AddGameObject(new CaveEdge(x, y, 2, -1, 1));
-                                    //map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
-                                }
-                            }
-                        }
+                        corner = "NW";
+                        verticalOffset = -1;
+                    }
+                    else if (wallBelow && wallLeft)
+                    {
+                        corner = "SW";
+                    }
+                    else if (wallBelow && wallRight)
+                    {
+                        corner = "SE";
+                    }
+                    else if (wallAbove && wallRight)
+                    {
+                        corner = "NE";
+                        verticalOffset = -1;
                     }
 
-                    if (y < map.Height - 1)
+                    if (!string.IsNullOrEmpty(corner))
                     {
-                        // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
-                        if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
+                        // i.e., we found a suitable spot for a spiderweb
+                        map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["corner_spiderweb"], corner, verticalOffset));
+                    }
+                }
+            }
+        }
+
+        // TODO: UF
+        private void AddPostGenWallDecorations(int x, int y)
+        {
+            if (y > 0)
+            {
+                // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
+                // if tile above has door, select from 1-3, else from tiles 1-6
+                if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
+                {
+                    int topHalfWallIndex = 6;
+
+                    bool restrictToSimplerHalfWall = MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
+                    if (restrictToSimplerHalfWall)
+                    {
+                        topHalfWallIndex = 3;
+                    }
+                    var halfWallIndex = random.Next(1, topHalfWallIndex + 1);
+                    map.AddGameObject(new HalfWall(x, y, halfWallIndex));
+
+                    // add extra decs for specific tilesets
+                    if (LevelType == Level.Cave)
+                    {
+                        // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
+                        if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                         {
-                            var index = GetRandomElementWeighted(WallsWithFront, WallsWithFrontWeights);
-                            bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
-                            if (mapTileBelowHasDoor)
-                            {
-                                index = 14;
-                            }
-                            map.Tiles[x, y].TileIndex = index;
+                            map.AddGameObject(new CaveEdge(x, y, 1, -1, -1));
+                            //map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
+                        }
 
-                            // check for adding torch
-                            if (!mapTileBelowHasDoor && map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch)
-                            {
-                                map.AddGameObject(new Torch(x, y));
-                                //map.DebugInfo.Add($"Added torch at ({x},{y}).");
-                            }
 
-                            // add extra decs for specific tilesets
-                            if (LevelType == Level.Cave)
-                            {
-                                // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
-                                if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
-                                {
-                                    map.AddGameObject(new CaveEdge(x, y, 5, 0, -1));
-                                }
-
-                                if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
-                                {
-                                    map.AddGameObject(new CaveEdge(x, y, 6, 0, 1));
-                                }
-                            }
+                        if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                        {
+                            map.AddGameObject(new CaveEdge(x, y, 2, -1, 1));
+                            //map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
                         }
                     }
+                }
+            }
 
-                    if (map.Tiles[x, y].TileType == TileType.Floor)
+            if (y < map.Height - 1)
+            {
+                // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
+                if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
+                {
+                    var index = GetRandomElementWeighted(WallsWithFront, WallsWithFrontWeights);
+                    bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
+                    if (mapTileBelowHasDoor)
                     {
-                        if (random.NextDouble() < PercentageChanceOfBones)
-                        {
-                            map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
-                        }
+                        index = 14;
+                    }
+                    map.Tiles[x, y].TileIndex = index;
 
-                        // in the following we rely on floors never being placed on the perimeter tiles, else we could do
-                        //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
-                        if (random.NextDouble() < PercentageChanceOfSpiderWebInCorner)
-                        {
-                            bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
-                            bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
-                            bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
-                            bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
-
-                            string corner = "";
-                            int verticalOffset = 0;
-                            if (wallAbove && wallLeft)
-                            {
-                                corner = "NW";
-                                verticalOffset = -1;
-                            }
-                            else if (wallBelow && wallLeft)
-                            {
-                                corner = "SW";
-                            }
-                            else if (wallBelow && wallRight)
-                            {
-                                corner = "SE";
-                            }
-                            else if (wallAbove && wallRight)
-                            {
-                                corner = "NE";
-                                verticalOffset = -1;
-                            }
-
-                            if (!string.IsNullOrEmpty(corner))
-                            {
-                                // i.e., we found a suitable spot for a spiderweb
-                                map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["corner_spiderweb"], corner, verticalOffset));
-                            }
-                        }
+                    // check for adding torch
+                    if (!mapTileBelowHasDoor && map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < PercentageChanceOfTorch)
+                    {
+                        map.AddGameObject(new Torch(x, y));
+                        //map.DebugInfo.Add($"Added torch at ({x},{y}).");
                     }
 
                     // add extra decs for specific tilesets
                     if (LevelType == Level.Cave)
                     {
-                        // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
-                        if (map.Tiles[x, y].TileType == TileType.Wall)
+                        // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
+                        if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
                         {
-                            if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
-                            {
-                                map.AddGameObject(new CaveEdge(x, y, 3, 0, -1));
-                            }
-
-                            if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
-                            {
-                                map.AddGameObject(new CaveEdge(x, y, 4, 0, 1));
-                            }
+                            map.AddGameObject(new CaveEdge(x, y, 5, 0, -1));
                         }
+
+                        if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                        {
+                            map.AddGameObject(new CaveEdge(x, y, 6, 0, 1));
+                        }
+                    }
+                }
+            }
+
+            // add extra wall-decorations for specific tilesets
+            if (LevelType == Level.Cave)
+            {
+                // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
+                if (map.Tiles[x, y].TileType == TileType.Wall)
+                {
+                    if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
+                    {
+                        map.AddGameObject(new CaveEdge(x, y, 3, 0, -1));
+                    }
+
+                    if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                    {
+                        map.AddGameObject(new CaveEdge(x, y, 4, 0, 1));
                     }
                 }
             }
