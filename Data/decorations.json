@@ -37,6 +37,15 @@
             "vertical_offset": 0,
             "character": "",
             "character_color": ""
+        },
+        {
+            "id": "spiderweb",
+            "name": "Spider web",
+            "image": "web_5",
+            "info_text": "",
+            "vertical_offset": 0,
+            "character": "",
+            "character_color" : ""
         }
     ]
 }

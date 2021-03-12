@@ -15,7 +15,7 @@ namespace BlazorRogue
 
         // Decorations
         private const double PercentageChanceOfBones = 0.05;
-        private readonly double PercentageChanceOfSpiderWeb = 0.25;
+        private readonly double PercentageChanceOfSpiderWebInCorner = 0.25;
         private readonly double PercentageChanceOfTorch = 0.25;
 
         // TODO: UF
@@ -44,9 +44,9 @@ namespace BlazorRogue
         private const int MaxRoomHeight = 8;
         private const int MinRoomWidth = 4;
         private const int MaxRoomWidth = 10;
-        const int SpecialRoomHeight = 7;
-        const int SpecialRoomWidth = 8;
-        const double PercentageChanceOfSpecialRoom = 1.0;
+        private const int SpecialRoomHeight = 7;
+        private const int SpecialRoomWidth = 8;
+        private const double PercentageChanceOfSpecialRoom = 1.0;
 
         private readonly List<Room> Rooms = new List<Room>();
         private readonly List<Tuple<int, int>> CandidateDoors = new List<Tuple<int, int>>();
@@ -578,7 +578,7 @@ namespace BlazorRogue
 
                         // in the following we rely on floors never being placed on the perimeter tiles, else we could do
                         //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
-                        if (random.NextDouble() < PercentageChanceOfSpiderWeb)
+                        if (random.NextDouble() < PercentageChanceOfSpiderWebInCorner)
                         {
                             bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
                             bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
