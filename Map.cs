@@ -71,7 +71,7 @@ namespace BlazorRogue
 
             // TODO: UF
             // A field, if necessary?
-            var blackTileSet = new TileSet("black", TileType.Black, "extra", new[] { 11 }, null, "", "black");
+            var blackTileSet = new TileSet("black", TileType.Black, "extra", new[] { 11 }, null, character: "");
 
             for (int i = 0; i < width; i++)
             {

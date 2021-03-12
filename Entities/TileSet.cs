@@ -16,38 +16,67 @@ namespace BlazorRogue.Entities
     /// </remarks>
     public class TileSet
     {
-        // PICKUP: I probably need to make place for the halfwalf wall and wall-decoration stuff that hangs onto wall tiles...?
-
         public string Id { get; }
         public TileType TileType { get; }
         public string ImgPrefix { get; }
-        public int[] ImgIndexes { get; }
-        public double[] ImgWeights { get;  }
+
+        // TODO I should really do something about the collection types of these arrays
+        public int[] ImageBaseIndexes { get; }
+        public double[] ImageBaseWeights { get;  }
+        public int[] ImageSouthEdgeIndexes { get; }
+        public double[] ImageSouthEdgeWeights { get; }
+        public int[] ImageSimpleEdgeNorthIndexes { get; }
+        public int[] ImageDecoratedEdgeNorthIndexes { get; }
+        public int[] ImageEdgeNorthIndexes => ImageSimpleEdgeNorthIndexes.Concat(ImageDecoratedEdgeNorthIndexes).ToArray();
+
         public string Character { get; }
         public string CharacterColor { get; }
 
-        public TileSet(string id, TileType tileType, string imgPrefix, int[] imgIndexes, double[]? imgWeights = null, string character = "¤", string characterColor = "fuchsia")
+        public TileSet(
+            string id, 
+            TileType tileType, 
+            string imgPrefix, 
+            int[] imgIndexes, 
+            double[]? imgWeights = null, 
+            int[]? imgSouthEdgeIndexes = null,
+            double[]? imgSouthEdgeWeights = null,
+            int[]? imageSimpleEdgeNorthIndexes = null,
+            int[]? imageDecoratedEdgeNorthIndexes = null,
+            string character = "¤", 
+            string characterColor = "fuchsia")
         {
             Id = id;
             TileType = tileType;
             ImgPrefix = imgPrefix;
-            ImgIndexes = imgIndexes;
+
+            ImageBaseIndexes = imgIndexes;
+            ImageBaseWeights = SetWeights(ImageBaseIndexes, imgWeights);
+
+            ImageSouthEdgeIndexes = imgSouthEdgeIndexes ?? Array.Empty<int>();
+            ImageSouthEdgeWeights = SetWeights(ImageSouthEdgeIndexes, imgSouthEdgeWeights);
+
+            ImageSimpleEdgeNorthIndexes = imageSimpleEdgeNorthIndexes ?? Array.Empty<int>();
+            ImageDecoratedEdgeNorthIndexes = imageDecoratedEdgeNorthIndexes ?? Array.Empty<int>();
+
+            Character = character;
+            CharacterColor = characterColor;
+        }
+
+        private double[] SetWeights(int[] imgIndexes, double[]? imgWeights)
+        {
             if (imgWeights != null)
             {
-                if(imgWeights.Length != imgIndexes.Length)
+                if (imgWeights.Length != imgIndexes.Length)
                 {
                     throw new ArgumentException($"If given, {nameof(imgWeights)} is required to be of same length as {nameof(imgIndexes)}", nameof(imgWeights));
                 }
 
-                ImgWeights = imgWeights;
+                return imgWeights;
             }
             else
             {
-                ImgWeights = Enumerable.Repeat(1.0d, imgIndexes.Length).ToArray();
+                return Enumerable.Repeat(1.0d, imgIndexes.Length).ToArray();
             }
-
-            Character = character;
-            CharacterColor = characterColor;
         }
 
         public virtual string ImageName(int index) => TileType.ToTileSetPrefix() + "_" + ImgPrefix + "_" + index;

@@ -45,7 +45,7 @@
 
               int index = random.Next(1, 4);
               // TODO This is horrible, creating a new tileset for each x,y - but this is a throw-away demo, so not bothering to refactor
-              var tileset = new Entities.TileSet("ground_" + middle, TileType.Ground, middle, new[] { 1, 2, 3, 4 }, null, ".", "green");
+              var tileset = new Entities.TileSet("ground_" + middle, TileType.Ground, middle, new[] { 1, 2, 3, 4 }, null, character: ".", characterColor: "green");
               poss[x,y] = new Tile (x, y, tileset, index);
           }
       }

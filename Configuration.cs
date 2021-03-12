@@ -101,7 +101,7 @@ namespace BlazorRogue
             charFloor = element.GetProperty("character").GetString();
             charColor = element.GetProperty("character_color").GetString();
 
-            var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, charFloor, charColor);
+            var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, character: charFloor, characterColor: charColor);
 
             if (!floorSetIds.Add(id))
             {
@@ -134,7 +134,7 @@ namespace BlazorRogue
             character = element.GetProperty("character").GetString();
             charColor = element.GetProperty("character_color").GetString();
 
-            var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character, charColor);
+            var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character: character, characterColor: charColor);
 
             if (!wallSetIds.Add(id))
             {

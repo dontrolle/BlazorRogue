@@ -129,7 +129,6 @@ namespace BlazorRogue
             AddDoors();
             AddPostGenerationDecorations();
 
-
             // Add Player
             var heroType = GetRandomElement(configuration.HeroTypes).Value;
             var player = new Moveable(playerPos, null, heroType);
@@ -502,7 +501,6 @@ namespace BlazorRogue
             }
         }
 
-        // TODO: UF
         private void AddPostGenFloorDecorations(int x, int y)
         {
             if (map.Tiles[x, y].TileType == TileType.Floor)
@@ -554,10 +552,10 @@ namespace BlazorRogue
         // TODO: UF
         private void AddPostGenWallDecorations(int x, int y)
         {
+            // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
+            // if tile above has door, select from 1-3, else from tiles 1-6
             if (y > 0)
             {
-                // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
-                // if tile above has door, select from 1-3, else from tiles 1-6
                 if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
                 {
                     int topHalfWallIndex = 6;
@@ -590,9 +588,9 @@ namespace BlazorRogue
                 }
             }
 
+            // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
             if (y < map.Height - 1)
             {
-                // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
                 if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
                 {
                     var index = GetRandomElementWeighted(WallsWithFront, WallsWithFrontWeights);
@@ -689,7 +687,7 @@ namespace BlazorRogue
         {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
             map.Tiles[x, y].TileSet = map.DungeonWallSet;
-            map.Tiles[x, y].TileIndex = GetRandomElementWeighted(map.DungeonWallSet.ImgIndexes, map.DungeonWallSet.ImgWeights);
+            map.Tiles[x, y].TileIndex = GetRandomElementWeighted(map.DungeonWallSet.ImageBaseIndexes, map.DungeonWallSet.ImageBaseWeights);
             map.Tiles[x, y].Blocking = true;
         }
 
@@ -697,7 +695,7 @@ namespace BlazorRogue
         {
             // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.
             map.Tiles[x, y].TileSet = FloorSet;
-            map.Tiles[x, y].TileIndex = GetRandomElement(FloorSet.ImgIndexes);
+            map.Tiles[x, y].TileIndex = GetRandomElement(FloorSet.ImageBaseIndexes);
             map.Tiles[x, y].Blocking = false;
         }
 
