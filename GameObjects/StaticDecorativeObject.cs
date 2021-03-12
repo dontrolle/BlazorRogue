@@ -18,23 +18,21 @@ namespace BlazorRogue.GameObjects
             int x, 
             int y, 
             StaticDecorativeObjectType staticDecorativeObjectType, 
-            int? imageIndex = null, 
+            string? imageTag = null,
             int? verticalOffsetOverride = null,
             string? nameOverride = null,
             string? infoTextOverride = null) : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
         {
-            if(imageIndex != null)
+            if(imageTag != null)
             {
-                if(imageIndex < 0 || imageIndex >= staticDecorativeObjectType.ImageVariants.Count())
+                if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out image))
                 {
-                    throw new ArgumentException($"{nameof(imageIndex)} must be an index into {nameof(staticDecorativeObjectType.ImageVariants)}, i.e., be between 0 and the length-1 of that collection.");
+                    throw new ArgumentException($"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}.");
                 }
-
-                image = staticDecorativeObjectType.ImageVariants.ElementAt(imageIndex.Value);
             }
             else
             {
-                // if no index is given, select a random image among the variants given
+                // if no tag is given, select a random image among the variants given
                 image = staticDecorativeObjectType.RandomImage;
             }
             

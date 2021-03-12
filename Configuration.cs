@@ -219,23 +219,55 @@ namespace BlazorRogue
             string id = element.GetProperty("id").GetString();
             string name = element.GetProperty("name").GetString();
 
-            List<string> images = new List<string>();
+            // Yeah, allowing image to be both a singleton, an array, and an object is me playing around :P
+            var images = new Dictionary<string, string>();
             const string imagePropertyName = "image";
             var imageProperty = element.GetProperty(imagePropertyName);
-            if(imageProperty.ValueKind == JsonValueKind.Array)
+            if (imageProperty.ValueKind == JsonValueKind.Object)
             {
+                /* Expected format 
+                 * {
+                 *  "<tag>" : "<imagefilenameWithoutPng>",
+                 *  ...
+                 * }
+                 */
+
+                foreach (var iElem in imageProperty.EnumerateObject())
+                {
+                    images.Add(iElem.Name, iElem.Value.GetString());
+                }
+            }
+            else if(imageProperty.ValueKind == JsonValueKind.Array)
+            {
+                /* Expected format 
+                 * [
+                 *  "<imagefilenameWithoutPng>",
+                 *  ...
+                 * ]
+                 * 
+                 * Tags will be set to "0", "1", ...
+                 */
+
+                int counter = 0;
                 foreach (var iElem in imageProperty.EnumerateArray())
                 {
-                    images.Add(iElem.GetString());
+                    images.Add($"{counter}", iElem.GetString());
+                    counter++;
                 }
             }
             else if(imageProperty.ValueKind == JsonValueKind.String)
             {
-                images.Add(imageProperty.GetString());
+                /* Expected format 
+                 *  "<imagefilenameWithoutPng>"
+                 * 
+                 * Tag will be set to ""
+                 */
+
+                images.Add("", imageProperty.GetString());
             }
             else
             {
-                throw new Exception($"{imagePropertyName} should be either a single string or an array of strings.");
+                throw new Exception($"{imagePropertyName} should be either a single string, an array of strings, or an object with string, string pairs.");
             }
 
             string infoText = element.GetProperty("info_text").GetString();

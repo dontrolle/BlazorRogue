@@ -11,15 +11,15 @@ namespace BlazorRogue.Entities
 
         public string Id { get; }
         public string Name { get; }
-        private readonly List<string> imageVariants;
-        public IEnumerable<string> ImageVariants => imageVariants.AsReadOnly();
+        private readonly Dictionary<string, string> imageVariants;
+        public IReadOnlyDictionary<string, string> ImageVariants => imageVariants;
 
         public string InfoText { get; }
         public int VerticalOffset { get; }
         public string Character { get; }
         public string CharacterColor { get; }
 
-        public StaticDecorativeObjectType(string id, string name, List<string> image, string infoText, int verticalOffset, string character, string characterColor)
+        public StaticDecorativeObjectType(string id, string name, Dictionary<string, string> image, string infoText, int verticalOffset, string character, string characterColor)
         {
             Id = id;
             Name = name;
@@ -30,8 +30,8 @@ namespace BlazorRogue.Entities
             CharacterColor = characterColor;
         }
 
-        public int RandomImageVariantIndex => random.Next(0, imageVariants.Count - 1);
+        private int RandomImageVariantIndex => random.Next(0, imageVariants.Count - 1);
 
-        public string RandomImage => imageVariants.ElementAt(RandomImageVariantIndex);
+        public string RandomImage => imageVariants.ElementAt(RandomImageVariantIndex).Value;
     }
 }

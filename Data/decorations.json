@@ -3,16 +3,27 @@
         {
             "id": "bones",
             "name": "Bones",
-            "image": [ "bones_1", "bones_2", "bones_3", "bones_4", "bones_5" ],
+            "image": [
+                "bones_1",
+                "bones_2",
+                "bones_3",
+                "bones_4",
+                "bones_5"
+            ],
             "info_text": "",
             "vertical_offset": 0,
             "character": "",
             "character_color": ""
         },
         {
-            "id": "spiderweb",
+            "id": "corner_spiderweb",
             "name": "Spider web",
-            "image": [ "web_1", "web_2", "web_3", "web_4" ],
+            "image": {
+                "NW" : "web_1",
+                "SW" : "web_2",
+                "SE" : "web_3",
+                "NE" : "web_4"
+            },
             "info_text": "",
             "vertical_offset": 0,
             "character": "",

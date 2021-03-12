@@ -580,36 +580,36 @@ namespace BlazorRogue
                         //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
                         if (random.NextDouble() < PercentageChanceOfSpiderWeb)
                         {
-                            // UF - reliant on knowledge of how the indexed spiderwebs are oriented
                             bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
                             bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
                             bool wallLeft = map.Tiles[x - 1, y].TileType == TileType.Wall;
                             bool wallRight = map.Tiles[x + 1, y].TileType == TileType.Wall;
-                            int webIndex = -1;
+
+                            string corner = "";
                             int verticalOffset = 0;
                             if (wallAbove && wallLeft)
                             {
-                                webIndex = 0;
+                                corner = "NW";
                                 verticalOffset = -1;
                             }
                             else if (wallBelow && wallLeft)
                             {
-                                webIndex = 1;
+                                corner = "SW";
                             }
                             else if (wallBelow && wallRight)
                             {
-                                webIndex = 2;
+                                corner = "SE";
                             }
                             else if (wallAbove && wallRight)
                             {
-                                webIndex = 3;
+                                corner = "NE";
                                 verticalOffset = -1;
                             }
 
-                            if(webIndex != -1)
+                            if (!string.IsNullOrEmpty(corner))
                             {
                                 // i.e., we found a suitable spot for a spiderweb
-                                map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["spiderweb"], webIndex, verticalOffset));
+                                map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["corner_spiderweb"], corner, verticalOffset));
                             }
                         }
                     }
