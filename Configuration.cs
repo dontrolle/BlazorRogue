@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using BlazorRogue.Entities;
+using System.Linq;
 
 namespace BlazorRogue
 {
@@ -92,12 +93,7 @@ namespace BlazorRogue
             id = element.GetProperty("id").GetString();
             special = element.GetProperty("special").GetBoolean();
             imgPrefix = element.GetProperty("img_prefix").GetString();
-            var imgFloorElement = element.GetProperty("img_floor");
-            foreach (var no in imgFloorElement.EnumerateArray())
-            {
-                imgFloorList.Add(no.GetInt32());
-            }
-
+            GetIntArray(element, "img_floor", imgFloorList);
             charFloor = element.GetProperty("character").GetString();
             charColor = element.GetProperty("character_color").GetString();
 
@@ -122,19 +118,37 @@ namespace BlazorRogue
         {
             string id, imgPrefix, character, charColor;
             string levelType;
-            var imgWallWithoutFrontList = new List<int>();
-            var imgWallWeightsList = new List<double>();
+            var imgBaseIndexes = new List<int>();
+            var imgBaseWeights = new List<double>();
+            var imgBaseEdgeSouthIndexes = new List<int>();
+            var imgBaseEdgeSouthWeights = new List<double>();
+            var imgSimpleEdgeNorthIndexes = new List<int>();
+            var imgDecoratedEdgeNorthIndexes = new List<int>();
 
             id = element.GetProperty("id").GetString();
             levelType = element.GetProperty("level_type").GetString();
             imgPrefix = element.GetProperty("img_prefix").GetString();
 
-            ParseIndexAndWeights(element, "img_base", imgWallWithoutFrontList, imgWallWeightsList);
+            ParseIndexAndWeights(element, "img_base", imgBaseIndexes, imgBaseWeights);
+            ParseIndexAndWeights(element, "img_base_edge_south", imgBaseEdgeSouthIndexes, imgBaseEdgeSouthWeights);
+            GetIntArray(element.GetProperty("img_edge_north"), "simple", imgSimpleEdgeNorthIndexes);
+            GetIntArray(element.GetProperty("img_edge_north"), "decorated", imgDecoratedEdgeNorthIndexes);
 
             character = element.GetProperty("character").GetString();
             charColor = element.GetProperty("character_color").GetString();
 
-            var t = new TileSet(id, TileType.Wall, imgPrefix, imgWallWithoutFrontList.ToArray(), imgWallWeightsList.ToArray(), character: character, characterColor: charColor);
+            var t = new TileSet(
+                id, 
+                TileType.Wall, 
+                imgPrefix, 
+                imgBaseIndexes.ToArray(), 
+                imgBaseWeights.ToArray(), 
+                imgBaseEdgeSouthIndexes.ToArray(), 
+                imgBaseEdgeSouthWeights.ToArray(),
+                imgSimpleEdgeNorthIndexes.ToArray(),
+                imgDecoratedEdgeNorthIndexes.ToArray(),
+                character: character, 
+                characterColor: charColor);
 
             if (!wallSetIds.Add(id))
             {
@@ -153,6 +167,12 @@ namespace BlazorRogue
             {
                 throw new Exception($"Unknown level_type '{levelType}' in wall-set with id: {id}.");
             }
+        }
+
+        private static void GetIntArray(JsonElement element, string property, List<int> listToFill)
+        {
+            var imgFloorElement = element.GetProperty(property);
+            listToFill.AddRange(imgFloorElement.EnumerateArray().Select(no => no.GetInt32()));
         }
 
         private static void ParseIndexAndWeights(JsonElement element, string imgName, List<int> imgArray, List<double> imgWeightArray)

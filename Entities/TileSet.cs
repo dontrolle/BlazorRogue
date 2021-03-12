@@ -36,12 +36,12 @@ namespace BlazorRogue.Entities
             string id, 
             TileType tileType, 
             string imgPrefix, 
-            int[] imgIndexes, 
-            double[]? imgWeights = null, 
+            int[] imgBaseIndexes, 
+            double[]? imgBaseWeights = null, 
             int[]? imgSouthEdgeIndexes = null,
             double[]? imgSouthEdgeWeights = null,
-            int[]? imageSimpleEdgeNorthIndexes = null,
-            int[]? imageDecoratedEdgeNorthIndexes = null,
+            int[]? imgSimpleEdgeNorthIndexes = null,
+            int[]? imgDecoratedEdgeNorthIndexes = null,
             string character = "¤", 
             string characterColor = "fuchsia")
         {
@@ -49,14 +49,14 @@ namespace BlazorRogue.Entities
             TileType = tileType;
             ImgPrefix = imgPrefix;
 
-            ImageBaseIndexes = imgIndexes;
-            ImageBaseWeights = SetWeights(ImageBaseIndexes, imgWeights);
+            ImageBaseIndexes = imgBaseIndexes;
+            ImageBaseWeights = SetWeights(ImageBaseIndexes, imgBaseWeights);
 
             ImageSouthEdgeIndexes = imgSouthEdgeIndexes ?? Array.Empty<int>();
             ImageSouthEdgeWeights = SetWeights(ImageSouthEdgeIndexes, imgSouthEdgeWeights);
 
-            ImageSimpleEdgeNorthIndexes = imageSimpleEdgeNorthIndexes ?? Array.Empty<int>();
-            ImageDecoratedEdgeNorthIndexes = imageDecoratedEdgeNorthIndexes ?? Array.Empty<int>();
+            ImageSimpleEdgeNorthIndexes = imgSimpleEdgeNorthIndexes ?? Array.Empty<int>();
+            ImageDecoratedEdgeNorthIndexes = imgDecoratedEdgeNorthIndexes ?? Array.Empty<int>();
 
             Character = character;
             CharacterColor = characterColor;
