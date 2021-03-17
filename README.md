@@ -1,6 +1,6 @@
 # BlazorRogue
 
-![Build Status](https://dev.azure.com/tedconsultingdk/BlazorRogueAz/_apis/build/status/dontrolle.BlazorRogue?branchName=master)
+[![Build Status](https://dev.azure.com/tedconsultingdk/BlazorRogueAz/_apis/build/status/dontrolle.BlazorRogue?branchName=master)](https://dev.azure.com/tedconsultingdk/BlazorRogueAz/_build/latest?definitionId=1&branchName=master)
 
 A simple little rogue-like built mostly in C#/Blazor using the beautiful [Ultimate Fantasy Tileset tiles from Oryx](https://www.oryxdesignlab.com/ultimatefantasy).
 
