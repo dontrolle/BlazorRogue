@@ -22,10 +22,10 @@
             ],
             "img_edge_north": {
                 "simple": [ 1, 2, 3, 5 ],
-                "decorated": [ 4, 6]
+                "decorated": [ 4, 6 ]
             },
             "character": "#",
-            "character_color": "#5E5D5D"
+            "character_color": "#7d7a7a"
         },
         {
             "id": "dungeon",

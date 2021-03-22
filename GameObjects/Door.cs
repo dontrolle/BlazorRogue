@@ -30,7 +30,7 @@ namespace BlazorRogue.GameObjects
                     // place 3 just above door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 3) { VerticalOffset = -1 });
                     // place 7 on door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 7));
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 7) { Character = "'", CharacterColor = map.DungeonWallSet.CharacterColor });
                     // place 10 on door tile - raised 1 z-index, to be in front of player
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 10) { InFront = true });
                 }
@@ -39,7 +39,7 @@ namespace BlazorRogue.GameObjects
                     // place 2 just above door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 2) { VerticalOffset = -1 });
                     // place 6 on door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 6));
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 6) { Character = "+", CharacterColor = map.DungeonWallSet.CharacterColor });
                 }
             }
             else if (Orientation == Orientation.Horizontal)
@@ -49,14 +49,14 @@ namespace BlazorRogue.GameObjects
                     // place 1 above door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 1) { VerticalOffset = -1 });
                     // place 5 on door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 5));
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 5) { Character = "'", CharacterColor = map.DungeonWallSet.CharacterColor });
                     // place 9 below door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 9) { VerticalOffset = +1 });
                 }
                 else
                 {
                     // place 4 on door tile
-                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 4));
+                    map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 4) { Character = "+", CharacterColor = map.DungeonWallSet.CharacterColor });
                     // place 8 below door tile
                     map.Decorations[x, y].Add(new Decoration(this, ImagePrefix + 8) { VerticalOffset = +1 });
                 }

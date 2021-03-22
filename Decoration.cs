@@ -14,22 +14,17 @@ namespace BlazorRogue
         public bool InFront { get; set; }
         public bool BlocksLight => GameObject.BlocksLight;
 
-        private const string DefaultCharacter = "?";
         private string? character;
 
-        public string Character { 
+        public string Character
+        {
             get
             {
                 if (character != null)
                 {
                     return character;
                 }
-                else if(VerticalOffset == 0 && HorizontalOffset == 0)
-                {
-                    return DefaultCharacter;
-                }
 
-                // in ascii-mode, we very seldomly want any of the out-of-tile-decorations to show
                 return "";
             }
             set
