@@ -119,7 +119,7 @@ namespace BlazorRogue
             map.AddPlayer(player);
 
             // Add monsters
-            int noOfRandomMonsters = 6;
+            int noOfRandomMonsters = 8;
 
             for (int i = 0; i < noOfRandomMonsters; i++)
             {

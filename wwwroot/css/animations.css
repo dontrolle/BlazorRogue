@@ -1,4 +1,6 @@
-﻿.animated_torch_floor {
+﻿/* This file seems like a good reason to introduce some Sass... */
+
+.animated_torch_floor {
   animation-name: torch_floor;
   animation-duration: 2s;
   animation-iteration-count: infinite;
@@ -17,6 +19,8 @@
     background-image: url('../img/uf_terrain/torch1_floor.png');
   }
 }
+
+/************/
 
 .animated_torch {
   animation-name: torch;
@@ -37,6 +41,8 @@
     background-image: url('../img/uf_terrain/torch1.png');
   }
 }
+
+/************/
 
 @keyframes templar {
   0% {
@@ -66,6 +72,8 @@
   animation-iteration-count: infinite;
 }
 
+/************/
+
 @keyframes goblin {
   0% {
     background-image: url('../img/uf_heroes/goblin_1.png');
@@ -88,11 +96,43 @@
   }
 }
 
-.animated_goblin {
+animated_goblin {
   animation-name: goblin;
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
 }
+
+/************/
+
+@keyframes goblin_warrior {
+  0% {
+    background-image: url('../img/uf_heroes/goblin_warrior_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/goblin_warrior_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/goblin_warrior_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/goblin_warrior_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/goblin_warrior_1.png');
+  }
+}
+
+.animated_goblin_warrior {
+  animation-name: goblin_warrior;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+.
+/************/
 
 @keyframes spider_black {
   0% {
@@ -122,6 +162,8 @@
   animation-iteration-count: infinite;
 }
 
+/************/
+
 @keyframes spider_black_giant {
   0% {
     background-image: url('../img/uf_heroes/spider_black_giant_1.png');
@@ -149,6 +191,8 @@
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
 }
+
+/************/
 
 @keyframes spider_brown {
   0% {
@@ -178,6 +222,8 @@
   animation-iteration-count: infinite;
 }
 
+/************/
+
 @keyframes spider_brown_giant {
   0% {
     background-image: url('../img/uf_heroes/spider_brown_giant_1.png');
@@ -205,6 +251,68 @@
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
 }
+
+/************/
+
+@keyframes ogre {
+  0% {
+    background-image: url('../img/uf_heroes/ogre_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/ogre_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/ogre_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/ogre_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/ogre_1.png');
+  }
+}
+
+.animated_ogre {
+  animation-name: ogre;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+/************/
+
+@keyframes skeleton {
+  0% {
+    background-image: url('../img/uf_heroes/skeleton_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/skeleton_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/skeleton_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/skeleton_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/skeleton_1.png');
+  }
+}
+
+.animated_skeleton {
+  animation-name: skeleton;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+/************/
 
 @keyframes hit_fx1 {
   0% {
