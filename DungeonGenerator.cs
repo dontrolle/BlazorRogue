@@ -16,6 +16,7 @@ namespace BlazorRogue
         // Decorations
         private const double PercentageChanceOfBones = 0.05;
         private readonly double PercentageChanceOfTables = 0.06;
+        private readonly double PercentageChanceOfAltars = 0.04;
         private readonly double PercentageChanceOfSpiderWebInCorner = 0.25;
         private readonly double PercentageChanceOfTorch = 0.25;
 
@@ -498,6 +499,14 @@ namespace BlazorRogue
                 {
                     if (NumberOfSurroundingBlockingSpots(x, y) < 4) {
                         map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["table"]));
+                    }
+                }
+
+                if (random.NextDouble() < PercentageChanceOfAltars && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+                {
+                    if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                    {
+                        map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["altar_blood"]));
                     }
                 }
 

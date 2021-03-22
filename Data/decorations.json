@@ -66,6 +66,16 @@
             "character": "&",
             "character_color": "sienna",
             "blocking": true
+        },
+        {
+            "id": "altar_blood",
+            "name": "AlterBlood",
+            "image": "altar_blood",
+            "info_text": "Altar splattered with blood",
+            "vertical_offset": 0,
+            "character": "&",
+            "character_color": "LightSlateGrey",
+            "blocking": true
         }
     ]
 }
