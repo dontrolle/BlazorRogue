@@ -96,7 +96,7 @@
   }
 }
 
-animated_goblin {
+.animated_goblin {
   animation-name: goblin;
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
@@ -131,7 +131,7 @@ animated_goblin {
   animation-duration: 1.5s;
   animation-iteration-count: infinite;
 }
-.
+
 /************/
 
 @keyframes spider_black {

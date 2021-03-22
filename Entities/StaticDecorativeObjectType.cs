@@ -18,8 +18,9 @@ namespace BlazorRogue.Entities
         public int VerticalOffset { get; }
         public string Character { get; }
         public string CharacterColor { get; }
+        public bool Blocking { get; }
 
-        public StaticDecorativeObjectType(string id, string name, Dictionary<string, string> image, string infoText, int verticalOffset, string character, string characterColor)
+        public StaticDecorativeObjectType(string id, string name, Dictionary<string, string> image, string infoText, int verticalOffset, string character, string characterColor, bool blocking)
         {
             Id = id;
             Name = name;
@@ -28,6 +29,7 @@ namespace BlazorRogue.Entities
             VerticalOffset = verticalOffset;
             Character = character;
             CharacterColor = characterColor;
+            Blocking = blocking;
         }
 
         private int RandomImageVariantIndex => random.Next(0, imageVariants.Count - 1);

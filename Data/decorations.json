@@ -45,7 +45,27 @@
             "info_text": "",
             "vertical_offset": 0,
             "character": "",
-            "character_color" : ""
+            "character_color": ""
+        },
+        {
+            "id": "crate",
+            "name": "Crate",
+            "image": "crate",
+            "info_text": "Crate",
+            "vertical_offset": 0,
+            "character": "&",
+            "character_color": "peru",
+            "blocking": true
+        },
+        {
+            "id": "table",
+            "name": "Table",
+            "image": "table",
+            "info_text": "Table",
+            "vertical_offset": 0,
+            "character": "&",
+            "character_color": "sienna",
+            "blocking": true
         }
     ]
 }

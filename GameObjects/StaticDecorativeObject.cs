@@ -40,6 +40,8 @@ namespace BlazorRogue.GameObjects
             verticalOffset = verticalOffsetOverride?? staticDecorativeObjectType.VerticalOffset;
             character = staticDecorativeObjectType.Character;
             characterColor = staticDecorativeObjectType.CharacterColor;
+
+            Blocking = staticDecorativeObjectType.Blocking;
         }
 
         public override void Render(Map map)

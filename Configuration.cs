@@ -295,7 +295,13 @@ namespace BlazorRogue
             string character = element.GetProperty("character").GetString();
             string characterColor = element.GetProperty("character_color").GetString();
 
-            var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor);
+            bool blocking = false;
+            if(element.TryGetProperty("blocking", out var blockingElement))
+            {
+                blocking = blockingElement.GetBoolean();
+            }
+
+            var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor, blocking);
             staticDecorativeObjectTypes.Add(id, dec); 
         }
     }

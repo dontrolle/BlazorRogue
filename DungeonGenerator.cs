@@ -15,6 +15,7 @@ namespace BlazorRogue
 
         // Decorations
         private const double PercentageChanceOfBones = 0.05;
+        private readonly double PercentageChanceOfTables = 0.06;
         private readonly double PercentageChanceOfSpiderWebInCorner = 0.25;
         private readonly double PercentageChanceOfTorch = 0.25;
 
@@ -488,9 +489,16 @@ namespace BlazorRogue
         {
             if (map.Tiles[x, y].TileType == TileType.Floor)
             {
-                if (random.NextDouble() < PercentageChanceOfBones && !MapTileContainsDoor(x,y))
+                if (random.NextDouble() < PercentageChanceOfBones && !MapTileContainsDoor(x,y) && !map.IsBlocked(x, y))
                 {
                     map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
+                }
+
+                if (random.NextDouble() < PercentageChanceOfTables && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+                {
+                    if (NumberOfSurroundingBlockingSpots(x, y) < 4) {
+                        map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["table"]));
+                    }
                 }
 
                 // in the following we rely on floors never being placed on the perimeter tiles, else we could do
@@ -530,6 +538,29 @@ namespace BlazorRogue
                     }
                 }
             }
+        }
+
+        private int NumberOfSurroundingBlockingSpots(int x, int y)
+        {
+            int numberOfSurroundingBlockingSpots = 0;
+
+            for(int dx = -1; dx < 2; dx++)
+            {
+                for (int dy = -1; dy < 2; dy++)
+                {
+                    if(dx == 0 && dy == 0)
+                    {
+                        continue;
+                    }
+
+                    if(map.IsBlocked(x + dx, y + dy))
+                    {
+                        numberOfSurroundingBlockingSpots++;
+                    }
+                }
+            }
+
+            return numberOfSurroundingBlockingSpots;
         }
 
         private void AddPostGenWallDecorations(int x, int y)
