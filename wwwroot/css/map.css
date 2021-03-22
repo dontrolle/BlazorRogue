@@ -105,6 +105,7 @@ div[data-tool-tip]::after {
   content: attr(data-tool-tip);
   display: block;
   position: absolute;
+  color: black;
   background-color: burlywood;
   border-radius: 5px;
   font-size: 0.9em;
