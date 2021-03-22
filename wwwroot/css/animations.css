@@ -1,0 +1,227 @@
+﻿.animated_torch_floor {
+  animation-name: torch_floor;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes torch_floor {
+  0% {
+    background-image: url('../img/uf_terrain/torch1_floor.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_terrain/torch2_floor.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_terrain/torch1_floor.png');
+  }
+}
+
+.animated_torch {
+  animation-name: torch;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes torch {
+  0% {
+    background-image: url('../img/uf_terrain/torch1.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_terrain/torch2.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_terrain/torch1.png');
+  }
+}
+
+@keyframes templar {
+  0% {
+    background-image: url('../img/uf_heroes/templar_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/templar_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/templar_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/templar_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/templar_1.png');
+  }
+}
+
+.animated_templar {
+  animation-name: templar;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes goblin {
+  0% {
+    background-image: url('../img/uf_heroes/goblin_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/goblin_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/goblin_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/goblin_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/goblin_1.png');
+  }
+}
+
+.animated_goblin {
+  animation-name: goblin;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes spider_black {
+  0% {
+    background-image: url('../img/uf_heroes/spider_black_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/spider_black_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/spider_black_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/spider_black_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/spider_black_1.png');
+  }
+}
+
+.animated_spider_black {
+  animation-name: spider_black;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes spider_black_giant {
+  0% {
+    background-image: url('../img/uf_heroes/spider_black_giant_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/spider_black_giant_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/spider_black_giant_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/spider_black_giant_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/spider_black_giant_1.png');
+  }
+}
+
+.animated_spider_black_giant {
+  animation-name: spider_black_giant;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes spider_brown {
+  0% {
+    background-image: url('../img/uf_heroes/spider_brown_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/spider_brown_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/spider_brown_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/spider_brown_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/spider_brown_1.png');
+  }
+}
+
+.animated_spider_brown {
+  animation-name: spider_brown;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes spider_brown_giant {
+  0% {
+    background-image: url('../img/uf_heroes/spider_brown_giant_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/spider_brown_giant_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/spider_brown_giant_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/spider_brown_giant_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/spider_brown_giant_1.png');
+  }
+}
+
+.animated_spider_brown_giant {
+  animation-name: spider_brown_giant;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hit_fx1 {
+  0% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_09.png');
+  }
+
+  33% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_08.png');
+  }
+
+  66% {
+    background-image: url('../img/uf_FX_impact/uf_FX_impact_07.png');
+  }
+}
+
+.animated_hit_fx1 {
+  animation-name: hit_fx1;
+  animation-duration: 2s;
+  animation-iteration-count: 1;
+}
