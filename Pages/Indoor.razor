@@ -156,10 +156,12 @@
             {
                 <li>@debugInfo</li>
             }
-            <li>Player.x: @game.Map.Player.x </li>
-            <li>Player.y: @game.Map.Player.y </li>
-            <li>windowXOffset: @windowXOffset</li>
-            <li>windowYOffset: @windowYOffset</li>
+            <li>Hitpoints: @game.Map.Player.CombatComponent.Wounds </li>
+            <li>Advantage?: @game.Map.Player.CombatComponent.Advantage </li>
+            <li>Armour: @game.Map.Player.CombatComponent.ArmourPoints</li>
+            <li>Toughness: @game.Map.Player.CombatComponent.Toughness</li>
+            <li>Weaponskill: @game.Map.Player.CombatComponent.WeaponSkill</li>
+            <li>Damage: @game.Map.Player.CombatComponent.WeaponDamage</li>
         </ul>
     </div>
 </div>
