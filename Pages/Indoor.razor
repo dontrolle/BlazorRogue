@@ -5,11 +5,12 @@
 <!--  PICKUP:
     Next steps,
         * (Bug) InfoText gets wrong textcolor (tile's color?) in ascii mode
-        * Probably more text rendering of decorations
+        * (Postponed a bit) Configurable text rendering of complex decorations
             Notes:
             * CaveEdges (and Hedgeedges) should also be configured as part of wallsets.json, somehow - as West and East decs
             * Torch is two animations... special animated decorations?
             * Doors are even more special - probably need to refactor Render a bit; all the stuff in Render right now, doesn't make sense for Ascii
+        * Consider pros and cons of rewriting s.t. we use multiple bg images in a tile, rather then multiple divs
         * More decorations (carpets, altars, tables, etc)
         * UI and actual start and end of game
         * (Bug) Sometimes, when the door is closed directly in front of monsters, they can walk on top of it anyway; and afterwards, the door graphic is shut,
@@ -17,8 +18,6 @@
         * (Perf/bug) Why the fuck does the game page refresh and generate a new dungeon on startup?!
         * (Perf/bug) Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
           I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
-        * Upgrade from .NET Core 3 -> .NET 5 - to use all the new C# 9 goodness. 
-          (See https://docs.microsoft.com/en-us/aspnet/core/migration/31-to-50?view=aspnetcore-5.0&tabs=visual-studio and others)
     -->
 
 @{
