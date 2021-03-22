@@ -11,6 +11,10 @@
             * Doors are even more special - probably need to refactor Render a bit; all the stuff in Render right now, doesn't make sense for Ascii
         * Consider pros and cons of rewriting s.t. we use multiple bg images in a tile, rather then multiple divs
         * More decorations (carpets, altars, tables, etc)
+        * Better dungeon generation, notes
+            * Dungeon entry - partially preplanned bits (config for this?)
+            * Room-by-room decoration and placement of monsters, chests and this and that; more controlled than randomply placing lots of stuff, 
+              after we forgot what rooms are
         * UI and actual start and end of game
         * (Bug) Sometimes, when the door is closed directly in front of monsters, they can walk on top of it anyway; and afterwards, the door graphic is shut,
           but the door is not blocking (note: problem may be in Map.UpdateBlockMovement())
@@ -172,144 +176,145 @@
 
 @code {
 
-    bool renderAscii = false;
-    const int asciiGridTileSize = 20;
-    const int graphicGridTileSize = 48;
+  bool renderAscii = false;
+  const int asciiGridTileSize = 20;
+  const int graphicGridTileSize = 48;
 
-    Game game = new Game();
+  Game game = new Game();
 
-    int windowMoveBufferX = Map.PlayerSightRadius + 1;
-    int windowMoveBufferY = Map.PlayerSightRadius + 1;
+  int windowMoveBufferX = Map.PlayerSightRadius + 1;
+  int windowMoveBufferY = Map.PlayerSightRadius + 1;
 
-    int windowWidth = 25;
-    int windowHeight = 20;
-    int windowXOffset = Int32.MaxValue;
-    int windowYOffset = Int32.MaxValue;
+  int windowWidth = 25;
+  int windowHeight = 20;
+  int windowXOffset = Int32.MaxValue;
+  int windowYOffset = Int32.MaxValue;
 
-    protected override void OnInitialized()
-    {
-        int optimalXOffset = game.Map.Player.x - windowWidth / 2;
-        windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
+  protected override void OnInitialized()
+  {
+      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
-        int optimalYOffset = game.Map.Player.y - windowHeight / 2;
-        windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
-    }
+      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
+  }
 
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+      if (!firstRender)
+      {
+          return;
+      }
 
-        Game.SoundManager = new SoundManager(JsRuntime);
-    }
+      Game.SoundManager = new SoundManager(JsRuntime);
+      References.SoundManager = Game.SoundManager;
+  }
 
-    public void OnClick(Decoration decoration)
-    {
-        decoration.OnClick();
-        // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
-        //       When I begin to do effecs, I may need to revisit this...
-        game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
-        game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
-        game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
-        // TODO Don't I need to Render Moveables here also?
-    }
+  public void OnClick(Decoration decoration)
+  {
+      decoration.OnClick();
+      // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
+      //       When I begin to do effecs, I may need to revisit this...
+      game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
+      game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
+      game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
+      // TODO Don't I need to Render Moveables here also?
+  }
 
-    void KeyUp(KeyboardEventArgs e)
-    {
-        if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
-        {
-            game.Map.RenderMoveables();
-            game.Map.PlayerTookTurn();
+  void KeyUp(KeyboardEventArgs e)
+  {
+      if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
+      {
+          game.Map.RenderMoveables();
+          game.Map.PlayerTookTurn();
 
-            // adjust window
-            // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
-            if (game.Map.Player.x - windowXOffset < windowMoveBufferX)
-            {
-                windowXOffset--;
-            }
+          // adjust window
+          // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
+          if (game.Map.Player.x - windowXOffset < windowMoveBufferX)
+          {
+              windowXOffset--;
+          }
 
-            if (windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
-            {
-                windowXOffset++;
-            }
+          if (windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
+          {
+              windowXOffset++;
+          }
 
-            windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
+          windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
 
-            if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
-            {
-                windowYOffset--;
-            }
+          if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
+          {
+              windowYOffset--;
+          }
 
-            if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
-            {
-                windowYOffset++;
-            }
+          if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
+          {
+              windowYOffset++;
+          }
 
-            windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
-        }
-    }
+          windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
+      }
+  }
 
-    bool OnKeyPress(string key, string keyCode, bool shiftKey)
-    {
-        char numKey;
-        // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
+  bool OnKeyPress(string key, string keyCode, bool shiftKey)
+  {
+      char numKey;
+      // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
 
-        if (keyCode.ToLower().StartsWith("numpad"))
-        {
-            numKey = keyCode[6];
+      if (keyCode.ToLower().StartsWith("numpad"))
+      {
+          numKey = keyCode[6];
 
-            // handle shift + numpad
-            if (key != numKey.ToString())
-            {
-                // we know shiftKey must have been held, as else we have, for all single digits X
-                //   key=="X"  iff  numKey=="NumpadX"
-                shiftKey = true;
-            }
-        }
+          // handle shift + numpad
+          if (key != numKey.ToString())
+          {
+              // we know shiftKey must have been held, as else we have, for all single digits X
+              //   key=="X"  iff  numKey=="NumpadX"
+              shiftKey = true;
+          }
+      }
 
-        // fast hacky support for laptop-movement
-        else if (keyCode.ToLower() == "keyq")
-        {
-            numKey = '7';
-        }
-        else if (keyCode.ToLower() == "keyw")
-        {
-            numKey = '8';
-        }
-        else if (keyCode.ToLower() == "keye")
-        {
-            numKey = '9';
-        }
-        else if (keyCode.ToLower() == "keya")
-        {
-            numKey = '4';
-        }
-        else if (keyCode.ToLower() == "keys")
-        {
-            numKey = '5';
-        }
-        else if (keyCode.ToLower() == "keyd")
-        {
-            numKey = '6';
-        }
-        else if (keyCode.ToLower() == "keyz")
-        {
-            numKey = '1';
-        }
-        else if (keyCode.ToLower() == "keyx")
-        {
-            numKey = '2';
-        }
-        else if (keyCode.ToLower() == "keyc")
-        {
-            numKey = '3';
-        }
-        else
-            return false;
+      // fast hacky support for laptop-movement
+      else if (keyCode.ToLower() == "keyq")
+      {
+          numKey = '7';
+      }
+      else if (keyCode.ToLower() == "keyw")
+      {
+          numKey = '8';
+      }
+      else if (keyCode.ToLower() == "keye")
+      {
+          numKey = '9';
+      }
+      else if (keyCode.ToLower() == "keya")
+      {
+          numKey = '4';
+      }
+      else if (keyCode.ToLower() == "keys")
+      {
+          numKey = '5';
+      }
+      else if (keyCode.ToLower() == "keyd")
+      {
+          numKey = '6';
+      }
+      else if (keyCode.ToLower() == "keyz")
+      {
+          numKey = '1';
+      }
+      else if (keyCode.ToLower() == "keyx")
+      {
+          numKey = '2';
+      }
+      else if (keyCode.ToLower() == "keyc")
+      {
+          numKey = '3';
+      }
+      else
+          return false;
 
-        return game.Map.HandlePlayerAction(shiftKey, numKey);
-    }
+      return game.Map.HandlePlayerAction(shiftKey, numKey);
+  }
 }

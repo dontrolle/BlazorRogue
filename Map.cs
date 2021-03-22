@@ -361,7 +361,7 @@ namespace BlazorRogue
                     if (mo.CombatComponent != null)
                     {
                         var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
-                        Game.SoundManager.PlayCombatSound(hit);
+                        References.SoundManager.PlayCombatSound(hit);
                         UpdateBlockMovement(destX, destY);
                         stateChanged = true;
                     }

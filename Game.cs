@@ -18,11 +18,13 @@ namespace BlazorRogue
         public Game()
         {
             Configuration = new Configuration();
+            References.Configuration = Configuration;
             // TODO pass as async 
             Configuration.Parse();
             DungeonGenerator = new DungeonGenerator(Width, Height, this);
             FightingSystem = new FightingSystem(this);
             Map = DungeonGenerator.GenerateMap();
+            References.Map = Map;
         }
     }
 }

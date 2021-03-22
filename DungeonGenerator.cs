@@ -19,6 +19,7 @@ namespace BlazorRogue
         private readonly double PercentageChanceOfAltars = 0.04;
         private readonly double PercentageChanceOfSpiderWebInCorner = 0.25;
         private readonly double PercentageChanceOfTorch = 0.25;
+        private readonly double PercentageChanceOfChests = 0.02;
 
         // TODO: UF
         private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
@@ -508,6 +509,17 @@ namespace BlazorRogue
                     {
                         map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["altar_blood"]));
                     }
+                }
+
+                if (random.NextDouble() < PercentageChanceOfChests && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+                {
+                    var chestId = "chest_gold";
+                    if(random.Next(0,2) == 0)
+                    {
+                        chestId = "chest_silver";
+                    }
+
+                    map.AddGameObject(new Chest(x, y, chestId, random.Next(0,4)));
                 }
 
                 // in the following we rely on floors never being placed on the perimeter tiles, else we could do

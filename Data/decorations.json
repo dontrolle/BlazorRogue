@@ -19,10 +19,10 @@
             "id": "corner_spiderweb",
             "name": "Spider web",
             "image": {
-                "NW" : "web_1",
-                "SW" : "web_2",
-                "SE" : "web_3",
-                "NE" : "web_4"
+                "NW": "web_1",
+                "SW": "web_2",
+                "SE": "web_3",
+                "NE": "web_4"
             },
             "info_text": "",
             "vertical_offset": 0,
@@ -76,6 +76,32 @@
             "character": "▄",
             "character_color": "LightSlateGrey",
             "blocking": true
+        },
+        {
+            "id": "chest_gold",
+            "name": "Gold chest",
+            "image": {
+                "closed": "chest_gold",
+                "open_empty": "chest_gold_empty",
+                "open_full": "chest_gold_open"
+            },
+            "info_text": "Golden chest",
+            "vertical_offset": 0,
+            "character": "&",
+            "character_color": "gold"
+        },
+        {
+            "id": "chest_silver",
+            "name": "Silver chest",
+            "image": {
+                "closed": "chest_silver",
+                "open_empty": "chest_silver_empty",
+                "open_full": "chest_silver_open"
+            },
+            "info_text": "Silver chest",
+            "vertical_offset": 0,
+            "character": "&",
+            "character_color": "silver"
         }
     ]
 }

@@ -38,7 +38,7 @@ namespace BlazorRogue.AI
                 if (Map.Player.x == destX && Map.Player.y == destY)
                 {
                     var hit = Map.Game.FightingSystem.CloseCombatAttack(Owner.CombatComponent!, Map.Player.CombatComponent!);
-                    Game.SoundManager.PlayCombatSound(hit);
+                    References.SoundManager.PlayCombatSound(hit);
                 }
             }
         }

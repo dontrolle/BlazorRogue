@@ -74,7 +74,7 @@ namespace BlazorRogue.GameObjects
                 door.IsOpen = !door.IsOpen;
                 door.Blocking = !door.Blocking;
                 door.BlocksLight = !door.BlocksLight;
-                Game.SoundManager.PlayDoorSound(door.IsOpen);
+                References.SoundManager.PlayDoorSound(door.IsOpen);
             }
             else
             {
