@@ -17,7 +17,7 @@ namespace BlazorRogue.GameObjects
 
         public bool InvisibleOutsideFov { get; set; } = false;
         public string Name { get; private set; }
-        public virtual string? InfoText => "";
+        public virtual string InfoText { get; set; } = "";
 
         // Components
         public AIComponent? AIComponent { get; protected set; }
@@ -30,7 +30,7 @@ namespace BlazorRogue.GameObjects
         protected GameObject(
             int x, 
             int y, 
-            string name, 
+            string name,
             AIComponent? aIComponent = null, 
             CombatComponent? combatComponent = null, 
             UseableComponent? useableComponent = null,

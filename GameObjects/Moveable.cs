@@ -13,8 +13,6 @@ namespace BlazorRogue
         public string AsciiCharacter { get; }
         public string AsciiColour { get; }
 
-        public override string? InfoText => Name;
-
         public Moveable(int x, int y, AIComponent? aIComponent, MoveableType monsterType, InventoryComponent? inventoryComponent = null) :
             base(
                 x, 
@@ -30,6 +28,7 @@ namespace BlazorRogue
             Id = monsterType.Id;
             AsciiCharacter = monsterType.AsciiCharacter;
             AsciiColour = monsterType.AsciiColour;
+            InfoText = Name;
 
             // Note, can't block light due to the way Moveables are treated in Map
         }

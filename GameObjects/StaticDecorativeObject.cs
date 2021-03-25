@@ -6,10 +6,7 @@ namespace BlazorRogue.GameObjects
 {
     public class StaticDecorativeObject : GameObject
     {
-        public override string? InfoText => infoText;
-
         private readonly string image;
-        private readonly string? infoText;
         private readonly int verticalOffset;
         private readonly string character;
         private readonly string characterColor;
@@ -36,7 +33,7 @@ namespace BlazorRogue.GameObjects
                 image = staticDecorativeObjectType.RandomImage;
             }
             
-            infoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
+            InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
             verticalOffset = verticalOffsetOverride?? staticDecorativeObjectType.VerticalOffset;
             character = staticDecorativeObjectType.Character;
             characterColor = staticDecorativeObjectType.CharacterColor;

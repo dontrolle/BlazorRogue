@@ -11,13 +11,15 @@ namespace BlazorRogue.GameObjects
     {
         private readonly string Id;
 
+        public override string InfoText => $"{References.Configuration.StaticDecorativeObjectTypes[Id].InfoText} ({ChestStateToString(this)})";
+
         public enum ChestState
         {
             Closed,
             Open
         }
 
-        public ChestState State = ChestState.Closed;
+        public ChestState State;
 
         public Chest(
             int x, 
@@ -27,11 +29,25 @@ namespace BlazorRogue.GameObjects
             base(
                 x, 
                 y, 
-                References.Configuration.StaticDecorativeObjectTypes[id].Name, 
+                References.Configuration.StaticDecorativeObjectTypes[id].Name,
                 useableComponent: new UseableComponent(Use),
                 inventoryComponent: content)
         {
             Id = id;
+            State =  ChestState.Closed;
+        }
+
+        private static string ChestStateToString(Chest chest)
+        {
+            switch (chest.State)
+            {
+                case ChestState.Closed:
+                    return "Closed";
+                case ChestState.Open:
+                    return $"{chest.InventoryComponent.Gold} gold";
+                default:
+                    throw new Exception($"Unknown ChestState: {chest.State}");
+            }
         }
 
         private static void Use(GameObject go)
