@@ -11,13 +11,10 @@ namespace BlazorRogue.GameObjects
     {
         private readonly string Id;
 
-        public int Content { get; set; }
-
         public enum ChestState
         {
             Closed,
-            OpenFull,
-            OpenEmpty
+            Open
         }
 
         public ChestState State = ChestState.Closed;
@@ -26,39 +23,43 @@ namespace BlazorRogue.GameObjects
             int x, 
             int y,
             string id,
-            int content) : base(x, y, References.Configuration.StaticDecorativeObjectTypes[id].Name, useableComponent: new UseableComponent(Use))
+            InventoryComponent content) : 
+            base(
+                x, 
+                y, 
+                References.Configuration.StaticDecorativeObjectTypes[id].Name, 
+                useableComponent: new UseableComponent(Use),
+                inventoryComponent: content)
         {
             Id = id;
-            Content = content;
         }
 
         private static void Use(GameObject go)
         {
+            // TODO OpenFull and OpenEmpty state -> Open; and derive Full and Empty from Inventory
+
             if (go is Chest chest)
             {
+                if (chest.InventoryComponent == null)
+                {
+                    throw new Exception("Chests should have an inventory.");
+                }
+
                 switch (chest.State)
                 {
                     case ChestState.Closed:
-                        if (chest.Content == 0)
+                        chest.State = ChestState.Open;
+                        break;
+                    case ChestState.Open:
+                        if(chest.InventoryComponent.Gold > 0)
                         {
-                            chest.State = ChestState.OpenEmpty;
+                            References.Map.Player.InventoryComponent.Gold += chest.InventoryComponent.Gold;
+                            chest.InventoryComponent.Gold = 0;
                         }
                         else
                         {
-                            chest.State = ChestState.OpenFull;
+                            chest.State = ChestState.Closed;
                         }
-
-                        break;
-                    case ChestState.OpenFull:
-                        // TODO Distribute some money all over the floor?
-                        // TODO Put the money directly in the player inventory?
-                        chest.Content = 0;
-                        chest.State = ChestState.OpenEmpty;
-
-                        break;
-                    case ChestState.OpenEmpty:
-                        chest.State = ChestState.Closed;
-
                         break;
                 }
             }
@@ -78,18 +79,23 @@ namespace BlazorRogue.GameObjects
                 case ChestState.Closed:
                     img = sdot.ImageVariants["closed"];
                     break;
-                case ChestState.OpenFull:
-                    img = sdot.ImageVariants["open_full"];
-                    break;
-                case ChestState.OpenEmpty:
-                    img = sdot.ImageVariants["open_empty"];
+                case ChestState.Open:
+                    if(InventoryComponent.Gold > 0)
+                    {
+                        img = sdot.ImageVariants["open_full"];
+                    }
+                    else
+                    {
+                        img = sdot.ImageVariants["open_empty"];
+                    }
+
                     break;
             }
 
-            map.Decorations[x, y].Add(new Decoration(this, img) { Character = sdot.Character, CharacterColor = sdot.CharacterColor });
+            map.Decorations[x, y].Add(new Decoration(this, img) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent.Use });
 
-            // add a button (without own graphic) to interact with the door
-            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = UseableComponent.Use });
+            //// add a separate decoration for onUse (without own graphic) to interact with the door
+            //map.Decorations[x, y].Add(new Decoration(this, null) { OnUse = UseableComponent.Use });
         }
     }
 }

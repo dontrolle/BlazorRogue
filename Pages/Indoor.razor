@@ -4,6 +4,7 @@
 @inject IJSRuntime JsRuntime;
 <!--  PICKUP:
     Next steps,
+        * Stamp git version and release date+time somewhere on page
         * (Postponed a bit) Configurable text rendering of complex decorations
             Notes:
             * CaveEdges (and Hedgeedges) should also be configured as part of wallsets.json, somehow - as West and East decs
@@ -15,7 +16,14 @@
             * Dungeon entry - partially preplanned bits (config for this?)
             * Room-by-room decoration and placement of monsters, chests and this and that; more controlled than randomply placing lots of stuff, 
               after we forgot what rooms are
-        * UI and actual start and end of game
+        * UI 
+            * Screen shake at hit
+            * Drop onclick events (you've got to be near smth to use it)
+            * UI for player stats, and maybe monster stats? (hitpoints bar underneath(?), if hit)
+            * Support touch
+                * Note: Movement is easy (drag direction), what is Use?
+        * Actual start and end of game
+        * Need several z-levels for decorations... useable objects should generally be above floor-decorations (such as spiderweb and bloodpool), but beneath player
         * (Bug) Sometimes, when the door is closed directly in front of monsters, they can walk on top of it anyway; and afterwards, the door graphic is shut,
           but the door is not blocking (note: problem may be in Map.UpdateBlockMovement())
         * (Perf/bug) Why the fuck does the game page refresh and generate a new dungeon on startup?!
@@ -143,7 +151,7 @@
                                 </div>
                             }
 
-                            if (decoration.OnClick != null)
+                            if (decoration.OnUse != null)
                             {
                                 <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
                             }
@@ -166,6 +174,7 @@
             <li>Toughness: @game.Map.Player.CombatComponent.Toughness</li>
             <li>Weaponskill: @game.Map.Player.CombatComponent.WeaponSkill</li>
             <li>Damage: @game.Map.Player.CombatComponent.WeaponDamage</li>
+            <li>Gold: @game.Map.Player.InventoryComponent.Gold</li>
         </ul>
     </div>
 </div>
@@ -213,7 +222,7 @@
 
   public void OnClick(Decoration decoration)
   {
-      decoration.OnClick();
+      decoration.OnUse();
       // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
       //       When I begin to do effecs, I may need to revisit this...
       game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);

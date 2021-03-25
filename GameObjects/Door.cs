@@ -63,7 +63,7 @@ namespace BlazorRogue.GameObjects
             }
 
             // add a button (without own graphic) to interact with the door
-            map.Decorations[x, y].Add(new Decoration(this, null) { OnClick = UseableComponent.Use });
+            map.Decorations[x, y].Add(new Decoration(this, null) { OnUse = UseableComponent.Use });
             // TODO: Not too happy about this; seems wrong to add mouse interaction decentralized like this, and call UseableComponent.Use from here
         }
 

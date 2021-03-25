@@ -23,10 +23,18 @@ namespace BlazorRogue.GameObjects
         public AIComponent? AIComponent { get; protected set; }
         public CombatComponent? CombatComponent { get; }
         public UseableComponent? UseableComponent { get; }
+        public InventoryComponent? InventoryComponent { get; }
 
         public event EventHandler? GameObjectKilled;
 
-        protected GameObject(int x, int y, string name, AIComponent? aIComponent = null, CombatComponent? combatComponent = null, UseableComponent? useableComponent = null)
+        protected GameObject(
+            int x, 
+            int y, 
+            string name, 
+            AIComponent? aIComponent = null, 
+            CombatComponent? combatComponent = null, 
+            UseableComponent? useableComponent = null,
+            InventoryComponent? inventoryComponent = null)
         {
             this.x = x;
             this.y = y;
@@ -40,6 +48,9 @@ namespace BlazorRogue.GameObjects
 
             UseableComponent = useableComponent;
             UseableComponent?.SetOwner(this);
+
+            InventoryComponent = inventoryComponent;
+            InventoryComponent?.SetOwner(this);
         }
 
         public abstract void Render(Map map);

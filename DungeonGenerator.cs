@@ -117,7 +117,7 @@ namespace BlazorRogue
 
             // Add Player
             var heroType = GetRandomElement(configuration.HeroTypes).Value;
-            var player = new Moveable(playerPos, null, heroType);
+            var player = new Moveable(playerPos, null, heroType, new InventoryComponent());
 
             map.AddPlayer(player);
 
@@ -519,7 +519,9 @@ namespace BlazorRogue
                         chestId = "chest_silver";
                     }
 
-                    map.AddGameObject(new Chest(x, y, chestId, random.Next(0,4)));
+                    var gold = random.Next(0, 4);
+
+                    map.AddGameObject(new Chest(x, y, chestId, new InventoryComponent() { Gold = gold }));
                 }
 
                 // in the following we rely on floors never being placed on the perimeter tiles, else we could do
