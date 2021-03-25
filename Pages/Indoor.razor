@@ -18,7 +18,6 @@
               after we forgot what rooms are
         * UI 
             * Screen shake at hit
-            * Drop onclick events (you've got to be near smth to use it)
             * UI for player stats, and maybe monster stats? (hitpoints bar underneath(?), if hit)
             * Support touch
                 * Note: Movement is easy (drag direction), what is Use?
@@ -149,11 +148,6 @@
                                 <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
                                     @divContent
                                 </div>
-                            }
-
-                            if (decoration.OnUse != null)
-                            {
-                                <button class="interact_button" @onclick=@(() => OnClick(decoration)) />
                             }
                         }
                     }
