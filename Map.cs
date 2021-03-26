@@ -280,6 +280,8 @@ namespace BlazorRogue
 
         public bool HandlePlayerAction(bool shiftKey, char numKey)
         {
+            References.EffectsSystem.Reset();
+
             bool stateChanged;
             if (shiftKey)
             {
@@ -362,6 +364,7 @@ namespace BlazorRogue
                     {
                         var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
                         References.SoundManager.PlayCombatSound(hit);
+                        References.EffectsSystem.Shake = hit;
                         UpdateBlockMovement(destX, destY);
                         stateChanged = true;
                     }

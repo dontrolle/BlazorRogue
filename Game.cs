@@ -14,17 +14,23 @@ namespace BlazorRogue
         public static SoundManager SoundManager { get; set; }
         public FightingSystem FightingSystem { get; private set; }
         public Configuration Configuration { get; private set; }
+        public EffectsSystem EffectsSystem { get; private set; }
         
         public Game()
         {
             Configuration = new Configuration();
             References.Configuration = Configuration;
+
             // TODO pass as async 
             Configuration.Parse();
             DungeonGenerator = new DungeonGenerator(Width, Height, this);
             FightingSystem = new FightingSystem(this);
+
             Map = DungeonGenerator.GenerateMap();
             References.Map = Map;
+
+            EffectsSystem = new EffectsSystem();
+            References.EffectsSystem = EffectsSystem;
         }
     }
 }

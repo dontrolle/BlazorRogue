@@ -13,6 +13,7 @@ namespace BlazorRogue
         public int HorizontalOffset { get; set; }
         public bool InFront { get; set; }
         public bool BlocksLight => GameObject.BlocksLight;
+        public bool Shake { get; set; }
 
         private string? character;
 
