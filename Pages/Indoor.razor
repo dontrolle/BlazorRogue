@@ -5,30 +5,31 @@
 <!--  PICKUP:
     Next steps,
         * (Bug) Seems that a monster can both move and attack - if Player waits (5) with one tile in between monster and player, the monster can still attack?
-        * Stamp git version and release date+time somewhere on page
-        * (Postponed a bit) Configurable text rendering of complex decorations
+        * (Feature) Stamp git version and release date+time somewhere on page
+        * (Feature) (Postponed a bit) Configurable text rendering of complex decorations
             Notes:
             * CaveEdges (and Hedgeedges) should also be configured as part of wallsets.json, somehow - as West and East decs
             * Torch is two animations... special animated decorations?
             * Doors are even more special - probably need to refactor Render a bit; all the stuff in Render right now, doesn't make sense for Ascii
-        * Consider pros and cons of rewriting s.t. we use multiple bg images in a tile, rather then multiple divs
-        * More decorations (carpets, altars, tables, etc)
-        * Better dungeon generation, notes
+        * (Improvement) Consider pros and cons of rewriting s.t. we use multiple bg images in a tile, rather then multiple divs
+        * (Feature) More decorations (carpets, altars, tables, etc)
+        * (Feature) Better dungeon generation, notes
             * Dungeon entry - partially preplanned bits (config for this?)
             * Room-by-room decoration and placement of monsters, chests and this and that; more controlled than randomply placing lots of stuff, 
               after we forgot what rooms are
-        * UI 
+        * (Feature) UI 
             * Screen shake at hit
             * UI for player stats, and maybe monster stats? (hitpoints bar underneath(?), if hit)
             * Support touch
                 * Note: Movement is easy (drag direction), what is Use?
-        * Actual start and end of game
-        * Need several z-levels for decorations... useable objects should generally be above floor-decorations (such as spiderweb and bloodpool), but beneath player
+        * (Feature) Actual start and end of game
+        * (Feature) Need several z-levels for decorations... useable objects should generally be above floor-decorations (such as spiderweb and bloodpool), but beneath player
         * (Bug) Sometimes, when the door is closed directly in front of monsters, they can walk on top of it anyway; and afterwards, the door graphic is shut,
           but the door is not blocking (note: problem may be in Map.UpdateBlockMovement())
         * (Perf/bug) Why the fuck does the game page refresh and generate a new dungeon on startup?!
-        * (Perf/bug) Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, when scrolling the game-board... Hmmm...
-          I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
+        * (Perf/bug) Does seem like there sometimes are some perf issues after introducing the css-based on-hover tools-tips, and animations when scrolling the game-board... 
+            * Hmmm...
+            * I should see if I can optimize scrolling/tool-tips at some point. (Is it, e.g., better to always render entire map, and then only display part of it?)
     -->
 
 @{
