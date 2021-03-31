@@ -2,7 +2,7 @@
 
 .animated_torch_floor {
   animation-name: torch_floor;
-  animation-duration: 2s;
+  animation-duration: 1s;
   animation-iteration-count: infinite;
 }
 
@@ -24,7 +24,7 @@
 
 .animated_torch {
   animation-name: torch;
-  animation-duration: 2s;
+  animation-duration: 1s;
   animation-iteration-count: infinite;
 }
 
