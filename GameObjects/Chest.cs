@@ -65,16 +65,19 @@ namespace BlazorRogue.GameObjects
                 {
                     case ChestState.Closed:
                         chest.State = ChestState.Open;
+                        References.SoundManager.PlayDoorSound(true);
                         break;
                     case ChestState.Open:
                         if(chest.InventoryComponent.Gold > 0)
                         {
                             References.Map.Player.InventoryComponent.Gold += chest.InventoryComponent.Gold;
                             chest.InventoryComponent.Gold = 0;
+                            References.SoundManager.PlayPickupMoney();
                         }
                         else
                         {
                             chest.State = ChestState.Closed;
+                            References.SoundManager.PlayDoorSound(false);
                         }
                         break;
                 }

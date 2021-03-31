@@ -53,5 +53,12 @@ namespace BlazorRogue
             var sound = "Jingle_Lose_00.mp3";
             await PlaySound(sound);
         }
+
+        internal async void PlayPickupMoney()
+        {
+            var soundindex = random.Next(0, 5);
+            var sound = $"Pickup_Gold_0{soundindex}.mp3";
+            await PlaySound(sound);
+        }
     }
 }
