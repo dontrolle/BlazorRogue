@@ -57,6 +57,23 @@
 
     <div id="left_menu" class="left_menu">
         <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
+        <br />
+        <div class="instructions">
+            <dl>
+                <dt>Play game</dt>
+                <dd>Click on map to set focus</dd>
+                <dt>New game</dt>
+                <dd>Refresh page</dd>
+                <dt>
+                    Move / Attack
+                </dt>
+                <dd>
+                    <tt>&lt;Numkey&gt;</tt> or <tt>qweasdzxc</tt>
+                </dd>
+                <dt>Use</dt>
+                <dd><tt>&lt;Shift&gt;+Move</tt></dd>
+            </dl>
+        </div>
     </div>
 
     <span class="@spanClass">
@@ -177,6 +194,7 @@
     </span>
 
     <div id="debuginfo">
+        Debug:
         <ul>
             @foreach (var debugInfo in game.Map.DebugInfo)
             {

@@ -5,7 +5,7 @@
   left: 0px;
   height: 100%;
   background-color: gray;
-  grid-template-columns: 120px auto;
+  grid-template-columns: 130px auto;
   grid-gap: 0;
 }
 
@@ -13,6 +13,12 @@
   justify-content: center;
   grid-row-start: 1;
   grid-row-end: 3;
+}
+
+.instructions {
+  color: white;
+  margin-top:15px;
+  margin-left:5px;
 }
 
 .map {
@@ -96,12 +102,19 @@
   display: inline-block;
   font-size: 16px;
   width: 120px;
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
   margin-bottom: 5px;
+  border-radius: 2px;
 }
 
-/* Tooltips */
+.toggle_button:hover {
+  color: white;
+}
 
-div[data-tool-tip]::after {
+  /* Tooltips */
+  div [data-tool-tip]::after {
   content: attr(data-tool-tip);
   display: block;
   position: absolute;
