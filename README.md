@@ -10,19 +10,27 @@ A little rogue-like built from the bottom-up in a little rogue-like game engine 
 
 * Engine supports json-configuration for most visuals, audio and attributes for entities, as well as weights and config for map generation.
 
-* Supports tileset renderer that employs using the UF Tileset.
+* Supports tileset renderer - uses a number of tiles from the splendid UF Tileset.
+* As well as an ASCII renderer in that old school format (though with colors).
+* Allows fast (client-side) switching between graphical and ASCII rendering.
+
+### Screenshots 
+
+A partially explored sandy dungeon with a number of monsters chasing:
 
 ![BlazorRogue Screenshot 1](/img/BlazorRogue1.PNG)
 
+A room with a bunch of chests:
+
 ![BlazorRogue Screenshot 2](/img/BlazorRogue2.PNG)
+
+Chased by a skeleton into the arms of a goblin and his two pet black spiders:
 
 ![BlazorRogue Screenshot 3](/img/BlazorRogue3.PNG)
 
-* As well as an ASCII renderer in that old school format (though with colors).
+The same scene rendered in the ASCII renderer:
 
 ![BlazorRogue Screenshot 3 - in ASCII](/img/BlazorRogue3_ascii.PNG)
-
-Allows fast (client-side) switching between graphical and ASCII rendering.
 
 ## Building
 
