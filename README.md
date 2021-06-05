@@ -44,4 +44,4 @@ This project employs the excellent [Ultimate Fantasy Tileset](https://www.oryxde
 
 If you own the UF Tileset, you can put the subfolders of the `uf_split` folder in the `wwwroot/img/`-folder, and BlazorRogue will be able employ the tileset.
 
-In some future, I might make an effort to make a release where the tileset is suitable protected. Don't expect it, as this was a hobby-project to play around with Blazor and roguelikes. ;)
+In some future, I might make an effort to make a release where the tileset is suitable protected. Don't expect it, as this is and on-and-off hobby-project of mine to play around with Blazor and roguelikes. ;)
