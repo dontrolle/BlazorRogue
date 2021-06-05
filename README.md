@@ -6,7 +6,7 @@ A little rogue-like built from the bottom-up in a little rogue-like game engine 
 
 ### Features
 
-* Dungeon generation, a variety of monsters (animated using CSS-animations), useable environment, field of vision, basic combat (should be balanced at some point), ...
+* Dungeon generation, a variety of monsters (animated using CSS-animations), mouse-over descriptions, sounds and music, screen-shake effect, useable environment, field of vision, basic combat (should be balanced at some point), ...
 
 * Engine supports json-configuration for most visuals, audio and attributes for entities, as well as weights and config for map generation.
 
