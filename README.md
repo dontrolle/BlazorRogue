@@ -12,15 +12,15 @@ A little rogue-like built from the bottom-up in a little rogue-like game engine 
 
 * Supports tileset renderer that employs using the UF Tileset.
 
-![BlazorRogue Screenshot 1](/img/BlazorRogue1.png)
+![BlazorRogue Screenshot 1](/img/BlazorRogue1.PNG)
 
-![BlazorRogue Screenshot 2](/img/BlazorRogue2.png)
+![BlazorRogue Screenshot 2](/img/BlazorRogue2.PNG)
 
-![BlazorRogue Screenshot 3](/img/BlazorRogue3.png)
+![BlazorRogue Screenshot 3](/img/BlazorRogue3.PNG)
 
 * As well as an ASCII renderer in that old school format (though with colors).
 
-![BlazorRogue Screenshot 3 - in ASCII](/img/BlazorRogue3_ascii.png)
+![BlazorRogue Screenshot 3 - in ASCII](/img/BlazorRogue3_ascii.PNG)
 
 Allows fast (client-side) switching between graphical and ASCII rendering.
 
