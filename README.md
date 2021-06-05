@@ -10,9 +10,8 @@ A small rogue-like built from the bottom-up in a little game engine I built on C
 
 * Engine supports json-configuration for most visuals, audio and attributes for entities, as well as weights and config for map generation.
 
-* Supports tileset renderer - uses a number of tiles from the splendid UF Tileset.
-* As well as an ASCII renderer in that old school format (though with colors).
-* Allows fast (client-side) switching between graphical and ASCII rendering.
+* Supports tileset renderer - uses a number of tiles from the splendid UF Tileset, as well as an ASCII renderer in that old school format (though with colors).
+* Allows fast (client-side) switching between tileset and ASCII rendering.
 
 ### Screenshots 
 
