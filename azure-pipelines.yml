@@ -22,6 +22,14 @@ steps:
     publishWebProjects: true
     arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: true
-
+- task: UniversalPackages@0
+  inputs:
+    command: 'download'
+    downloadDirectory: '$(System.DefaultWorkingDirectory)/wwwroot/img'
+    feedsToUse: 'internal'
+    vstsFeed: 'b6ba11a2-e28f-428c-a804-91d09380482a'
+    vstsFeedPackage: 'efb6cc57-1ece-4180-b2b6-b29d5681cd94'
+    vstsPackageVersion: '0.0.1'
+    verbosity: 'Debug'
 - task: PublishBuildArtifacts@1
   displayName: 'Publishing Build Artifacts...'
