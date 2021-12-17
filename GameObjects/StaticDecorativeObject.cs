@@ -45,10 +45,6 @@ namespace BlazorRogue.GameObjects
 
         public override void Render(Map map)
         {
-            if(image.StartsWith("chest"))
-            {
-                map.DebugInfo.Add($"in Render() imgFolder for image {image} is {imgFolder}");
-            }
             map.Decorations[x, y].Add(new Decoration(this, image, imgFolder) { VerticalOffset = verticalOffset, Character = character, CharacterColor = characterColor });
         }
     }
