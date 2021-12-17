@@ -51,6 +51,8 @@ namespace BlazorRogue
         private readonly List<TileSet> caveWallSets = new List<TileSet>();
         public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
+        const string defaultStaticDecorationImgFolder = "uf_terrain";
+
         public void Parse() // Task async
         {
             var options = new JsonDocumentOptions
@@ -295,13 +297,18 @@ namespace BlazorRogue
             string character = element.GetProperty("character").GetString();
             string characterColor = element.GetProperty("character_color").GetString();
 
+            string imgFolder = defaultStaticDecorationImgFolder;
+            if(element.TryGetProperty("img_folder", out JsonElement imgFolderElement)){
+                imgFolder = imgFolderElement.GetString();
+            }
+
             bool blocking = false;
             if(element.TryGetProperty("blocking", out var blockingElement))
             {
                 blocking = blockingElement.GetBoolean();
             }
 
-            var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor, blocking);
+            var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor, blocking, imgFolder);
             staticDecorativeObjectTypes.Add(id, dec); 
         }
     }

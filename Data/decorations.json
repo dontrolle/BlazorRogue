@@ -88,7 +88,8 @@
             "info_text": "Golden chest",
             "vertical_offset": 0,
             "character": "&",
-            "character_color": "gold"
+            "character_color": "gold",
+            "img_folder": "uf_items"
         },
         {
             "id": "chest_silver",
@@ -101,7 +102,8 @@
             "info_text": "Silver chest",
             "vertical_offset": 0,
             "character": "&",
-            "character_color": "silver"
+            "character_color": "silver",
+            "img_folder": "uf_items"
         }
     ]
 }
