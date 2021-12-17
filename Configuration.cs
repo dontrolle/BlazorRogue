@@ -309,7 +309,7 @@ namespace BlazorRogue
             }
 
             var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor, blocking, imgFolder);
-            staticDecorativeObjectTypes.Add(id, dec); 
+            staticDecorativeObjectTypes.Add(id, dec);
         }
     }
 }

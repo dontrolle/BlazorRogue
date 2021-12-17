@@ -37,7 +37,7 @@ namespace BlazorRogue
 
         public string CharacterColor { get; set; } = "orange";
 
-        public Decoration(GameObject gameObject, string? imageName, string imageFolder ="uf_terrain")
+        public Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
         {
             GameObject = gameObject;
             ImageName = imageName;
