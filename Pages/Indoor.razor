@@ -152,13 +152,8 @@
                                     {
                                         string decImgFileName = decoration.ImageName + ".png";
 
-                                        string imgFolder = decoration.ImageFolder;
-                                        if(decoration.ImageName.StartsWith("chest")){
-                                            imgFolder = "uf_items";
-                                        }
-
                                         renderDiv = true;
-                                        style = $"background-image: url('img/{imgFolder}/{decImgFileName}');";
+                                        style = $"background-image: url('img/{decoration.ImageFolder}/{decImgFileName}');";
                                     }
 
                                     // - handle horizontal and vertical offset

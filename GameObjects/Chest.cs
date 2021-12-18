@@ -111,7 +111,7 @@ namespace BlazorRogue.GameObjects
                     break;
             }
 
-            map.Decorations[x, y].Add(new Decoration(this, img) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent.Use });
+            map.Decorations[x, y].Add(new Decoration(this, img, sdot.ImgFolder) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent.Use });
 
             //// add a separate decoration for onUse (without own graphic) to interact with the door
             //map.Decorations[x, y].Add(new Decoration(this, null) { OnUse = UseableComponent.Use });
