@@ -1,109 +1,109 @@
 ﻿{
-    "static_decorations": [
-        {
-            "id": "bones",
-            "name": "Bones",
-            "image": [
-                "bones1",
-                "bones_2",
-                "bones_3",
-                "bones_4",
-                "bones_5"
-            ],
-            "info_text": "",
-            "vertical_offset": 0,
-            "character": "",
-            "character_color": ""
-        },
-        {
-            "id": "corner_spiderweb",
-            "name": "Spider web",
-            "image": {
-                "NW": "web_1",
-                "SW": "web_2",
-                "SE": "web_3",
-                "NE": "web_4"
-            },
-            "info_text": "",
-            "vertical_offset": 0,
-            "character": "",
-            "character_color": ""
-        },
-        {
-            "id": "puddle",
-            "name": "Puddle",
-            "image": "puddle_small_6",
-            "info_text": "",
-            "vertical_offset": 0,
-            "character": "",
-            "character_color": ""
-        },
-        {
-            "id": "spiderweb",
-            "name": "Spider web",
-            "image": "web_5",
-            "info_text": "",
-            "vertical_offset": 0,
-            "character": "",
-            "character_color": ""
-        },
-        {
-            "id": "crate",
-            "name": "Crate",
-            "image": "crate",
-            "info_text": "Crate",
-            "vertical_offset": 0,
-            "character": "■",
-            "character_color": "peru",
-            "blocking": true
-        },
-        {
-            "id": "table",
-            "name": "Table",
-            "image": "table",
-            "info_text": "Table",
-            "vertical_offset": 0,
-            "character": "╦",
-            "character_color": "sienna",
-            "blocking": true
-        },
-        {
-            "id": "altar_blood",
-            "name": "AlterBlood",
-            "image": "altar_blood",
-            "info_text": "Altar splattered with blood",
-            "vertical_offset": 0,
-            "character": "▄",
-            "character_color": "LightSlateGrey",
-            "blocking": true
-        },
-        {
-            "id": "chest_gold",
-            "name": "Gold chest",
-            "image": {
-                "closed": "chest_gold",
-                "open_empty": "chest_gold_empty",
-                "open_full": "chest_gold_open"
-            },
-            "info_text": "Golden chest",
-            "vertical_offset": 0,
-            "character": "&",
-            "character_color": "gold",
-            "img_folder": "uf_items"
-        },
-        {
-            "id": "chest_silver",
-            "name": "Silver chest",
-            "image": {
-                "closed": "chest_silver",
-                "open_empty": "chest_silver_empty",
-                "open_full": "chest_silver_open"
-            },
-            "info_text": "Silver chest",
-            "vertical_offset": 0,
-            "character": "&",
-            "character_color": "silver",
-            "img_folder": "uf_items"
-        }
-    ]
+  "static_decorations": [
+    {
+      "id": "bones",
+      "name": "Bones",
+      "image": [
+        "bones1",
+        "bones_2",
+        "bones_3",
+        "bones_4",
+        "bones_5"
+      ],
+      "info_text": "",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "corner_spiderweb",
+      "name": "Spider web",
+      "image": {
+        "NW": "web_1",
+        "SW": "web_2",
+        "SE": "web_3",
+        "NE": "web_4"
+      },
+      "info_text": "",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "puddle",
+      "name": "Puddle",
+      "image": "puddle_small_6",
+      "info_text": "",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "spiderweb",
+      "name": "Spider web",
+      "image": "web_5",
+      "info_text": "",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "crate",
+      "name": "Crate",
+      "image": "crate",
+      "info_text": "Crate",
+      "vertical_offset": 0,
+      "character": "■",
+      "character_color": "peru",
+      "blocking": true
+    },
+    {
+      "id": "table",
+      "name": "Table",
+      "image": "table",
+      "info_text": "Table",
+      "vertical_offset": 0,
+      "character": "╦",
+      "character_color": "sienna",
+      "blocking": true
+    },
+    {
+      "id": "altar_blood",
+      "name": "AlterBlood",
+      "image": "altar_blood",
+      "info_text": "Altar splattered with blood",
+      "vertical_offset": 0,
+      "character": "▄",
+      "character_color": "LightSlateGrey",
+      "blocking": true
+    },
+    {
+      "id": "chest_gold",
+      "name": "Gold chest",
+      "image": {
+        "closed": "chest_gold",
+        "open_empty": "chest_gold_empty",
+        "open_full": "chest_gold_open"
+      },
+      "info_text": "Golden chest",
+      "vertical_offset": 0,
+      "character": "&",
+      "character_color": "gold",
+      "img_folder": "uf_items"
+    },
+    {
+      "id": "chest_silver",
+      "name": "Silver chest",
+      "image": {
+        "closed": "chest_silver",
+        "open_empty": "chest_silver_empty",
+        "open_full": "chest_silver_open"
+      },
+      "info_text": "Silver chest",
+      "vertical_offset": 0,
+      "character": "&",
+      "character_color": "silver",
+      "img_folder": "uf_items"
+    }
+  ]
 }
