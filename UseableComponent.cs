@@ -5,18 +5,18 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue
 {
-    public class UseableComponent : Component
+  public class UseableComponent : Component
+  {
+    private readonly Action<GameObject> onUse;
+
+    public UseableComponent(Action<GameObject> onUse)
     {
-        private readonly Action<GameObject> onUse;
-
-        public UseableComponent(Action<GameObject> onUse)
-        {
-            this.onUse = onUse;
-        }
-
-        public void Use()
-        {
-            onUse.Invoke(Owner);
-        }
+      this.onUse = onUse;
     }
+
+    public void Use()
+    {
+      onUse.Invoke(Owner);
+    }
+  }
 }

@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 
 namespace BlazorRogue
 {
-    public static class UtilityMethods
+  public static class UtilityMethods
+  {
+    /// <summary>
+    /// Returns the input string with the first character converted to uppercase, or mutates any nulls passed into string.Empty
+    /// </summary>
+    public static string FirstLetterToUpperCase(this string s)
     {
-        /// <summary>
-        /// Returns the input string with the first character converted to uppercase, or mutates any nulls passed into string.Empty
-        /// </summary>
-        public static string FirstLetterToUpperCase(this string s)
-        {
-            if (string.IsNullOrEmpty(s))
-                return string.Empty;
+      if (string.IsNullOrEmpty(s))
+        return string.Empty;
 
-            char[] a = s.ToCharArray();
-            a[0] = char.ToUpper(a[0]);
-            return new string(a);
-        }
+      char[] a = s.ToCharArray();
+      a[0] = char.ToUpper(a[0]);
+      return new string(a);
     }
+  }
 }
