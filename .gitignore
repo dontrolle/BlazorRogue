@@ -7,3 +7,4 @@ artifacts/
 *.binlog
 internal_backlog.md
 wwwroot/img/uf_*
+.idea
