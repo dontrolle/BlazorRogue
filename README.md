@@ -33,9 +33,16 @@ The same scene rendered in the ASCII renderer:
 
 ## Building
 
-Follow the instructions on [Get started with ASP.NET Core Blazor](https://docs.microsoft.com/en-us/aspnet/core/blazor/get-started) to get a working build environment for Blazor for either VS code or Visual Studio. 
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (or later). BlazorRogue is an ASP.NET Core Blazor Web App using the unified Razor Components hosting model with interactive server-side rendering.
 
-(This very project started with  a `dotnet new blazorserverside -o WebApplication1`, as can probably still be seen here and there.)
+```
+dotnet build
+dotnet run
+```
+
+By default the app listens on `https://localhost:5001` and `http://localhost:5000` (see `Properties/launchSettings.json`); open either URL in a browser. The game auto-detects whether the tileset (see below) is present under `wwwroot/img/` and falls back to its built-in ASCII renderer automatically if it isn't; either way, you can also switch renderers manually at any time via the "Switch mode" button in-game.
+
+(This very project started with a `dotnet new blazorserverside -o WebApplication1`, as can probably still be seen here and there.)
 
 ## Tileset
 

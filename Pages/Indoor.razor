@@ -1,7 +1,11 @@
 ﻿@page "/"
 
+@using System.IO
+@using System.Linq
+@using Microsoft.AspNetCore.Hosting
 @using Microsoft.JSInterop
 @inject IJSRuntime JsRuntime;
+@inject IWebHostEnvironment WebHostEnvironment;
 <!--  PICKUP:
     Next steps,
         * (Bug) Seems that a monster can both move and attack - if Player waits (5) with one tile in between monster and player, the monster can still attack?
@@ -234,6 +238,17 @@
 
   protected override void OnInitialized()
   {
+      // Fall back to the ASCII renderer by default if the (licensed, not
+      // included in the repo) Ultimate Fantasy tileset hasn't been placed
+      // under wwwroot/img - otherwise the tileset view would just render
+      // empty/broken tiles. uf_terrain is used pervasively (floors/walls),
+      // so its presence is a good proxy for "the tileset is installed".
+      string tilesetProbeDirectory = Path.Combine(WebHostEnvironment.WebRootPath, "img", "uf_terrain");
+      if (!Directory.Exists(tilesetProbeDirectory) || !Directory.EnumerateFiles(tilesetProbeDirectory).Any())
+      {
+          renderAscii = true;
+      }
+
       int optimalXOffset = game.Map.Player.x - windowWidth / 2;
       windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
