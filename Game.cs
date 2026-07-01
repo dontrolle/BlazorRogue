@@ -11,7 +11,9 @@ namespace BlazorRogue
 
     public DungeonGenerator DungeonGenerator { get; private set; }
     public Map Map { get; private set; }
-    public static SoundManager SoundManager { get; set; }
+    // Set up before the first Game instance is constructed; null! avoids forcing nullable-checks
+    // throughout the codebase for a value that's always non-null in practice.
+    public static SoundManager SoundManager { get; set; } = null!;
     public FightingSystem FightingSystem { get; private set; }
     public Configuration Configuration { get; private set; }
     public EffectsSystem EffectsSystem { get; private set; }

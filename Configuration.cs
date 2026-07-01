@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -92,12 +92,12 @@ namespace BlazorRogue
       bool special;
       var imgFloorList = new List<int>();
 
-      id = element.GetProperty("id").GetString();
+      id = GetRequiredString(element, "id");
       special = element.GetProperty("special").GetBoolean();
-      imgPrefix = element.GetProperty("img_prefix").GetString();
+      imgPrefix = GetRequiredString(element, "img_prefix");
       GetIntArray(element, "img_floor", imgFloorList);
-      charFloor = element.GetProperty("character").GetString();
-      charColor = element.GetProperty("character_color").GetString();
+      charFloor = GetRequiredString(element, "character");
+      charColor = GetRequiredString(element, "character_color");
 
       var t = new TileSet(id, TileType.Floor, imgPrefix, imgFloorList.ToArray(), null, character: charFloor, characterColor: charColor);
 
@@ -127,17 +127,17 @@ namespace BlazorRogue
       var imgSimpleEdgeNorthIndexes = new List<int>();
       var imgDecoratedEdgeNorthIndexes = new List<int>();
 
-      id = element.GetProperty("id").GetString();
-      levelType = element.GetProperty("level_type").GetString();
-      imgPrefix = element.GetProperty("img_prefix").GetString();
+      id = GetRequiredString(element, "id");
+      levelType = GetRequiredString(element, "level_type");
+      imgPrefix = GetRequiredString(element, "img_prefix");
 
       ParseIndexAndWeights(element, "img_base", imgBaseIndexes, imgBaseWeights);
       ParseIndexAndWeights(element, "img_base_edge_south", imgBaseEdgeSouthIndexes, imgBaseEdgeSouthWeights);
       GetIntArray(element.GetProperty("img_edge_north"), "simple", imgSimpleEdgeNorthIndexes);
       GetIntArray(element.GetProperty("img_edge_north"), "decorated", imgDecoratedEdgeNorthIndexes);
 
-      character = element.GetProperty("character").GetString();
-      charColor = element.GetProperty("character_color").GetString();
+      character = GetRequiredString(element, "character");
+      charColor = GetRequiredString(element, "character_color");
 
       var t = new TileSet(
           id,
@@ -175,6 +175,20 @@ namespace BlazorRogue
     {
       var imgFloorElement = element.GetProperty(property);
       listToFill.AddRange(imgFloorElement.EnumerateArray().Select(no => no.GetInt32()));
+    }
+
+    /// <summary>
+    /// Get the string value of a required JSON property. Throws if the property's value is JSON null,
+    /// since the data files aren't expected to ever supply null for these fields.
+    /// </summary>
+    private static string GetRequiredString(JsonElement element, string property)
+    {
+      return RequireNonNullString(element.GetProperty(property), property);
+    }
+
+    private static string RequireNonNullString(JsonElement stringElement, string propertyNameForError)
+    {
+      return stringElement.GetString() ?? throw new Exception($"Property '{propertyNameForError}' was expected to have a non-null string value.");
     }
 
     private static void ParseIndexAndWeights(JsonElement element, string imgName, List<int> imgArray, List<double> imgWeightArray)
@@ -224,22 +238,22 @@ namespace BlazorRogue
         out string character,
         out string characterColor)
     {
-      id = element.GetProperty("id").GetString();
-      name = element.GetProperty("name").GetString();
+      id = GetRequiredString(element, "id");
+      name = GetRequiredString(element, "name");
       weaponSkill = element.GetProperty("weaponSkill").GetInt32();
       weaponDamage = element.GetProperty("weaponDamage").GetInt32();
       toughness = element.GetProperty("toughness").GetInt32();
       armour = element.GetProperty("armour").GetInt32();
       wounds = element.GetProperty("wounds").GetInt32();
-      animationClass = element.GetProperty("animationClass").GetString();
-      character = element.GetProperty("character").GetString();
-      characterColor = element.GetProperty("character_color").GetString();
+      animationClass = GetRequiredString(element, "animationClass");
+      character = GetRequiredString(element, "character");
+      characterColor = GetRequiredString(element, "character_color");
     }
 
     private void ParseStaticDecorativeType(JsonElement element)
     {
-      string id = element.GetProperty("id").GetString();
-      string name = element.GetProperty("name").GetString();
+      string id = GetRequiredString(element, "id");
+      string name = GetRequiredString(element, "name");
 
       // Yeah, allowing image to be both a singleton, an array, and an object is me playing around :P
       var images = new Dictionary<string, string>();
@@ -256,7 +270,7 @@ namespace BlazorRogue
 
         foreach (var iElem in imageProperty.EnumerateObject())
         {
-          images.Add(iElem.Name, iElem.Value.GetString());
+          images.Add(iElem.Name, RequireNonNullString(iElem.Value, $"{imagePropertyName}.{iElem.Name}"));
         }
       }
       else if (imageProperty.ValueKind == JsonValueKind.Array)
@@ -273,7 +287,7 @@ namespace BlazorRogue
         int counter = 0;
         foreach (var iElem in imageProperty.EnumerateArray())
         {
-          images.Add($"{counter}", iElem.GetString());
+          images.Add($"{counter}", RequireNonNullString(iElem, imagePropertyName));
           counter++;
         }
       }
@@ -285,22 +299,22 @@ namespace BlazorRogue
          * Tag will be set to ""
          */
 
-        images.Add("", imageProperty.GetString());
+        images.Add("", RequireNonNullString(imageProperty, imagePropertyName));
       }
       else
       {
         throw new Exception($"{imagePropertyName} should be either a single string, an array of strings, or an object with string, string pairs.");
       }
 
-      string infoText = element.GetProperty("info_text").GetString();
+      string infoText = GetRequiredString(element, "info_text");
       int verticalOffset = element.GetProperty("vertical_offset").GetInt32();
-      string character = element.GetProperty("character").GetString();
-      string characterColor = element.GetProperty("character_color").GetString();
+      string character = GetRequiredString(element, "character");
+      string characterColor = GetRequiredString(element, "character_color");
 
       string imgFolder = defaultStaticDecorationImgFolder;
       if (element.TryGetProperty("img_folder", out JsonElement imgFolderElement))
       {
-        imgFolder = imgFolderElement.GetString();
+        imgFolder = RequireNonNullString(imgFolderElement, "img_folder");
       }
 
       bool blocking = false;

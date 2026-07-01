@@ -23,10 +23,12 @@ namespace BlazorRogue.GameObjects
     {
       if (imageTag != null)
       {
-        if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out image))
+        if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out string? imageVariant))
         {
           throw new ArgumentException($"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}.");
         }
+
+        image = imageVariant;
       }
       else
       {
