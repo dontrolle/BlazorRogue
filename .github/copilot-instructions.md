@@ -1,8 +1,9 @@
 # BlazorRogue
 
-A small rogue-like built in a custom game engine on C#/Blazor Server (.NET 5). Supports both a
-tileset renderer (Ultimate Fantasy tileset, not included in repo) and a custom ASCII renderer,
-switchable client-side.
+A small rogue-like built in a custom game engine on C#/Blazor Server (.NET 10). Uses the modern
+unified Blazor Components hosting model (`MapRazorComponents`/`AddInteractiveServerRenderMode`).
+Supports both a tileset renderer (Ultimate Fantasy tileset, not included in repo) and a custom
+ASCII renderer, switchable client-side.
 
 ## Build
 
@@ -12,7 +13,10 @@ dotnet build
 
 There is no test project in this repository, so there is nothing to `dotnet test`. There is also
 no separate lint step (rely on `.editorconfig` conventions and compiler warnings — nullable
-reference types are enabled, so watch for new nullability warnings, currently ~63 pre-existing).
+reference types are enabled, so watch for new nullability warnings, currently ~61 pre-existing).
+
+CI runs `dotnet build` on every push/PR to `master` via GitHub Actions
+(`.github/workflows/build.yml`).
 
 To run locally, follow the ASP.NET Core Blazor "Get started" instructions. The tileset image
 files (`uf_split` from Oryx's Ultimate Fantasy Tileset) are proprietary and excluded from the
@@ -45,6 +49,13 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (e.g.
   `FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
   parsed from the same `Configuration` JSON files.
+- **Hosting**: `Program.cs` uses the minimal hosting API + unified Blazor Components model
+  (`AddRazorComponents().AddInteractiveServerComponents()` /
+  `MapRazorComponents<App>().AddInteractiveServerRenderMode()`). `App.razor` is the root HTML shell
+  (`<HeadOutlet>` + `<Routes>`), and `Routes.razor` holds the `<Router>`. Note: `~/`-style Tag
+  Helper URL resolution (e.g. `<base href="~/">`) does **not** work inside `.razor` components —
+  only inside `.cshtml` Razor Pages — so static asset URLs in `App.razor` must be plain absolute
+  paths (e.g. `<base href="/">`).
 
 ## Conventions
 

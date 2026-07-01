@@ -1,6 +1,6 @@
 # BlazorRogue
 
-[![Build Status](https://dev.azure.com/tedconsultingdk/BlazorRogueAz/_apis/build/status/dontrolle.BlazorRogue?branchName=master)](https://dev.azure.com/tedconsultingdk/BlazorRogueAz/_build/latest?definitionId=1&branchName=master)
+[![Build](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml/badge.svg)](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml)
 
 A small rogue-like built from the bottom-up in a little game engine I built on C#/Blazor. Has a tileset renderer using the the beautiful [Ultimate Fantasy Tileset tiles from Oryx](https://www.oryxdesignlab.com/ultimatefantasy), and a custom-built ASCII renderer.
 
