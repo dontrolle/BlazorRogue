@@ -16,7 +16,7 @@ namespace BlazorRogue
 
     public void Use()
     {
-      onUse.Invoke(Owner);
+      onUse.Invoke(Owner!);
     }
   }
 }

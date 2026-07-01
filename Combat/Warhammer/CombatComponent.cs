@@ -47,14 +47,14 @@ namespace BlazorRogue.Combat.Warhammer
       private set
       {
         advantage = value;
-        System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {Advantage} Advantage");
+        System.Diagnostics.Debug.WriteLine($"{Owner!.Name} now has {Advantage} Advantage");
       }
     }
 
     public void ApplyDamage(int damage)
     {
       Wounds -= damage - ToughnessBonus - ArmourPoints;
-      System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {Wounds}W");
+      System.Diagnostics.Debug.WriteLine($"{Owner!.Name} now has {Wounds}W");
     }
 
     public void GainAdvantage(int number = 1)

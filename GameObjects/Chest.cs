@@ -44,7 +44,7 @@ namespace BlazorRogue.GameObjects
         case ChestState.Closed:
           return "Closed";
         case ChestState.Open:
-          return $"{chest.InventoryComponent.Gold} gold";
+          return $"{chest.InventoryComponent!.Gold} gold";
         default:
           throw new Exception($"Unknown ChestState: {chest.State}");
       }
@@ -70,7 +70,7 @@ namespace BlazorRogue.GameObjects
           case ChestState.Open:
             if (chest.InventoryComponent.Gold > 0)
             {
-              References.Map.Player.InventoryComponent.Gold += chest.InventoryComponent.Gold;
+              References.Map.Player.InventoryComponent!.Gold += chest.InventoryComponent.Gold;
               chest.InventoryComponent.Gold = 0;
               References.SoundManager.PlayPickupMoney();
             }
@@ -99,7 +99,7 @@ namespace BlazorRogue.GameObjects
           img = sdot.ImageVariants["closed"];
           break;
         case ChestState.Open:
-          if (InventoryComponent.Gold > 0)
+          if (InventoryComponent!.Gold > 0)
           {
             img = sdot.ImageVariants["open_full"];
           }
@@ -111,7 +111,7 @@ namespace BlazorRogue.GameObjects
           break;
       }
 
-      map.Decorations[x, y].Add(new Decoration(this, img, sdot.ImgFolder) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent.Use });
+      map.Decorations[x, y].Add(new Decoration(this, img, sdot.ImgFolder) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent!.Use });
       //TODO:Cleanup
       //// add a separate decoration for onUse (without own graphic) to interact with the door
       //map.Decorations[x, y].Add(new Decoration(this, null) { OnUse = UseableComponent.Use });

@@ -290,13 +290,13 @@ namespace BlazorRogue
 
       map.ForEachTile(initFill);
 
-      bool[,] newmap = null;
+      bool[,]? newmap = null;
       Action<int, int> generation1Fill = (x, y) =>
            {
              if (SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5 || SurroundingWallNumberWithinN(genmap, x, y, 2) <= 1)
-               newmap[x, y] = true;
+               newmap![x, y] = true;
              else
-               newmap[x, y] = false;
+               newmap![x, y] = false;
            };
 
       for (int i = 0; i < 4; i++)
@@ -311,9 +311,9 @@ namespace BlazorRogue
       Action<int, int> generation2Fill = (x, y) =>
            {
              if (SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5)
-               newmap[x, y] = true;
+               newmap![x, y] = true;
              else
-               newmap[x, y] = false;
+               newmap![x, y] = false;
            };
 
       for (int i = 0; i < 3; i++)

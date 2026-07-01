@@ -200,13 +200,13 @@
             {
                 <li>@debugInfo</li>
             }
-            <li>Hitpoints: @game.Map.Player.CombatComponent.Wounds </li>
-            <li>Advantage?: @game.Map.Player.CombatComponent.Advantage </li>
-            <li>Armour: @game.Map.Player.CombatComponent.ArmourPoints</li>
-            <li>Toughness: @game.Map.Player.CombatComponent.Toughness</li>
-            <li>Weaponskill: @game.Map.Player.CombatComponent.WeaponSkill</li>
-            <li>Damage: @game.Map.Player.CombatComponent.WeaponDamage</li>
-            <li>Gold: @game.Map.Player.InventoryComponent.Gold</li>
+            <li>Hitpoints: @game.Map.Player.CombatComponent!.Wounds </li>
+            <li>Advantage?: @game.Map.Player.CombatComponent!.Advantage </li>
+            <li>Armour: @game.Map.Player.CombatComponent!.ArmourPoints</li>
+            <li>Toughness: @game.Map.Player.CombatComponent!.Toughness</li>
+            <li>Weaponskill: @game.Map.Player.CombatComponent!.WeaponSkill</li>
+            <li>Damage: @game.Map.Player.CombatComponent!.WeaponDamage</li>
+            <li>Gold: @game.Map.Player.InventoryComponent!.Gold</li>
         </ul>
     </div>
 </div>
@@ -255,7 +255,7 @@
 
   public void OnClick(Decoration decoration)
   {
-      decoration.OnUse();
+      decoration.OnUse?.Invoke();
       // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
       //       When I begin to do effecs, I may need to revisit this...
       game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);

@@ -14,7 +14,9 @@ namespace BlazorRogue
 
     public TileSet DungeonWallSet { get; private set; }
     public Game Game { get; }
-    public Moveable Player { get; private set; }
+    // Set via AddPlayer() shortly after Map construction (DungeonGenerator always calls it before
+    // the map is used); null! avoids forcing nullable-checks on every consumer of this property.
+    public Moveable Player { get; private set; } = null!;
     public const int PlayerSightRadius = 6;
     public const int PlayerSightRadiusSquared = PlayerSightRadius * PlayerSightRadius;
 
@@ -234,7 +236,7 @@ namespace BlazorRogue
       this.monsters.Add(monster);
     }
 
-    private void MonsterKilled(object sender, EventArgs e)
+    private void MonsterKilled(object? sender, EventArgs e)
     {
       var killedMonster = sender as Moveable;
       if (killedMonster == null)
