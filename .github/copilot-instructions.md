@@ -17,7 +17,7 @@ dotnet build
 can wire up `References.SoundManager` etc.) and mirrors `Data/*.json` into its own output directory
 since `Configuration.Parse()` reads them via relative paths. There is no separate lint step (rely on
 `.editorconfig` conventions and compiler warnings — nullable reference types are enabled, so watch
-for new nullability warnings, currently ~61 pre-existing).
+for new nullability warnings).
 
 CI runs `dotnet build` then `dotnet test` on every push/PR to `master` via GitHub Actions
 (`.github/workflows/build.yml`).
