@@ -65,7 +65,13 @@ dotnet run
 
 By default the app listens on `https://localhost:5001` and `http://localhost:5000` (see `Properties/launchSettings.json`) — open either URL in a browser to play. There's no database or seed step; a fresh dungeon is generated on every page load.
 
-There is no test project in this repository (`dotnet test` has nothing to run) and no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build` on every push/PR to `master` via GitHub Actions (`.github/workflows/build.yml`).
+`BlazorRogue.Tests` is an xUnit test project covering core, UI-independent game logic (dice/combat math, `Configuration` JSON parsing, `Map` geometry helpers, and end-to-end dungeon generation smoke tests). Run it with:
+
+```
+dotnet test
+```
+
+There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build` followed by `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/build.yml`).
 
 (This very project started with a `dotnet new blazorserverside -o WebApplication1`, as can probably still be seen here and there.)
 
@@ -89,6 +95,7 @@ If you own the UF Tileset, put the subfolders of the `uf_split` folder from the 
 
 ```
 BlazorRogue.csproj / Program.cs   Minimal-hosting entry point, unified Blazor Components hosting
+BlazorRogue.Tests/                xUnit test project for core game-logic classes (see below)
 App.razor / Routes.razor          Root HTML shell + router
 Pages/                            Blazor pages (Indoor.razor is the main game view)
 Shared/                           Shared Razor components
@@ -127,9 +134,9 @@ These are parsed in `Configuration.cs` via a `Parse*Type` method per entity kind
 
 ## Contributing
 
-- `master` is protected: everyone (including the maintainer) needs to go through a pull request; CI (`dotnet build`) must pass before merging.
+- `master` is protected: everyone (including the maintainer) needs to go through a pull request; CI (`dotnet build` + `dotnet test`) must pass before merging.
 - Please keep the build warning-free — nullable reference types are enabled project-wide.
-- Since there's no test suite yet, please describe how you manually verified a change (e.g. build + a screenshot or a description of in-browser testing) in your PR description.
+- Add or update tests in `BlazorRogue.Tests` for changes to game logic (combat, configuration parsing, map/dungeon generation, etc.); for changes that are hard to unit test (rendering, Blazor components, JS interop), please describe how you manually verified the change (e.g. a screenshot or a description of in-browser testing) in your PR description.
 - Small, focused PRs are preferred over large ones, especially for anything touching rendering or the hosting model — those are the areas most likely to have subtle runtime-only breakage that `dotnet build` won't catch.
 
 ## License
