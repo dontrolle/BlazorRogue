@@ -11,11 +11,15 @@ ASCII renderer, switchable client-side.
 dotnet build
 ```
 
-There is no test project in this repository, so there is nothing to `dotnet test`. There is also
-no separate lint step (rely on `.editorconfig` conventions and compiler warnings — nullable
-reference types are enabled, so watch for new nullability warnings, currently ~61 pre-existing).
+`BlazorRogue.Tests` is an xUnit test project covering core, UI-independent logic (dice/combat math,
+`Configuration` JSON parsing, `Map` geometry, and dungeon-generation smoke tests). Run it with
+`dotnet test`. It references `BlazorRogue.csproj` directly (`InternalsVisibleTo` is set up so tests
+can wire up `References.SoundManager` etc.) and mirrors `Data/*.json` into its own output directory
+since `Configuration.Parse()` reads them via relative paths. There is no separate lint step (rely on
+`.editorconfig` conventions and compiler warnings — nullable reference types are enabled, so watch
+for new nullability warnings).
 
-CI runs `dotnet build` on every push/PR to `master` via GitHub Actions
+CI runs `dotnet build` then `dotnet test` on every push/PR to `master` via GitHub Actions
 (`.github/workflows/build.yml`).
 
 To run locally, follow the ASP.NET Core Blazor "Get started" instructions. The tileset image

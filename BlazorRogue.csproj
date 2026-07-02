@@ -13,4 +13,18 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- BlazorRogue.Tests lives in a subfolder of this project; exclude it from the Web SDK's
+         default recursive globbing so its files aren't compiled into this project too. -->
+    <Compile Remove="BlazorRogue.Tests\**" />
+    <Content Remove="BlazorRogue.Tests\**" />
+    <None Remove="BlazorRogue.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Allows the test project to set internal-setter statics like References.SoundManager,
+         mirroring how app code (e.g. Pages/Indoor.razor) wires them up at runtime. -->
+    <InternalsVisibleTo Include="BlazorRogue.Tests" />
+  </ItemGroup>
+
 </Project>
