@@ -62,7 +62,7 @@ namespace BlazorRogue.Tests
     }
 
     [Fact]
-    public void Parse_ThrowsOnDuplicateFloorSetId()
+    public void Parse_LoadedFloorSetIdsAreUnique()
     {
       // Configuration.Parse() reads from the real Data files, so we cover the duplicate-id guard
       // indirectly here by asserting all currently-loaded floor set ids are unique - a duplicate
