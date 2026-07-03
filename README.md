@@ -73,8 +73,6 @@ dotnet test
 
 There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build` followed by `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/build.yml`).
 
-(This very project started with a `dotnet new blazorserverside -o WebApplication1`, as can probably still be seen here and there.)
-
 ## How to play
 
 | Action | Keys |
@@ -116,7 +114,7 @@ wwwroot/                          Static assets: CSS, JS interop, sounds, tilese
 - **`References`** (`References.cs`) is a static service-locator-style holder for the current `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`, set up during `Game`'s constructor. Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than receiving them via DI/constructor injection.
 - **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/` into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`, `StaticDecorativeObject`). Behavior is composed via optional `Component` subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at construction — a `Component` always knows its `Owner` via `SetOwner`.
-- **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it. `Vision/` implements field-of-view (the Adam Milne visibility algorithm). Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching between tileset and ASCII based on the `renderAscii` flag.
+- **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it. `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm). Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching between tileset and ASCII based on the `renderAscii` flag.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are parsed from the same `Configuration` JSON files.
 - **Hosting**: `Program.cs` uses the minimal hosting API plus the unified Blazor Components model (`AddRazorComponents().AddInteractiveServerComponents()` / `MapRazorComponents<App>().AddInteractiveServerRenderMode()`). `App.razor` is the root HTML shell (`<HeadOutlet>` + `<Routes>`), and `Routes.razor` holds the `<Router>`.
 
