@@ -2,13 +2,9 @@
 
 namespace BlazorRogue.GameObjects
 {
-  public class HalfWall : GameObject
+  public class HalfWall(int x, int y, int halfWallIndex) : GameObject(x, y, "Halfwall")
   {
-    private readonly int HalfWallIndex;
-    public HalfWall(int x, int y, int halfWallIndex) : base(x, y, "Halfwall")
-    {
-      HalfWallIndex = halfWallIndex;
-    }
+    private readonly int HalfWallIndex = halfWallIndex;
 
     public override void Render(Map map)
     {

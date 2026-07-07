@@ -2,12 +2,8 @@
 
 namespace BlazorRogue.GameObjects
 {
-  public class Torch : GameObject
+  public class Torch(int x, int y) : GameObject(x, y, "Torch")
   {
-    public Torch(int x, int y) : base(x, y, "Torch")
-    {
-    }
-
     public override void Render(Map map)
     {
       map.Decorations[x, y].Add(new Decoration(this, null) { AnimationClass = "animated_torch", Character = "#", CharacterColor = "#FFFF00" });

@@ -20,7 +20,7 @@ namespace BlazorRogue
     public const int PlayerSightRadius = 6;
     public const int PlayerSightRadiusSquared = PlayerSightRadius * PlayerSightRadius;
 
-    public List<string> DebugInfo = new List<string>();
+    public List<string> DebugInfo = [];
 
     public Tile[,] Tiles { get; }
 
@@ -88,17 +88,17 @@ namespace BlazorRogue
           )
           { Blocking = true };
 
-          Decorations[i, j] = new List<Decoration>();
-          MoveableDecorations[i, j] = new List<Decoration>();
-          gameObjectByCoord[i, j] = new List<GameObject>();
+          Decorations[i, j] = [];
+          MoveableDecorations[i, j] = [];
+          gameObjectByCoord[i, j] = [];
         }
       }
 
-      gameObjects = new List<GameObject>();
-      moveables = new List<Moveable>();
+      gameObjects = [];
+      moveables = [];
       VisibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
 
-      monsters = new List<Moveable>();
+      monsters = [];
     }
 
     /// <summary>

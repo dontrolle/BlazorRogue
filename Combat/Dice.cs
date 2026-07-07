@@ -5,7 +5,7 @@ namespace BlazorRogue.Combat
 {
   public static class Dice
   {
-    static readonly Random random = new Random();
+    static readonly Random random = new();
 
     public static int RollD100()
     {

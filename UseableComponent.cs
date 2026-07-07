@@ -5,14 +5,9 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue
 {
-  public class UseableComponent : Component
+  public class UseableComponent(Action<GameObject> onUse) : Component
   {
-    private readonly Action<GameObject> onUse;
-
-    public UseableComponent(Action<GameObject> onUse)
-    {
-      this.onUse = onUse;
-    }
+    private readonly Action<GameObject> onUse = onUse;
 
     public void Use()
     {

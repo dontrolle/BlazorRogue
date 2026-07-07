@@ -7,9 +7,18 @@ using BlazorRogue.Combat.Warhammer;
 
 namespace BlazorRogue.GameObjects
 {
-  public class Chest : GameObject
+  public class Chest(
+      int x,
+      int y,
+      string id,
+      InventoryComponent content) : GameObject(
+          x,
+          y,
+          References.Configuration.StaticDecorativeObjectTypes[id].Name,
+          useableComponent: new UseableComponent(Use),
+          inventoryComponent: content)
   {
-    private readonly string Id;
+    private readonly string Id = id;
 
     public override string InfoText => $"{References.Configuration.StaticDecorativeObjectTypes[Id].InfoText} ({ChestStateToString(this)})";
 
@@ -19,23 +28,7 @@ namespace BlazorRogue.GameObjects
       Open
     }
 
-    public ChestState State;
-
-    public Chest(
-        int x,
-        int y,
-        string id,
-        InventoryComponent content) :
-        base(
-            x,
-            y,
-            References.Configuration.StaticDecorativeObjectTypes[id].Name,
-            useableComponent: new UseableComponent(Use),
-            inventoryComponent: content)
-    {
-      Id = id;
-      State = ChestState.Closed;
-    }
+    public ChestState State = ChestState.Closed;
 
     private static string ChestStateToString(Chest chest)
     {
