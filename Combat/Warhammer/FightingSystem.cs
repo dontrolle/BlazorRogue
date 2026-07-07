@@ -3,26 +3,14 @@ using System.Diagnostics;
   
 namespace BlazorRogue.Combat.Warhammer
 {
-  public class FightingSystem
+  public class FightingSystem(Game game)
   {
-    public Game Game { get; }
-
-    public FightingSystem(Game game)
-    {
-      Game = game;
-    }
+    public Game Game { get; } = game;
 
     public bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
     {
-      if (attacker is null)
-      {
-        throw new ArgumentNullException(nameof(attacker));
-      }
-
-      if (defender is null)
-      {
-        throw new ArgumentNullException(nameof(defender));
-      }
+      ArgumentNullException.ThrowIfNull(attacker);
+      ArgumentNullException.ThrowIfNull(defender);
 
       Debug.WriteLine($"----------------------------");
       var toHitRoll = Dice.RollD100();

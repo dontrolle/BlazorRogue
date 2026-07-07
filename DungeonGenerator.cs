@@ -11,7 +11,7 @@ namespace BlazorRogue
   {
     private readonly Map map;
     private readonly Configuration configuration;
-    readonly Random random = new Random();
+    readonly Random random = new();
 
     // Decorations
     private const double PercentageChanceOfBones = 0.05;
@@ -22,7 +22,7 @@ namespace BlazorRogue
     private readonly double PercentageChanceOfChests = 0.02;
 
     // TODO: UF
-    private readonly string[] DoorTypes = new[] { "metal", "stone", "wood", "ruin" };
+    private readonly string[] DoorTypes = ["metal", "stone", "wood", "ruin"];
 
     // width and height are including walls
     private const int MaxRooms = 10;
@@ -34,22 +34,14 @@ namespace BlazorRogue
     private const int SpecialRoomWidth = 8;
     private const double PercentageChanceOfSpecialRoom = 1.0;
 
-    private readonly List<Room> Rooms = new List<Room>();
-    private readonly List<Tuple<int, int>> CandidateDoors = new List<Tuple<int, int>>();
-    class Room
+    private readonly List<Room> Rooms = [];
+    private readonly List<Tuple<int, int>> CandidateDoors = [];
+    class Room(int X, int Y, int width, int height)
     {
-      public Room(int X, int Y, int width, int height)
-      {
-        this.X = X;
-        this.Y = Y;
-        Width = width;
-        Height = height;
-      }
-
-      public int X { get; }
-      public int Y { get; }
-      public int Width { get; }
-      public int Height { get; }
+      public int X { get; } = X;
+      public int Y { get; } = Y;
+      public int Width { get; } = width;
+      public int Height { get; } = height;
       public int Left => X;
       public int Right => X + Width - 1;
       public int Upper => Y;

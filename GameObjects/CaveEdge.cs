@@ -2,18 +2,11 @@
 
 namespace BlazorRogue.GameObjects
 {
-  public class CaveEdge : GameObject
+  public class CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : GameObject(x, y, "CaveEdge")
   {
-    private int CaveEdgeIndex;
-    private readonly int Offset;
-    private readonly int HOffset;
-
-    public CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : base(x, y, "CaveEdge")
-    {
-      CaveEdgeIndex = caveEdgeIndex;
-      Offset = offset;
-      HOffset = hOffset;
-    }
+    private int CaveEdgeIndex = caveEdgeIndex;
+    private readonly int Offset = offset;
+    private readonly int HOffset = hOffset;
 
     public override void Render(Map map)
     {

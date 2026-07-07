@@ -2,9 +2,9 @@
 
 namespace BlazorRogue.AI
 {
-  public abstract class AIComponent : Component
+  public abstract class AIComponent(Map map) : Component()
   {
-    protected readonly Map Map;
+    protected readonly Map Map = map;
     public bool Awake { get; protected set; }
 
     public abstract void TakeTurn();
@@ -12,11 +12,6 @@ namespace BlazorRogue.AI
     public void Wake()
     {
       Awake = true;
-    }
-
-    public AIComponent(Map map) : base()
-    {
-      Map = map;
     }
   }
 }

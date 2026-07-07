@@ -1,14 +1,8 @@
 ﻿namespace BlazorRogue.Vision
 {
-  public struct LevelPoint
+  public struct LevelPoint(uint X, uint Y)
   {
-    public uint X;
-    public uint Y;
-
-    public LevelPoint(uint X, uint Y)
-    {
-      this.X = X;
-      this.Y = Y;
-    }
+    public uint X = X;
+    public uint Y = Y;
   }
 }

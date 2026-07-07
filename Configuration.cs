@@ -26,29 +26,29 @@ namespace BlazorRogue
     const string WallSetsFileName = "Data\\wallsets.json";
     const string DecorationsFileName = "Data\\decorations.json";
 
-    private readonly Dictionary<string, MoveableType> monsterTypes = new Dictionary<string, MoveableType>();
+    private readonly Dictionary<string, MoveableType> monsterTypes = [];
     public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
 
-    private readonly Dictionary<string, MoveableType> heroTypes = new Dictionary<string, MoveableType>();
+    private readonly Dictionary<string, MoveableType> heroTypes = [];
     public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
-    private readonly Dictionary<string, StaticDecorativeObjectType> staticDecorativeObjectTypes = new Dictionary<string, StaticDecorativeObjectType>();
+    private readonly Dictionary<string, StaticDecorativeObjectType> staticDecorativeObjectTypes = [];
     public IReadOnlyDictionary<string, StaticDecorativeObjectType> StaticDecorativeObjectTypes => staticDecorativeObjectTypes;
 
-    private readonly HashSet<string> floorSetIds = new HashSet<string>();
+    private readonly HashSet<string> floorSetIds = [];
 
-    private readonly List<TileSet> standardFloorSets = new List<TileSet>();
+    private readonly List<TileSet> standardFloorSets = [];
     public IEnumerable<TileSet> StandardFloorSets => standardFloorSets.AsReadOnly();
 
-    private readonly List<TileSet> specialFloorSets = new List<TileSet>();
+    private readonly List<TileSet> specialFloorSets = [];
     public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
 
-    private readonly HashSet<string> wallSetIds = new HashSet<string>();
+    private readonly HashSet<string> wallSetIds = [];
 
-    private readonly List<TileSet> dungeonWallSets = new List<TileSet>();
+    private readonly List<TileSet> dungeonWallSets = [];
     public IEnumerable<TileSet> DungeonWallSets => dungeonWallSets.AsReadOnly();
 
-    private readonly List<TileSet> caveWallSets = new List<TileSet>();
+    private readonly List<TileSet> caveWallSets = [];
     public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
     const string defaultStaticDecorationImgFolder = "uf_terrain";

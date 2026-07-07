@@ -2,13 +2,9 @@
 
 namespace BlazorRogue.AI
 {
-  public class RandomWalkAIComponent : AIComponent
+  public class RandomWalkAIComponent(Map map) : AIComponent(map)
   {
-    readonly Random random = new Random();
-
-    public RandomWalkAIComponent(Map map) : base(map)
-    {
-    }
+    readonly Random random = new();
 
     public override void TakeTurn()
     {

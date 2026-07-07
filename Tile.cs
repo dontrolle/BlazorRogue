@@ -2,20 +2,12 @@
 
 namespace BlazorRogue
 {
-  public class Tile
+  public class Tile(int x, int y, TileSet tileSet, int tileIndex)
   {
-    public Tile(int x, int y, TileSet tileSet, int tileIndex)
-    {
-      this.x = x;
-      this.y = y;
-      TileSet = tileSet;
-      TileIndex = tileIndex;
-    }
-
-    public int x { get; }
-    public int y { get; }
-    public TileSet TileSet { get; set; }
-    public int TileIndex { get; set; }
+    public int x { get; } = x;
+    public int y { get; } = y;
+    public TileSet TileSet { get; set; } = tileSet;
+    public int TileIndex { get; set; } = tileIndex;
 
     public string ImageName { get => TileSet.ImageName(TileIndex); }
     public TileType TileType => TileSet.TileType;

@@ -2,43 +2,34 @@
 
 namespace BlazorRogue.Vision
 {
-
   // Code mostly unchanged from the great http://www.adammil.net/blog/v125_roguelike_vision_algorithms.html#mine
   // Updated to use squared distance for slightly optimized comparison purposes
-  sealed class AdamMilVisibility : Visibility
-  {
-    /// <param name="blocksLight">A function that accepts the X and Y coordinates of a tile and determines whether the
-    /// given tile blocks the passage of light. The function must be able to accept coordinates that are out of bounds.
-    /// </param>
-    /// <param name="setVisible">A function that sets a tile to be visible, given its X and Y coordinates. The function
-    /// must ignore coordinates that are out of bounds.
-    /// </param>
-    /// <param name="getDistanceSquared">A function that takes the X and Y coordinate of a point where X >= 0,
-    /// Y >= 0, and X >= Y, and returns the squared distance from the point to the origin (0,0).
-    /// </param>
-    public AdamMilVisibility(Func<int, int, bool> blocksLight, Action<int, int> setVisible, Func<int, int, int> getDistanceSquared)
-    {
-      _blocksLight = blocksLight;
-      GetDistanceSquared = getDistanceSquared;
-      _setVisible = setVisible;
-    }
 
+  /// /// <param name="blocksLight">A function that accepts the X and Y coordinates of a tile and determines whether the
+  /// given tile blocks the passage of light. The function must be able to accept coordinates that are out of bounds.
+  /// </param>
+  /// <param name="setVisible">A function that sets a tile to be visible, given its X and Y coordinates. The function
+  /// must ignore coordinates that are out of bounds.
+  /// </param>
+  /// <param name="getDistanceSquared">A function that takes the X and Y coordinate of a point where X >= 0,
+  /// Y >= 0, and X >= Y, and returns the squared distance from the point to the origin (0,0).
+  /// </param>
+  sealed class AdamMilVisibility(Func<int, int, bool> blocksLight, Action<int, int> setVisible, Func<int, int, int> getDistanceSquared) : Visibility
+  {
     public override void Compute(LevelPoint origin, int rangeLimit)
     {
       _setVisible((int)origin.X, (int)origin.Y); // cast to int: we live on the wild side and aren't afraid of overflow
       for (uint octant = 0; octant < 8; octant++) Compute(octant, origin, rangeLimit, 1, new Slope(1, 1), new Slope(0, 1));
     }
 
-    struct Slope // represents the slope Y/X as a rational number
+    struct Slope(uint y, uint x) // represents the slope Y/X as a rational number
     {
-      public Slope(uint y, uint x) { Y = y; X = x; }
-
       public bool Greater(uint y, uint x) { return Y * x > X * y; } // this > y/x
       public bool GreaterOrEqual(uint y, uint x) { return Y * x >= X * y; } // this >= y/x
       public bool Less(uint y, uint x) { return Y * x < X * y; } // this < y/x
                                                                  //public bool LessOrEqual(uint y, uint x) { return Y*x <= X*y; } // this <= y/x
 
-      public readonly uint X, Y;
+      public readonly uint X = x, Y = y;
     }
 
     void Compute(uint octant, LevelPoint origin, int rangeLimit, uint x, Slope top, Slope bottom)
@@ -251,8 +242,8 @@ namespace BlazorRogue.Vision
       _setVisible((int)nx, (int)ny);
     }
 
-    readonly Func<int, int, bool> _blocksLight;
-    readonly Func<int, int, int> GetDistanceSquared;
-    readonly Action<int, int> _setVisible;
+    readonly Func<int, int, bool> _blocksLight = blocksLight;
+    readonly Func<int, int, int> GetDistanceSquared = getDistanceSquared;
+    readonly Action<int, int> _setVisible = setVisible;
   }
 }

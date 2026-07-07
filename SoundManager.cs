@@ -5,16 +5,11 @@ using Microsoft.JSInterop;
 
 namespace BlazorRogue
 {
-  public class SoundManager
+  public class SoundManager(IJSRuntime jsRuntime)
   {
-    private readonly IJSRuntime jsRuntime;
-    private readonly Random random = new Random();
+    private readonly IJSRuntime jsRuntime = jsRuntime;
+    private readonly Random random = new();
     private readonly string footstepDirtPrefix = "Footstep_Dirt_0";
-
-    public SoundManager(IJSRuntime jsRuntime)
-    {
-      this.jsRuntime = jsRuntime;
-    }
 
     private async Task PlaySound(string sound)
     {
