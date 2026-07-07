@@ -48,7 +48,7 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
 - **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it.
   `Vision/` implements field-of-view (`AdamMilVisibility` algorithm). Rendering is split between a
   tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and
-  `Pages/Indoor.razor` / `Pages/Outdoor.razor` are the Blazor pages that render the grid, switching
+  `Pages/Indoor.razor` is the Blazor page that render the grid, switching
   between tileset and ASCII based on the `renderAscii` flag.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (e.g.
   `FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
