@@ -4,7 +4,8 @@ namespace BlazorRogue.Combat.Warhammer
 {
   public class CombatComponent : Component
   {
-    private const int AdvantageCap = 8;
+    // TODO: AdvantageCap=0 ie, disable Advantage - at least for now
+    private const int AdvantageCap = 0;
 
     private int advantage;
     private int wounds;
@@ -71,6 +72,8 @@ namespace BlazorRogue.Combat.Warhammer
     public void LooseAdvantage()
     {
       Advantage -= 1;
+      if(Advantage < 0)
+        Advantage = 0;
     }
   }
 }
