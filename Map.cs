@@ -285,6 +285,7 @@ namespace BlazorRogue
       References.EffectsSystem.Reset();
 
       bool stateChanged;
+      bool playerMoved = false;
       if (shiftKey)
       {
         stateChanged = HandlePlayerUse(numKey);
@@ -292,6 +293,7 @@ namespace BlazorRogue
       else
       {
         stateChanged = HandlePlayerMove(numKey);
+        playerMoved = stateChanged;
       }
 
       if (stateChanged)
@@ -301,6 +303,11 @@ namespace BlazorRogue
 
         // wake visible monsters (visibility is reflexive)
         WakeVisibleMonsters(Player.x, Player.y, PlayerSightRadius);
+      }
+
+      if(playerMoved && !Player.CombatComponent!.IsStarving)
+      {
+        Player.CombatComponent.HealByMove();
       }
 
       return true;

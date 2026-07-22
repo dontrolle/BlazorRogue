@@ -9,6 +9,7 @@ namespace BlazorRogue.Combat.Warhammer
 
     private int advantage;
     private int wounds;
+    private int HealthGainedByOneStep = 1;
 
     public int Wounds
     {
@@ -23,6 +24,8 @@ namespace BlazorRogue.Combat.Warhammer
       }
     }
 
+    public int MaxWounds {get; private set;}
+
     public int WeaponSkill { get; private set; }
     public int WeaponDamage { get; private set; }
     public int Toughness { get; private set; }
@@ -36,6 +39,7 @@ namespace BlazorRogue.Combat.Warhammer
       Toughness = toughness;
       ArmourPoints = armourPoints;
       Wounds = wounds;
+      MaxWounds = wounds;
     }
 
     public int Advantage
@@ -52,16 +56,23 @@ namespace BlazorRogue.Combat.Warhammer
       }
     }
 
+    public bool IsStarving { get; internal set; } = false;
+
     public void ApplyDamage(int damage)
     {
       Wounds -= damage - ToughnessBonus - ArmourPoints;
       System.Diagnostics.Debug.WriteLine($"{Owner!.Name} now has {Wounds}W");
     }
 
+    public void HealByMove()
+    {
+      Wounds += Math.Clamp(HealthGainedByOneStep, 0, MaxWounds);
+    }
+
     public void GainAdvantage(int number = 1)
     {
       var adv = Advantage + number;
-      Advantage = Math.Min(adv, AdvantageCap);
+      Advantage = Math.Clamp(adv, 0, AdvantageCap);
     }
 
     public void ResetAdvantage()
@@ -71,9 +82,7 @@ namespace BlazorRogue.Combat.Warhammer
 
     public void LooseAdvantage()
     {
-      Advantage -= 1;
-      if(Advantage < 0)
-        Advantage = 0;
+      GainAdvantage(-1);
     }
   }
 }
