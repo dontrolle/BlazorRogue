@@ -4,17 +4,26 @@ namespace BlazorRogue.Combat.Warhammer
 {
   public class CombatComponent : Component
   {
-    private const int AdvantageCap = 8;
+    // TODO: AdvantageCap=0 ie, disable Advantage - at least for now
+    private const int AdvantageCap = 0;
 
     private int advantage;
     private int wounds;
+    private int HealthGainedByOneStep = 1;
 
     public int Wounds
     {
       get { return wounds; }
       private set
       {
-        wounds = value;
+        // we use MaxWounds as an ultimate upper bound - no wounds value can go beyond that. 
+        // Means temporary higher max wounds must be reflected in the Maxwounds field.
+        wounds = Math.Min(value, MaxWounds);
+
+        if (Owner != null){
+          System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {wounds}W");
+        }
+
         if (wounds <= 0)
         {
           Owner!.Kill();
@@ -22,6 +31,7 @@ namespace BlazorRogue.Combat.Warhammer
       }
     }
 
+    public int MaxWounds {get; private set;}
     public int WeaponSkill { get; private set; }
     public int WeaponDamage { get; private set; }
     public int Toughness { get; private set; }
@@ -34,7 +44,8 @@ namespace BlazorRogue.Combat.Warhammer
       WeaponDamage = weaponDamage;
       Toughness = toughness;
       ArmourPoints = armourPoints;
-      Wounds = wounds;
+      MaxWounds = wounds;      
+      this.wounds = wounds;
     }
 
     public int Advantage
@@ -51,16 +62,22 @@ namespace BlazorRogue.Combat.Warhammer
       }
     }
 
+    public bool IsStarving { get; internal set; } = false;
+
     public void ApplyDamage(int damage)
     {
       Wounds -= damage - ToughnessBonus - ArmourPoints;
-      System.Diagnostics.Debug.WriteLine($"{Owner!.Name} now has {Wounds}W");
+    }
+
+    public void HealByMove()
+    {
+      Wounds += HealthGainedByOneStep;
     }
 
     public void GainAdvantage(int number = 1)
     {
       var adv = Advantage + number;
-      Advantage = Math.Min(adv, AdvantageCap);
+      Advantage = Math.Clamp(adv, 0, AdvantageCap);
     }
 
     public void ResetAdvantage()
@@ -70,7 +87,7 @@ namespace BlazorRogue.Combat.Warhammer
 
     public void LooseAdvantage()
     {
-      Advantage -= 1;
+      GainAdvantage(-1);
     }
   }
 }

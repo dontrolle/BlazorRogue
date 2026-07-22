@@ -40,14 +40,14 @@ namespace BlazorRogue.Tests.Combat
     }
 
     [Fact]
-    public void ApplyDamage_BelowSoakThreshold_IncreasesWounds()
+    public void ApplyDamage_BelowSoakThreshold_DoesNotIncreaseWoundsBeyondMaxWounds()
     {
-      // NOTE: documents current (possibly unintended) behavior - when soaked damage (toughness
-      // bonus + armour) exceeds the raw damage, wounds actually go up rather than being floored at 0.
+      // When soaked damage (toughness bonus + armour) exceeds the raw damage, wounds 
+      // should not go up. In other words, MaxWounds (aka initial wounds) should be respected.
       var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
       moveable.CombatComponent!.ApplyDamage(1);
 
-      Assert.Equal(14, moveable.CombatComponent.Wounds);
+      Assert.Equal(10, moveable.CombatComponent.Wounds);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ namespace BlazorRogue.Tests.Combat
       Assert.True(moveable.CombatComponent.Wounds <= 0);
     }
 
-    [Fact]
+    [Fact(Skip = "Advantage disabled for now")]
     public void GainAdvantage_IsCappedAtEight()
     {
       var moveable = CreateMoveable();
@@ -72,7 +72,7 @@ namespace BlazorRogue.Tests.Combat
       Assert.Equal(8, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+    [Fact(Skip = "Advantage disabled for now")]
     public void GainAdvantage_Accumulates()
     {
       var moveable = CreateMoveable();
@@ -82,7 +82,7 @@ namespace BlazorRogue.Tests.Combat
       Assert.Equal(3, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+    [Fact(Skip = "Advantage disabled for now")]
     public void ResetAdvantage_SetsAdvantageToZero()
     {
       var moveable = CreateMoveable();
@@ -92,7 +92,7 @@ namespace BlazorRogue.Tests.Combat
       Assert.Equal(0, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+    [Fact(Skip = "Advantage disabled for now")]
     public void LooseAdvantage_DecrementsByOne()
     {
       var moveable = CreateMoveable();

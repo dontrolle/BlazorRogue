@@ -285,6 +285,7 @@ namespace BlazorRogue
       References.EffectsSystem.Reset();
 
       bool stateChanged;
+      bool playerMoved = false;
       if (shiftKey)
       {
         stateChanged = HandlePlayerUse(numKey);
@@ -292,6 +293,7 @@ namespace BlazorRogue
       else
       {
         stateChanged = HandlePlayerMove(numKey);
+        playerMoved = stateChanged;
       }
 
       if (stateChanged)
@@ -301,6 +303,11 @@ namespace BlazorRogue
 
         // wake visible monsters (visibility is reflexive)
         WakeVisibleMonsters(Player.x, Player.y, PlayerSightRadius);
+      }
+
+      if(playerMoved && !Player.CombatComponent!.IsStarving)
+      {
+        Player.CombatComponent.HealByMove();
       }
 
       return true;
@@ -355,7 +362,8 @@ namespace BlazorRogue
         // player skipped a turn; also prevents player from attacking oneself... ;)
         if (xDelta == 0 && yDelta == 0)
         {
-          return false;
+          // NOTE: Changed this to true to enable healing while idling, doesn't seem to have any adverse effects ... (flw)
+          return true;
         }
 
         // handle moveables - I take a copy as moveables may be modified, because of death 
