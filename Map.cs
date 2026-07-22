@@ -362,7 +362,8 @@ namespace BlazorRogue
         // player skipped a turn; also prevents player from attacking oneself... ;)
         if (xDelta == 0 && yDelta == 0)
         {
-          return false;
+          // NOTE: Changed this to true to enable healing while idling, doesn't seem to have any adverse effects ... (flw)
+          return true;
         }
 
         // handle moveables - I take a copy as moveables may be modified, because of death 
