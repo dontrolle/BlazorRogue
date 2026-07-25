@@ -73,7 +73,7 @@ namespace BlazorRogue
 
       // TODO: UF
       // A field, if necessary?
-      var blackTileSet = new TileSet("black", TileType.Black, "extra", new[] { 11 }, null, character: "");
+      var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
 
       for (int i = 0; i < width; i++)
       {
@@ -97,7 +97,6 @@ namespace BlazorRogue
       gameObjects = [];
       moveables = [];
       VisibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
-
       monsters = [];
     }
 
@@ -238,16 +237,20 @@ namespace BlazorRogue
 
     private void MonsterKilled(object? sender, EventArgs e)
     {
-      var killedMonster = sender as Moveable;
-      if (killedMonster == null)
+      if (sender is not Moveable killedMonster)
       {
-        throw new InvalidOperationException("MonsterKilled should only be invoked with GameObject's of type Monster.");
+        throw new InvalidOperationException("MonsterKilled should only be invoked with Moveable's.");
       }
 
-      System.Diagnostics.Debug.WriteLine(killedMonster.GetHashCode().ToString() + " dead");
-
-      monsters.Remove(killedMonster);
-      moveables.Remove(killedMonster);
+      if (!monsters.Remove(killedMonster))
+      {
+        throw new InvalidOperationException("MonsterKilled should only be invoked with a monster in the monsters list.");
+      }
+      
+      if (!moveables.Remove(killedMonster))
+      {
+        throw new InvalidOperationException("MonsterKilled should only be invoked with a moveable in the moveables list.");
+      }    
 
       // Place a blood puddle
       var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
@@ -261,6 +264,7 @@ namespace BlazorRogue
       AddGameObject(puddleObject);
       // somewhat icky calling RenderXxx here...
       RenderGameObjects(killedMonster.x, killedMonster.y);
+      System.Diagnostics.Debug.WriteLine(killedMonster.GetHashCode().ToString() + " dead");
     }
 
     public void AddMoveable(Moveable moveable)

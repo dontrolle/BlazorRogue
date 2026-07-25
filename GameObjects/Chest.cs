@@ -45,8 +45,6 @@ namespace BlazorRogue.GameObjects
 
     private static void Use(GameObject go)
     {
-      // TODO OpenFull and OpenEmpty state -> Open; and derive Full and Empty from Inventory
-
       if (go is Chest chest)
       {
         if (chest.InventoryComponent == null)
