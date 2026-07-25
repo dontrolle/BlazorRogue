@@ -70,7 +70,7 @@ namespace BlazorRogue
       configuration = game.Configuration;
 
       // Choose random level-type
-      LevelType = Level.Dungeon; // hardwire for now (TODO: maybe have DungeonGen and Game-level config in the long run.)
+      LevelType = Level.Dungeon; // hardwire for now (TODO: may have DungeonGen and Game-level config in the long run.)
 
       var wallSet = LevelType switch
       {
@@ -206,7 +206,6 @@ namespace BlazorRogue
         if (!intersect)
         {
           Rooms.Add(newRoom);
-          //map.DebugInfo.Add($"Room(l:{newRoom.Left}, r:{newRoom.Right}; u:{newRoom.Upper}, l:{newRoom.Lower}; w:{newRoom.Width}, h:{newRoom.Height})");
           CreateRoomFloor(newRoom);
 
           if (lastRoom == null)
@@ -296,9 +295,7 @@ namespace BlazorRogue
         newmap = new bool[map.Width, map.Height];
         map.ForEachTile(generation1Fill);
         genmap = newmap;
-      }
-
-      //return FinalizeCaveGen(genmap);        
+      }   
 
       Action<int, int> generation2Fill = (x, y) =>
            {
@@ -338,7 +335,7 @@ namespace BlazorRogue
         throw new Exception("Missing tileset " + caveGenTileSet + " in read configuration.");
       }
 
-      int[] floorIndexes = new[] { 1, 2, 3, 4 };
+      int[] floorIndexes = [1, 2, 3, 4];
       FillMap(genmap, floorset);
 
       return GetRandomUnblockedMapTile();
@@ -394,7 +391,6 @@ namespace BlazorRogue
       }
       throw new Exception($"Couldn't find an unblocked tile on map in {MaxSearch} tries!");
     }
-
 
     private void CreateHorizontalTunnelFloor(Room fromRoom, Room toRoom, int y)
     {
