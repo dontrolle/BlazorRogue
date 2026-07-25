@@ -4,6 +4,7 @@
 @using System.Linq
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inject IJSRuntime JsRuntime;
 @inject IWebHostEnvironment WebHostEnvironment;
 
@@ -189,27 +190,64 @@
 </audio>
 
 @code {
+    private DotNetObjectReference<Indoor>? _selfRef;
+    private bool _resizeHandlingInProgress;
 
-  private sealed class MapArea
-  {
-      public int AvailableWidth { get; set; }
-      public int AvailableHeight { get; set; }
-  }
+    [JSInvokable]
+    public async Task OnBrowserResized()
+    {
+        if (_resizeHandlingInProgress)
+            return;
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-      if (!firstRender)
-      {
-          return;
-      }
+        _resizeHandlingInProgress = true;
+        try
+        {
+            await FitMapToViewportAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            _resizeHandlingInProgress = false;
+        }
+    }
 
-      Game.SoundManager = new SoundManager(JsRuntime);
-      References.SoundManager = Game.SoundManager;
+    private sealed class MapArea
+    {
+        public int AvailableWidth { get; set; }
+        public int AvailableHeight { get; set; }
+    }
 
-      await FitMapToViewportAsync();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
 
-      StateHasChanged();
-  }
+        Game.SoundManager = new SoundManager(JsRuntime);
+        References.SoundManager = Game.SoundManager;
+
+        await FitMapToViewportAsync();
+
+        _selfRef = DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("blazorViewport.registerResize", _selfRef);
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("blazorViewport.unregisterResize");
+        }
+        catch
+        {
+            // ignore if JS runtime/page already gone
+        }
+
+        _selfRef?.Dispose();
+    }
 
   private async Task FitMapToViewportAsync()
   {
