@@ -6,6 +6,7 @@ namespace BlazorRogue.Tests
     [InlineData("goblin", "Goblin")]
     [InlineData("Goblin", "Goblin")]
     [InlineData("g", "G")]
+    [InlineData("g1", "G1")]
     [InlineData("ALREADY", "ALREADY")]
     public void FirstLetterToUpperCase_CapitalizesOnlyFirstCharacter(string input, string expected)
     {
