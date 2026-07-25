@@ -33,17 +33,13 @@ window.blazorViewport = {
     }
 
     // safety fudge for gaps/scrollbar rounding
-    const safetyX = 16;
-    const safetyY = 16;
+    const safetyX = 8;
+    const safetyY = 8;
 
-    const availableWidth = Math.max(0, viewportWidth - leftWidth - mapExtraX - safetyX);
-    const availableHeight = Math.max(0, viewportHeight - debugHeight - mapExtraY - safetyY);
+    const availableWidth = Math.max(0, viewportWidth - leftWidth - mapExtraX - safetyX); // 
+    const availableHeight = Math.max(0, viewportHeight - debugHeight - mapExtraY - safetyY); // 
 
     return {
-      viewportWidth,
-      viewportHeight,
-      leftWidth,
-      debugHeight,
       availableWidth,
       availableHeight
     };
