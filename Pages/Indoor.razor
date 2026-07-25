@@ -50,6 +50,17 @@
                 <dd><tt>&lt;Shift&gt;+Move</tt></dd>
             </dl>
         </div>
+        <div id="debuginfo">
+            @foreach (var debugInfo in game.Map.DebugInfo)
+            {
+                <p>@debugInfo</p>
+            }
+            <p><b>Hitpoints</b>&nbsp;@game.Map.Player.CombatComponent!.Wounds</p>
+            <p><b>Dam soak</b>&nbsp;@game.Map.Player.CombatComponent!.DamageSoak</p>
+            <p><b>Weap skill</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponSkill</p>
+            <p><b>Weap dam</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponDamage</p>
+            <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
+        </div>
     </div>
 
     <span class="@spanClass">
@@ -168,21 +179,6 @@
             }
         </div>
     </span>
-
-    <div id="debuginfo">
-        Debug:
-        <ul>
-            @foreach (var debugInfo in game.Map.DebugInfo)
-            {
-                <li>@debugInfo</li>
-            }
-            <li>Hitpoints: @game.Map.Player.CombatComponent!.Wounds </li>
-            <li>Damage soak: @game.Map.Player.CombatComponent!.DamageSoak (Armour: @game.Map.Player.CombatComponent!.ArmourPoints / Toughness: @game.Map.Player.CombatComponent!.ToughnessBonus) </li>
-            <li>Weapon skill: @game.Map.Player.CombatComponent!.WeaponSkill</li>
-            <li>Weapon damage: @game.Map.Player.CombatComponent!.WeaponDamage</li>
-            <li>Gold: @game.Map.Player.InventoryComponent!.Gold</li>
-        </ul>
-    </div>
 </div>
 
 <audio id="bgsound" autoplay loop>

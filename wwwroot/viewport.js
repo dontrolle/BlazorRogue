@@ -10,7 +10,7 @@ window.blazorViewport = (() => {
     const viewportHeight = window.innerHeight;
 
     const leftWidth = leftEl ? Math.ceil(leftEl.getBoundingClientRect().width) : 0;
-    const debugHeight = debugEl ? Math.ceil(debugEl.getBoundingClientRect().height) : 0;
+    const debugWidth = debugEl ? Math.ceil(debugEl.getBoundingClientRect().width) : 0;
 
     let mapExtraX = 0, mapExtraY = 0;
     if (mapEl) {
@@ -29,8 +29,8 @@ window.blazorViewport = (() => {
     const safetyX = 8, safetyY = 8;
 
     return {
-      availableWidth: Math.max(0, viewportWidth - leftWidth - mapExtraX - safetyX),
-      availableHeight: Math.max(0, viewportHeight - debugHeight - mapExtraY - safetyY)
+      availableWidth: Math.max(0, viewportWidth - Math.max(leftWidth,debugWidth) - mapExtraX - safetyX),
+      availableHeight: Math.max(0, viewportHeight - mapExtraY - safetyY)
     };
   }
 
