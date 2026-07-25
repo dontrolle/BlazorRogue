@@ -4,6 +4,7 @@
 @using System.Linq
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inject IJSRuntime JsRuntime;
 @inject IWebHostEnvironment WebHostEnvironment;
 
@@ -31,7 +32,7 @@
 <div class="main_window">
 
     <div id="left_menu" class="left_menu">
-        <button type="button" id="mode_switch" class="toggle_button" @onclick=@(() => renderAscii = !renderAscii )>Switch mode</button>
+        <button type="button" id="mode_switch" class="toggle_button" @onclick="ToggleRenderMode">Switch mode</button>
         <br />
         <div class="instructions">
             <dl>
@@ -48,6 +49,17 @@
                 <dt>Use</dt>
                 <dd><tt>&lt;Shift&gt;+Move</tt></dd>
             </dl>
+        </div>
+        <div id="debuginfo">
+            @foreach (var debugInfo in game.Map.DebugInfo)
+            {
+                <p>@debugInfo</p>
+            }
+            <p><b>Hitpoints</b>&nbsp;@game.Map.Player.CombatComponent!.Wounds</p>
+            <p><b>Dam soak</b>&nbsp;@game.Map.Player.CombatComponent!.DamageSoak</p>
+            <p><b>Weap skill</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponSkill</p>
+            <p><b>Weap dam</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponDamage</p>
+            <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
         </div>
     </div>
 
@@ -167,21 +179,6 @@
             }
         </div>
     </span>
-
-    <div id="debuginfo">
-        Debug:
-        <ul>
-            @foreach (var debugInfo in game.Map.DebugInfo)
-            {
-                <li>@debugInfo</li>
-            }
-            <li>Hitpoints: @game.Map.Player.CombatComponent!.Wounds </li>
-            <li>Damage soak: @game.Map.Player.CombatComponent!.DamageSoak (Armour: @game.Map.Player.CombatComponent!.ArmourPoints / Toughness: @game.Map.Player.CombatComponent!.ToughnessBonus) </li>
-            <li>Weapon skill: @game.Map.Player.CombatComponent!.WeaponSkill</li>
-            <li>Weapon damage: @game.Map.Player.CombatComponent!.WeaponDamage</li>
-            <li>Gold: @game.Map.Player.InventoryComponent!.Gold</li>
-        </ul>
-    </div>
 </div>
 
 <audio id="bgsound" autoplay loop>
@@ -189,7 +186,103 @@
 </audio>
 
 @code {
+    private DotNetObjectReference<Indoor>? _selfRef;
+    private bool _resizeHandlingInProgress;
 
+    [JSInvokable]
+    public async Task OnBrowserResized()
+    {
+        if (_resizeHandlingInProgress)
+            return;
+
+        _resizeHandlingInProgress = true;
+        try
+        {
+            await FitMapToViewportAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+            _resizeHandlingInProgress = false;
+        }
+    }
+
+    private sealed class MapArea
+    {
+        public int AvailableWidth { get; set; }
+        public int AvailableHeight { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        Game.SoundManager = new SoundManager(JsRuntime);
+        References.SoundManager = Game.SoundManager;
+
+        await FitMapToViewportAsync();
+
+        _selfRef = DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("blazorViewport.registerResize", _selfRef);
+
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("blazorViewport.unregisterResize");
+        }
+        catch
+        {
+            // ignore if JS runtime/page already gone
+        }
+
+        _selfRef?.Dispose();
+    }
+
+  private async Task FitMapToViewportAsync()
+  {
+      var area = await JsRuntime.InvokeAsync<MapArea>(
+          "blazorViewport.getAvailableMapArea",
+          "mapcontainer",   // map div id
+          "left_menu",      // left panel id
+          "debuginfo"       // debug panel id
+      );
+
+      int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+
+      // enforce a sane minimum so game remains playable
+      const int minTilesX = 8;
+      const int minTilesY = 8;
+
+      int tilesX = Math.Max(minTilesX, area.AvailableWidth / tileSize);
+      int tilesY = Math.Max(minTilesY, area.AvailableHeight / tileSize);
+
+      windowWidth = Math.Clamp(tilesX, minTilesX, game.Map.Width);
+      windowHeight = Math.Clamp(tilesY, minTilesY, game.Map.Height);
+
+      // re-center viewport around player
+      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
+
+      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
+
+      // optional: keep move buffer proportional after resize
+      windowMoveBufferX = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowWidth / 3));
+      windowMoveBufferY = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowHeight / 3));
+  }
+
+  private async Task ToggleRenderMode()
+  {
+    renderAscii = !renderAscii;
+    await FitMapToViewportAsync();
+  }
   bool renderAscii = false;
   const int asciiGridTileSize = 20;
   const int graphicGridTileSize = 48;
@@ -223,18 +316,6 @@
 
       int optimalYOffset = game.Map.Player.y - windowHeight / 2;
       windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
-  }
-
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-      if (!firstRender)
-      {
-          return;
-      }
-
-      Game.SoundManager = new SoundManager(JsRuntime);
-      References.SoundManager = Game.SoundManager;
   }
 
   public void OnClick(Decoration decoration)
