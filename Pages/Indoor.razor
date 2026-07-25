@@ -190,6 +190,66 @@
 
 @code {
 
+  private sealed class MapArea
+  {
+      public int ViewportWidth { get; set; }
+      public int ViewportHeight { get; set; }
+      public int LeftWidth { get; set; }
+      public int DebugHeight { get; set; }
+      public int AvailableWidth { get; set; }
+      public int AvailableHeight { get; set; }
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+      if (!firstRender)
+      {
+          return;
+      }
+
+      Game.SoundManager = new SoundManager(JsRuntime);
+      References.SoundManager = Game.SoundManager;
+
+      await FitMapToViewportAsync();
+
+      StateHasChanged();
+  }
+
+  private async Task FitMapToViewportAsync()
+  {
+      var area = await JsRuntime.InvokeAsync<MapArea>(
+          "blazorViewport.getAvailableMapArea",
+          "mapcontainer",   // map div id
+          "left_menu",      // left panel id
+          "debuginfo"       // debug panel id
+      );
+
+      int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+
+      // enforce a sane minimum so game remains playable
+      const int minTilesX = 8;
+      const int minTilesY = 8;
+
+      game.Map.DebugInfo.Add("(" + area.AvailableWidth + "," + area.AvailableHeight + ")");
+
+      int tilesX = Math.Max(minTilesX, area.AvailableWidth / tileSize);
+      int tilesY = Math.Max(minTilesY, area.AvailableHeight / tileSize);
+
+      windowWidth = Math.Clamp(tilesX, minTilesX, game.Map.Width);
+      windowHeight = Math.Clamp(tilesY, minTilesY, game.Map.Height);
+
+      // re-center viewport around player
+      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
+
+      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
+
+      // optional: keep move buffer proportional after resize
+      windowMoveBufferX = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowWidth / 3));
+      windowMoveBufferY = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowHeight / 3));
+  }
+
   bool renderAscii = false;
   const int asciiGridTileSize = 20;
   const int graphicGridTileSize = 48;
@@ -223,18 +283,6 @@
 
       int optimalYOffset = game.Map.Player.y - windowHeight / 2;
       windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
-  }
-
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-      if (!firstRender)
-      {
-          return;
-      }
-
-      Game.SoundManager = new SoundManager(JsRuntime);
-      References.SoundManager = Game.SoundManager;
   }
 
   public void OnClick(Decoration decoration)
