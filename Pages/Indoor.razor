@@ -145,16 +145,25 @@
 
                                     // - handle horizontal and vertical offset
                                     string offset = "";
+                                    string opacityValue = "1";
                                     if (decoration.VerticalOffset != 0)
                                     {
+                                        // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
+                                        if(game.Map.MoveableDecorations[x,y + decoration.VerticalOffset].Any()){
+                                            opacityValue = "0.5";
+                                        }
                                         offset = $"top: {decoration.VerticalOffset * gridTileSize}px;";
                                     }
                                     if (decoration.HorizontalOffset != 0)
                                     {
+                                        // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
+                                        if(game.Map.MoveableDecorations[x + decoration.HorizontalOffset,y].Any()){
+                                            opacityValue = "0.5";
+                                        }
                                         offset += $"left: {decoration.HorizontalOffset * gridTileSize}px;";
                                     }
 
-                                    style = $"{style}{offset}";
+                                    style = $"{style}{offset}; opacity:{opacityValue};";
                                 }
 
                                 if (renderDiv)
