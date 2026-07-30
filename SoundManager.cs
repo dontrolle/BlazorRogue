@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-
 using Microsoft.JSInterop;
 
 namespace BlazorRogue;
@@ -11,7 +10,10 @@ class SoundManager(IJSRuntime jsRuntime)
     readonly Random random = new();
     readonly string footstepDirtPrefix = "Footstep_Dirt_0";
 
-    async Task PlaySound(string sound) => _ = await jsRuntime.InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{sound}").ConfigureAwait(false);
+    async Task PlaySound(string sound) =>
+        _ = await jsRuntime
+            .InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{sound}")
+            .ConfigureAwait(false);
 
     public async void PlayWalkSound()
     {

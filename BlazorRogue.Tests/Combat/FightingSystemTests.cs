@@ -5,7 +5,14 @@ namespace BlazorRogue.Tests.Combat;
 
 public class FightingSystemTests
 {
-    static Moveable CreateMoveable(string id, int weaponSkill, int weaponDamage = 8, int toughness = 100, int armour = 0, int wounds = 1000)
+    static Moveable CreateMoveable(
+        string id,
+        int weaponSkill,
+        int weaponDamage = 8,
+        int toughness = 100,
+        int armour = 0,
+        int wounds = 1000
+    )
     {
         var type = new MoveableType(
             id: id,
@@ -17,7 +24,8 @@ public class FightingSystemTests
             weaponDamage: weaponDamage,
             toughness: toughness,
             armour: armour,
-            wounds: wounds);
+            wounds: wounds
+        );
 
         return new Moveable(0, 0, aIComponent: null, type);
     }
@@ -28,7 +36,9 @@ public class FightingSystemTests
         var fightingSystem = new FightingSystem(game: null!);
         var defender = CreateMoveable("defender", 30);
 
-        _ = Assert.Throws<ArgumentNullException>(() => FightingSystem.CloseCombatAttack(null!, defender.CombatComponent!));
+        _ = Assert.Throws<ArgumentNullException>(() =>
+            FightingSystem.CloseCombatAttack(null!, defender.CombatComponent!)
+        );
     }
 
     [Fact]
@@ -37,7 +47,9 @@ public class FightingSystemTests
         var fightingSystem = new FightingSystem(game: null!);
         var attacker = CreateMoveable("attacker", 30);
 
-        _ = Assert.Throws<ArgumentNullException>(() => FightingSystem.CloseCombatAttack(attacker.CombatComponent!, null!));
+        _ = Assert.Throws<ArgumentNullException>(() =>
+            FightingSystem.CloseCombatAttack(attacker.CombatComponent!, null!)
+        );
     }
 
     [Fact]
@@ -55,14 +67,24 @@ public class FightingSystemTests
         {
             var strongAttacker = CreateMoveable("strong", weaponSkill: 70);
             var weakDefender = CreateMoveable("weakDefender", weaponSkill: 20);
-            if (FightingSystem.CloseCombatAttack(strongAttacker.CombatComponent!, weakDefender.CombatComponent!))
+            if (
+                FightingSystem.CloseCombatAttack(
+                    strongAttacker.CombatComponent!,
+                    weakDefender.CombatComponent!
+                )
+            )
             {
                 strongAttackerHits++;
             }
 
             var weakAttacker = CreateMoveable("weak", weaponSkill: 20);
             var strongDefender = CreateMoveable("strongDefender", weaponSkill: 70);
-            if (FightingSystem.CloseCombatAttack(weakAttacker.CombatComponent!, strongDefender.CombatComponent!))
+            if (
+                FightingSystem.CloseCombatAttack(
+                    weakAttacker.CombatComponent!,
+                    strongDefender.CombatComponent!
+                )
+            )
             {
                 weakAttackerHits++;
             }
@@ -70,6 +92,7 @@ public class FightingSystemTests
 
         Assert.True(
             strongAttackerHits > weakAttackerHits,
-            $"Expected an attacker with much higher weapon skill to land more hits ({strongAttackerHits}) than one with much lower weapon skill ({weakAttackerHits}) over {rounds} rounds.");
+            $"Expected an attacker with much higher weapon skill to land more hits ({strongAttackerHits}) than one with much lower weapon skill ({weakAttackerHits}) over {rounds} rounds."
+        );
     }
 }

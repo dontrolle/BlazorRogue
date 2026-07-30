@@ -66,7 +66,8 @@ public class ConfigurationTests
         // indirectly here by asserting all currently-loaded floor set ids are unique - a duplicate
         // would previously have caused Parse() itself to throw before we ever got here.
         var configuration = ParseConfiguration();
-        var ids = configuration.StandardFloorSets.Select(t => t.Id)
+        var ids = configuration
+            .StandardFloorSets.Select(t => t.Id)
             .Concat(configuration.SpecialFloorSets.Select(t => t.Id));
 
         Assert.Equal(ids.Count(), ids.Distinct().Count());

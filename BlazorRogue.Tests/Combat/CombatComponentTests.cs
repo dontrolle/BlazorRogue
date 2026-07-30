@@ -4,7 +4,13 @@ namespace BlazorRogue.Tests.Combat;
 
 public class CombatComponentTests
 {
-    static Moveable CreateMoveable(int weaponSkill = 30, int weaponDamage = 8, int toughness = 30, int armour = 2, int wounds = 10)
+    static Moveable CreateMoveable(
+        int weaponSkill = 30,
+        int weaponDamage = 8,
+        int toughness = 30,
+        int armour = 2,
+        int wounds = 10
+    )
     {
         var type = new MoveableType(
             id: "test",
@@ -16,7 +22,8 @@ public class CombatComponentTests
             weaponDamage: weaponDamage,
             toughness: toughness,
             armour: armour,
-            wounds: wounds);
+            wounds: wounds
+        );
 
         return new Moveable(0, 0, aIComponent: null, type);
     }
@@ -41,7 +48,7 @@ public class CombatComponentTests
     [Fact]
     public void ApplyDamageBelowSoakThresholdDoesNotIncreaseWoundsBeyondMaxWounds()
     {
-        // When soaked damage (toughness bonus + armour) exceeds the raw damage, wounds 
+        // When soaked damage (toughness bonus + armour) exceeds the raw damage, wounds
         // should not go up. In other words, MaxWounds (aka initial wounds) should be respected.
         var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
         moveable.CombatComponent!.ApplyDamage(1);

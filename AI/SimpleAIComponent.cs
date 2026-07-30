@@ -33,7 +33,10 @@ class SimpleAIComponent(Map map) : AIComponent(map)
         {
             if (map.Player.X == destX && map.Player.Y == destY)
             {
-                bool hit = Combat.Warhammer.FightingSystem.CloseCombatAttack(Owner.CombatComponent!, map.Player.CombatComponent!);
+                bool hit = Combat.Warhammer.FightingSystem.CloseCombatAttack(
+                    Owner.CombatComponent!,
+                    map.Player.CombatComponent!
+                );
                 References.SoundManager.PlayCombatSound(hit);
             }
         }

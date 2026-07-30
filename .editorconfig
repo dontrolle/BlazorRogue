@@ -487,10 +487,10 @@ dotnet_diagnostic.IDE0130.severity = suggestion # IDE0130 "Namespace does not ma
 
 TED additions
 
-## Don't complain about Random, for now at least
+## Don't complain about Random
 [*.{cs,vb}]
 dotnet_diagnostic.CA5394.severity = none
 
-## Don't complain about jagged arrays, again - for now at least
+## Don't complain about jagged arrays
 [*.{cs,vb}]
 dotnet_diagnostic.CA1814.severity = none
