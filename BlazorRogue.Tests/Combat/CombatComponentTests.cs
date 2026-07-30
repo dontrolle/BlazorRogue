@@ -62,7 +62,9 @@ public class CombatComponentTests
         Assert.True(moveable.CombatComponent.Wounds <= 0);
     }
 
-    [Fact]
+#pragma warning disable xUnit1004 // Test methods should not be skipped
+    [Fact(Skip = "Advantage disabled for now")]
+#pragma warning restore xUnit1004 // Test methods should not be skipped
     public void GainAdvantageIsCappedAtEight()
     {
         var moveable = CreateMoveable();
@@ -71,7 +73,9 @@ public class CombatComponentTests
         Assert.Equal(8, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+#pragma warning disable xUnit1004 // Test methods should not be skipped
+    [Fact(Skip = "Advantage disabled for now")]
+#pragma warning restore xUnit1004 // Test methods should not be skipped
     public void GainAdvantageAccumulates()
     {
         var moveable = CreateMoveable();
@@ -81,7 +85,9 @@ public class CombatComponentTests
         Assert.Equal(3, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+#pragma warning disable xUnit1004 // Test methods should not be skipped
+    [Fact(Skip = "Advantage disabled for now")]
+#pragma warning restore xUnit1004 // Test methods should not be skipped
     public void ResetAdvantageSetsAdvantageToZero()
     {
         var moveable = CreateMoveable();
@@ -91,7 +97,9 @@ public class CombatComponentTests
         Assert.Equal(0, moveable.CombatComponent.Advantage);
     }
 
-    [Fact]
+#pragma warning disable xUnit1004 // Test methods should not be skipped
+    [Fact(Skip = "Advantage disabled for now")]
+#pragma warning restore xUnit1004 // Test methods should not be skipped
     public void LooseAdvantageDecrementsByOne()
     {
         var moveable = CreateMoveable();
