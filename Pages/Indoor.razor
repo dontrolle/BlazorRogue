@@ -276,10 +276,10 @@
       windowHeight = Math.Clamp(tilesY, minTilesY, game.Map.Height);
 
       // re-center viewport around player
-      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      int optimalXOffset = game.Map.Player.X - windowWidth / 2;
       windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
-      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
       windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
 
       // optional: keep move buffer proportional after resize
@@ -320,21 +320,21 @@
           renderAscii = true;
       }
 
-      int optimalXOffset = game.Map.Player.x - windowWidth / 2;
+      int optimalXOffset = game.Map.Player.X - windowWidth / 2;
       windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
-      int optimalYOffset = game.Map.Player.y - windowHeight / 2;
+      int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
       windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
   }
 
-  public void OnClick(Decoration decoration)
+  internal void OnClick(Decoration decoration)
   {
       decoration.OnUse?.Invoke();
       // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
       //       When I begin to do effecs, I may need to revisit this...
-      game.Map.UpdateBlocksLight(decoration.GameObject.x, decoration.GameObject.y, recomputeVisibility: true);
-      game.Map.UpdateBlockMovement(decoration.GameObject.x, decoration.GameObject.y);
-      game.Map.RenderGameObjects(decoration.GameObject.x, decoration.GameObject.y);
+      game.Map.UpdateBlocksLight(decoration.GameObject.X, decoration.GameObject.Y, recomputeVisibility: true);
+      game.Map.UpdateBlockMovement(decoration.GameObject.X, decoration.GameObject.Y);
+      game.Map.RenderGameObjects(decoration.GameObject.X, decoration.GameObject.Y);
       // TODO Don't I need to Render Moveables here also?
   }
 
@@ -347,24 +347,24 @@
 
           // adjust window
           // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
-          if (game.Map.Player.x - windowXOffset < windowMoveBufferX)
+          if (game.Map.Player.X - windowXOffset < windowMoveBufferX)
           {
               windowXOffset--;
           }
 
-          if (windowXOffset + windowWidth - game.Map.Player.x < windowMoveBufferX)
+          if (windowXOffset + windowWidth - game.Map.Player.X < windowMoveBufferX)
           {
               windowXOffset++;
           }
 
           windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
 
-          if (game.Map.Player.y - windowYOffset < windowMoveBufferY)
+          if (game.Map.Player.Y - windowYOffset < windowMoveBufferY)
           {
               windowYOffset--;
           }
 
-          if (windowYOffset + windowHeight - game.Map.Player.y < windowMoveBufferY)
+          if (windowYOffset + windowHeight - game.Map.Player.Y < windowMoveBufferY)
           {
               windowYOffset++;
           }

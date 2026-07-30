@@ -2,20 +2,20 @@
 using BlazorRogue.AI;
 using BlazorRogue.Combat.Warhammer;
 
-namespace BlazorRogue.GameObjects
-{
-  /// <summary>
-  /// GameObjects are all sorts of objects.
-  /// They know how to be rendered in to one of more Decorations on this or the surrounding tiles. 
-  /// </summary>
-  public abstract class GameObject
-  {
-    public int x { get; protected set; }
-    public int y { get; protected set; }
-    public bool Blocking { get; set; } = false;
-    public bool BlocksLight { get; set; } = false;
+namespace BlazorRogue.GameObjects;
 
-    public bool InvisibleOutsideFov { get; set; } = false;
+/// <summary>
+/// GameObjects are all sorts of objects.
+/// They know how to be rendered in to one of more Decorations on this or the surrounding tiles. 
+/// </summary>
+abstract class GameObject
+{
+    public int X { get; protected set; }
+    public int Y { get; protected set; }
+    public bool Blocking { get; set; }
+    public bool BlocksLight { get; set; }
+
+    public bool InvisibleOutsideFov { get; set; }
     public string Name { get; private set; }
     public virtual string InfoText { get; set; } = "";
 
@@ -36,40 +36,36 @@ namespace BlazorRogue.GameObjects
         UseableComponent? useableComponent = null,
         InventoryComponent? inventoryComponent = null)
     {
-      this.x = x;
-      this.y = y;
-      Name = name;
+        X = x;
+        Y = y;
+        Name = name;
 
-      AIComponent = aIComponent;
-      AIComponent?.SetOwner(this);
+        AIComponent = aIComponent;
+        AIComponent?.SetOwner(this);
 
-      CombatComponent = combatComponent;
-      CombatComponent?.SetOwner(this);
+        CombatComponent = combatComponent;
+        CombatComponent?.SetOwner(this);
 
-      UseableComponent = useableComponent;
-      UseableComponent?.SetOwner(this);
+        UseableComponent = useableComponent;
+        UseableComponent?.SetOwner(this);
 
-      InventoryComponent = inventoryComponent;
-      InventoryComponent?.SetOwner(this);
+        InventoryComponent = inventoryComponent;
+        InventoryComponent?.SetOwner(this);
     }
 
     public abstract void Render(Map map);
 
     public virtual void Move(int xDelta, int yDelta)
     {
-      x += xDelta;
-      y += yDelta;
+        X += xDelta;
+        Y += yDelta;
     }
 
-    protected virtual void OnGameObjectKilled(EventArgs e)
-    {
-      GameObjectKilled?.Invoke(this, e);
-    }
+    protected virtual void OnGameObjectKilled(EventArgs e) => GameObjectKilled?.Invoke(this, e);
 
     internal void Kill()
     {
-      References.SoundManager.PlayKillMonsterSound();
-      OnGameObjectKilled(new EventArgs());
+        References.SoundManager.PlayKillMonsterSound();
+        OnGameObjectKilled(new EventArgs());
     }
-  }
 }

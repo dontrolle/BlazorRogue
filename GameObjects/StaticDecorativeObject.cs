@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Linq;
 using BlazorRogue.Entities;
 
-namespace BlazorRogue.GameObjects
+namespace BlazorRogue.GameObjects;
+
+class StaticDecorativeObject : GameObject
 {
-  public class StaticDecorativeObject : GameObject
-  {
-    private readonly string image;
-    private readonly string imgFolder;
-    private readonly int verticalOffset;
-    private readonly string character;
-    private readonly string characterColor;
+    readonly string image;
+    readonly string imgFolder;
+    readonly int verticalOffset;
+    readonly string character;
+    readonly string characterColor;
 
     public StaticDecorativeObject(
         int x,
@@ -21,33 +20,29 @@ namespace BlazorRogue.GameObjects
         string? nameOverride = null,
         string? infoTextOverride = null) : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
     {
-      if (imageTag != null)
-      {
-        if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out string? imageVariant))
+        if (imageTag != null)
         {
-          throw new ArgumentException($"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}.");
+            if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out string? imageVariant))
+            {
+                throw new ArgumentException($"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}.");
+            }
+
+            image = imageVariant;
+        }
+        else
+        {
+            // if no tag is given, select a random image among the variants given
+            image = staticDecorativeObjectType.RandomImage;
         }
 
-        image = imageVariant;
-      }
-      else
-      {
-        // if no tag is given, select a random image among the variants given
-        image = staticDecorativeObjectType.RandomImage;
-      }
+        imgFolder = staticDecorativeObjectType.ImgFolder;
+        InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
+        verticalOffset = verticalOffsetOverride ?? staticDecorativeObjectType.VerticalOffset;
+        character = staticDecorativeObjectType.Character;
+        characterColor = staticDecorativeObjectType.CharacterColor;
 
-      imgFolder = staticDecorativeObjectType.ImgFolder;
-      InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
-      verticalOffset = verticalOffsetOverride ?? staticDecorativeObjectType.VerticalOffset;
-      character = staticDecorativeObjectType.Character;
-      characterColor = staticDecorativeObjectType.CharacterColor;
-
-      Blocking = staticDecorativeObjectType.Blocking;
+        Blocking = staticDecorativeObjectType.Blocking;
     }
 
-    public override void Render(Map map)
-    {
-      map.Decorations[x, y].Add(new Decoration(this, image, imgFolder) { VerticalOffset = verticalOffset, Character = character, CharacterColor = characterColor });
-    }
-  }
+    public override void Render(Map map) => map.Decorations[X, Y].Add(new Decoration(this, image, imgFolder) { VerticalOffset = verticalOffset, Character = character, CharacterColor = characterColor });
 }

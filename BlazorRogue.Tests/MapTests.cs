@@ -1,102 +1,95 @@
-using BlazorRogue.Entities;
+﻿using BlazorRogue.Entities;
 
-namespace BlazorRogue.Tests
+namespace BlazorRogue.Tests;
+
+public class MapTests
 {
-  public class MapTests
-  {
-    private static Map CreateMap(int width = 10, int height = 10)
+    static Map CreateMap(int width = 10, int height = 10)
     {
-      var wallSet = new TileSet("test_wall", TileType.Wall, "test", new[] { 0 });
-      return new Map(width, height, wallSet, game: null!);
+        var wallSet = new TileSet("test_wall", TileType.Wall, "test", [0]);
+        return new Map(width, height, wallSet, game: null!);
     }
 
     [Theory]
     [InlineData(0, 0, 0)]
     [InlineData(3, 4, 5)]
     [InlineData(6, 8, 10)]
-    public void GetDistance_ComputesEuclideanDistanceTruncated(int dx, int dy, int expected)
-    {
-      Assert.Equal(expected, Map.GetDistance(dx, dy));
-    }
+    public void GetDistanceComputesEuclideanDistanceTruncated(int dx, int dy, int expected) => Assert.Equal(expected, Map.GetDistance(dx, dy));
 
     [Theory]
     [InlineData(0, 0, 0)]
     [InlineData(3, 4, 25)]
     [InlineData(-3, 4, 25)]
-    public void GetDistanceSquared_ComputesSquaredDistance(int dx, int dy, int expected)
+    public void GetDistanceSquaredComputesSquaredDistance(int dx, int dy, int expected) => Assert.Equal(expected, Map.GetDistanceSquared(dx, dy));
+
+    [Fact]
+    public void ForEachTileVisitsEveryTileExactlyOnce()
     {
-      Assert.Equal(expected, Map.GetDistanceSquared(dx, dy));
+        var map = CreateMap(width: 4, height: 3);
+        var visited = new List<(int x, int y)>();
+
+        map.ForEachTile((x, y) => visited.Add((x, y)));
+
+        Assert.Equal(12, visited.Count);
+        Assert.Equal(12, visited.Distinct().Count());
+        Assert.Contains((0, 0), visited);
+        Assert.Contains((3, 2), visited);
     }
 
     [Fact]
-    public void ForEachTile_VisitsEveryTileExactlyOnce()
+    public void ForEachTileClipsBoundsToMapDimensions()
     {
-      var map = CreateMap(width: 4, height: 3);
-      var visited = new List<(int x, int y)>();
+        var map = CreateMap(width: 5, height: 5);
+        var visited = new List<(int x, int y)>();
 
-      map.ForEachTile((x, y) => visited.Add((x, y)));
+        // Requesting a much larger area than the map should silently clip, not throw.
+        map.ForEachTile((x, y) => visited.Add((x, y)), xMin: -10, xMax: 100, yMin: -10, yMax: 100);
 
-      Assert.Equal(12, visited.Count);
-      Assert.Equal(12, visited.Distinct().Count());
-      Assert.Contains((0, 0), visited);
-      Assert.Contains((3, 2), visited);
+        Assert.Equal(25, visited.Count);
     }
 
     [Fact]
-    public void ForEachTile_ClipsBoundsToMapDimensions()
+    public void BlocksLightReturnsTrueOutsideMapBounds()
     {
-      var map = CreateMap(width: 5, height: 5);
-      var visited = new List<(int x, int y)>();
+        var map = CreateMap(width: 5, height: 5);
 
-      // Requesting a much larger area than the map should silently clip, not throw.
-      map.ForEachTile((x, y) => visited.Add((x, y)), xMin: -10, xMax: 100, yMin: -10, yMax: 100);
-
-      Assert.Equal(25, visited.Count);
+        Assert.True(map.BlocksLight(-1, 0));
+        Assert.True(map.BlocksLight(0, -1));
+        Assert.True(map.BlocksLight(5, 0));
+        Assert.True(map.BlocksLight(0, 5));
     }
 
     [Fact]
-    public void BlocksLight_ReturnsTrueOutsideMapBounds()
+    public void SetVisibleMarksTileAsVisibleAndMapped()
     {
-      var map = CreateMap(width: 5, height: 5);
+        var map = CreateMap();
 
-      Assert.True(map.BlocksLight(-1, 0));
-      Assert.True(map.BlocksLight(0, -1));
-      Assert.True(map.BlocksLight(5, 0));
-      Assert.True(map.BlocksLight(0, 5));
+        map.SetVisible(2, 3);
+
+        Assert.True(map.IsVisibleMap[2, 3]);
+        Assert.True(map.IsMappedMap[2, 3]);
     }
 
     [Fact]
-    public void SetVisible_MarksTileAsVisibleAndMapped()
+    public void SetVisibleOutOfBoundsIsANoOp()
     {
-      var map = CreateMap();
+        var map = CreateMap(width: 5, height: 5);
 
-      map.SetVisible(2, 3);
-
-      Assert.True(map.IsVisibleMap[2, 3]);
-      Assert.True(map.IsMappedMap[2, 3]);
+        // Should not throw despite being out of bounds.
+        map.SetVisible(-1, 0);
+        map.SetVisible(0, 10);
     }
 
     [Fact]
-    public void SetVisible_OutOfBoundsIsANoOp()
+    public void IsBlockedBeforePostGenInitializeReflectsTileBlockingState()
     {
-      var map = CreateMap(width: 5, height: 5);
+        var map = CreateMap();
 
-      // Should not throw despite being out of bounds.
-      map.SetVisible(-1, 0);
-      map.SetVisible(0, 10);
+        // Tiles start out as blocking "dark" placeholder tiles until dungeon generation carves them out.
+        Assert.True(map.IsBlocked(2, 2));
+
+        map.Tiles[2, 2].Blocking = false;
+
+        Assert.False(map.IsBlocked(2, 2));
     }
-
-    [Fact]
-    public void IsBlocked_BeforePostGenInitialize_ReflectsTileBlockingState()
-    {
-      var map = CreateMap();
-
-      // Tiles start out as blocking "dark" placeholder tiles until dungeon generation carves them out.
-      Assert.True(map.IsBlocked(2, 2));
-
-      map.Tiles[2, 2].Blocking = false;
-
-      Assert.False(map.IsBlocked(2, 2));
-    }
-  }
 }

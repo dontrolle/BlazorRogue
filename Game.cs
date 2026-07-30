@@ -1,11 +1,9 @@
-﻿using System;
+﻿using BlazorRogue.Combat.Warhammer;
 
-using BlazorRogue.Combat.Warhammer;
+namespace BlazorRogue;
 
-namespace BlazorRogue
+class Game
 {
-  public class Game
-  {
     const int Width = 38;
     const int Height = 30;
 
@@ -20,19 +18,18 @@ namespace BlazorRogue
 
     public Game()
     {
-      Configuration = new Configuration();
-      References.Configuration = Configuration;
+        Configuration = new Configuration();
+        References.Configuration = Configuration;
 
-      // TODO pass as async 
-      Configuration.Parse();
-      DungeonGenerator = new DungeonGenerator(Width, Height, this);
-      FightingSystem = new FightingSystem(this);
+        // TODO: pass as async 
+        Configuration.Parse();
+        DungeonGenerator = new DungeonGenerator(Width, Height, this);
+        FightingSystem = new FightingSystem(this);
 
-      Map = DungeonGenerator.GenerateMap();
-      References.Map = Map;
+        Map = DungeonGenerator.GenerateMap();
+        References.Map = Map;
 
-      EffectsSystem = new EffectsSystem();
-      References.EffectsSystem = EffectsSystem;
+        EffectsSystem = new EffectsSystem();
+        References.EffectsSystem = EffectsSystem;
     }
-  }
 }

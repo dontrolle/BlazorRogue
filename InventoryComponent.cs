@@ -1,7 +1,6 @@
-﻿namespace BlazorRogue
+﻿namespace BlazorRogue;
+
+class InventoryComponent : Component
 {
-  public class InventoryComponent : Component
-  {
     public int Gold { internal set; get; }
-  }
 }

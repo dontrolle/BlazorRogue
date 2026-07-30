@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AnalysisLevel>preview-All</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>    
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
