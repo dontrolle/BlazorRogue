@@ -36,6 +36,7 @@ class DungeonGenerator
 
     readonly List<Room> rooms = [];
     readonly List<Tuple<int, int>> candidateDoors = [];
+
     class Room(int x, int y, int width, int height)
     {
         public int X { get; } = x;
@@ -60,7 +61,7 @@ class DungeonGenerator
     enum Level
     {
         Dungeon,
-        Cave
+        Cave,
     }
 
     readonly Level levelType;
@@ -85,7 +86,7 @@ class DungeonGenerator
     public Map GenerateMap()
     {
         // wait for config parse to finish
-        //configParsed.Wait(); // NO ASYNC 
+        //configParsed.Wait(); // NO ASYNC
 
         Tuple<int, int> playerPos;
 
@@ -125,7 +126,11 @@ class DungeonGenerator
         }
 
         var extraPos = GetRandomUnblockedMapTile();
-        var extraGoblin = new Moveable(extraPos, new SimpleAIComponent(map), configuration.MonsterTypes["goblin"]);
+        var extraGoblin = new Moveable(
+            extraPos,
+            new SimpleAIComponent(map),
+            configuration.MonsterTypes["goblin"]
+        );
         map.AddMonster(extraGoblin);
 
         // initialize various maps and so on in Map (it there a better place to do this?)
@@ -143,16 +148,48 @@ class DungeonGenerator
             if (map.Tiles[x, y].TileType == TileType.Floor)
             {
                 // Check if horizontal makes sense
-                if (x > 1 && x < map.Width - 1 && map.Tiles[x - 1, y].TileType == TileType.Wall && map.Tiles[x + 1, y].TileType == TileType.Wall)
+                if (
+                    x > 1
+                    && x < map.Width - 1
+                    && map.Tiles[x - 1, y].TileType == TileType.Wall
+                    && map.Tiles[x + 1, y].TileType == TileType.Wall
+                )
                 {
                     if (!MapTileContainsDoor(x, y))
-                        map.AddGameObject(new Door(x, y, GetRandomElement(doorTypes), random.Next(1, 4), Orientation.Horizontal, GetRandomBool()));
+                    {
+                        map.AddGameObject(
+                            new Door(
+                                x,
+                                y,
+                                GetRandomElement(doorTypes),
+                                random.Next(1, 4),
+                                Orientation.Horizontal,
+                                GetRandomBool()
+                            )
+                        );
+                    }
                 }
                 // Check if vertical makes sense
-                else if (y > 1 && y < map.Height - 1 && map.Tiles[x, y - 1].TileType == TileType.Wall && map.Tiles[x, y + 1].TileType == TileType.Wall)
+                else if (
+                    y > 1
+                    && y < map.Height - 1
+                    && map.Tiles[x, y - 1].TileType == TileType.Wall
+                    && map.Tiles[x, y + 1].TileType == TileType.Wall
+                )
                 {
                     if (!MapTileContainsDoor(x, y))
-                        map.AddGameObject(new Door(x, y, GetRandomElement(doorTypes), random.Next(1, 4), Orientation.Vertical, GetRandomBool()));
+                    {
+                        map.AddGameObject(
+                            new Door(
+                                x,
+                                y,
+                                GetRandomElement(doorTypes),
+                                random.Next(1, 4),
+                                Orientation.Vertical,
+                                GetRandomBool()
+                            )
+                        );
+                    }
                 }
             }
         }
@@ -240,7 +277,7 @@ class DungeonGenerator
                     else
                     {
                         CreateVerticalTunnelFloor(lastRoom, newRoom, lastRoom.CenterX);
-                        // place candidate door                        
+                        // place candidate door
                         int doorX = lastRoom.CenterX;
                         // y = lastRoom.Upper if newRoom is above lastRoom, else lastRoom.Lower
                         int doorY = lastRoom.Upper;
@@ -271,12 +308,16 @@ class DungeonGenerator
 
         bool[,] genmap = new bool[map.Width, map.Height];
 
-        void InitFill(int x, int y) => genmap[x, y] = random.Next(1, 101) < initWallPercentageChance;
+        void InitFill(int x, int y) =>
+            genmap[x, y] = random.Next(1, 101) < initWallPercentageChance;
 
         map.ForEachTile(InitFill);
 
         bool[,]? newmap = null;
-        void Generation1Fill(int x, int y) => newmap[x, y] = SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5 || SurroundingWallNumberWithinN(genmap, x, y, 2) <= 1;
+        void Generation1Fill(int x, int y) =>
+            newmap[x, y] =
+                SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5
+                || SurroundingWallNumberWithinN(genmap, x, y, 2) <= 1;
 
         for (int i = 0; i < 4; i++)
         {
@@ -285,7 +326,8 @@ class DungeonGenerator
             genmap = newmap;
         }
 
-        void Generation2Fill(int x, int y) => newmap[x, y] = SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5;
+        void Generation2Fill(int x, int y) =>
+            newmap[x, y] = SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5;
 
         for (int i = 0; i < 3; i++)
         {
@@ -311,14 +353,19 @@ class DungeonGenerator
     {
         // TODO: UF
         string caveGenTileSet = "crusted_grey";
-        var floorset = configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == caveGenTileSet) ?? throw new InvalidOperationException("Missing tileset " + caveGenTileSet + " in read configuration.");
+        var floorset =
+            configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == caveGenTileSet)
+            ?? throw new InvalidOperationException(
+                "Missing tileset " + caveGenTileSet + " in read configuration."
+            );
         int[] floorIndexes = [1, 2, 3, 4];
         FillMap(genmap, floorset);
 
         return GetRandomUnblockedMapTile();
     }
 
-    void FillMap(bool[,] genmap, TileSet floorset) => map.ForEachTile(
+    void FillMap(bool[,] genmap, TileSet floorset) =>
+        map.ForEachTile(
             (x, y) =>
             {
                 if (genmap[x, y])
@@ -363,7 +410,9 @@ class DungeonGenerator
             if (!map.IsBlocked(x, y))
                 return Tuple.Create(x, y);
         }
-        throw new InvalidOperationException($"Couldn't find an unblocked tile on map in {maxSearch} tries!");
+        throw new InvalidOperationException(
+            $"Couldn't find an unblocked tile on map in {maxSearch} tries!"
+        );
     }
 
     void CreateHorizontalTunnelFloor(Room fromRoom, Room toRoom, int y)
@@ -383,7 +432,9 @@ class DungeonGenerator
         var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset }).Intersect(configuration.StandardFloorSets).ToArray();
+        var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset })
+            .Intersect(configuration.StandardFloorSets)
+            .ToArray();
 
         // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
         var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
@@ -418,7 +469,9 @@ class DungeonGenerator
         var from_floor_tileset = map.Tiles[fromRoom.CenterX, fromRoom.CenterY].TileSet;
         var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
-        var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset }).Intersect(configuration.StandardFloorSets).ToArray();
+        var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset })
+            .Intersect(configuration.StandardFloorSets)
+            .ToArray();
 
         // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
         var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
@@ -453,28 +506,62 @@ class DungeonGenerator
     {
         if (map.Tiles[x, y].TileType == TileType.Floor)
         {
-            if (random.NextDouble() < PercentageChanceOfBones && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+            if (
+                random.NextDouble() < PercentageChanceOfBones
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
             {
-                map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["bones"]));
+                map.AddGameObject(
+                    new StaticDecorativeObject(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes["bones"]
+                    )
+                );
             }
 
-            if (random.NextDouble() < percentageChanceOfTables && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+            if (
+                random.NextDouble() < percentageChanceOfTables
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
-                    map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["table"]));
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["table"]
+                        )
+                    );
                 }
             }
 
-            if (random.NextDouble() < percentageChanceOfAltars && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+            if (
+                random.NextDouble() < percentageChanceOfAltars
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
-                    map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["altar_blood"]));
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["altar_blood"]
+                        )
+                    );
                 }
             }
 
-            if (random.NextDouble() < percentageChanceOfChests && !MapTileContainsDoor(x, y) && !map.IsBlocked(x, y))
+            if (
+                random.NextDouble() < percentageChanceOfChests
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
             {
                 string chestId = "chest_gold";
                 if (random.Next(0, 2) == 0)
@@ -484,7 +571,9 @@ class DungeonGenerator
 
                 int gold = random.Next(0, 4);
 
-                map.AddGameObject(new Chest(x, y, chestId, new InventoryComponent() { Gold = gold }));
+                map.AddGameObject(
+                    new Chest(x, y, chestId, new InventoryComponent() { Gold = gold })
+                );
             }
 
             // in the following we rely on floors never being placed on the perimeter tiles, else we could do
@@ -520,7 +609,15 @@ class DungeonGenerator
                 if (!string.IsNullOrEmpty(corner))
                 {
                     // i.e., we found a suitable spot for a spiderweb
-                    map.AddGameObject(new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes["corner_spiderweb"], corner, verticalOffset));
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["corner_spiderweb"],
+                            corner,
+                            verticalOffset
+                        )
+                    );
                 }
             }
         }
@@ -551,15 +648,22 @@ class DungeonGenerator
 
     void AddPostGenWallDecorations(int x, int y)
     {
-        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above 
+        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above
         // if tile above has door, select from 1-3, else from tiles 1-6
         if (y > 0)
         {
-            if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y - 1].TileType == TileType.Floor || map.Tiles[x, y - 1].TileType == TileType.Black))
+            if (
+                map.Tiles[x, y].TileType == TileType.Wall
+                && (
+                    map.Tiles[x, y - 1].TileType == TileType.Floor
+                    || map.Tiles[x, y - 1].TileType == TileType.Black
+                )
+            )
             {
                 int[] halfwallIndexes = map.DungeonWallSet.ImageEdgeNorthIndexes;
 
-                bool restrictToSimplerHalfWall = MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
+                bool restrictToSimplerHalfWall =
+                    MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
                 if (restrictToSimplerHalfWall)
                 {
                     halfwallIndexes = map.DungeonWallSet.ImageSimpleEdgeNorthIndexes;
@@ -572,14 +676,25 @@ class DungeonGenerator
                 if (levelType == Level.Cave)
                 {
                     // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
-                    if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
+                    if (
+                        x > 0
+                        && (
+                            map.Tiles[x - 1, y].TileType == TileType.Floor
+                            || map.Tiles[x - 1, y].TileType == TileType.Black
+                        )
+                    )
                     {
                         map.AddGameObject(new CaveEdge(x, y, 1, -1, -1));
                         //map.DebugInfo.Add($"Halfwall left cave edge at ({x},{y})");
                     }
 
-
-                    if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                    if (
+                        x < map.Width - 1
+                        && (
+                            map.Tiles[x + 1, y].TileType == TileType.Floor
+                            || map.Tiles[x + 1, y].TileType == TileType.Black
+                        )
+                    )
                     {
                         map.AddGameObject(new CaveEdge(x, y, 2, -1, 1));
                         //map.DebugInfo.Add($"Halfwall right cave edge at ({x},{y})");
@@ -591,9 +706,18 @@ class DungeonGenerator
         // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
         if (y < map.Height - 1)
         {
-            if (map.Tiles[x, y].TileType == TileType.Wall && (map.Tiles[x, y + 1].TileType == TileType.Floor || map.Tiles[x, y + 1].TileType == TileType.Black))
+            if (
+                map.Tiles[x, y].TileType == TileType.Wall
+                && (
+                    map.Tiles[x, y + 1].TileType == TileType.Floor
+                    || map.Tiles[x, y + 1].TileType == TileType.Black
+                )
+            )
             {
-                int index = GetRandomElementWeighted(map.DungeonWallSet.ImageSouthEdgeIndexes, map.DungeonWallSet.ImageSouthEdgeWeights);
+                int index = GetRandomElementWeighted(
+                    map.DungeonWallSet.ImageSouthEdgeIndexes,
+                    map.DungeonWallSet.ImageSouthEdgeWeights
+                );
                 bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
                 if (mapTileBelowHasDoor)
                 {
@@ -604,7 +728,11 @@ class DungeonGenerator
 
                 // check for adding torch
                 // TODO: UF
-                if (!mapTileBelowHasDoor && map.Tiles[x, y + 1].TileType == TileType.Floor && random.NextDouble() < percentageChanceOfTorch)
+                if (
+                    !mapTileBelowHasDoor
+                    && map.Tiles[x, y + 1].TileType == TileType.Floor
+                    && random.NextDouble() < percentageChanceOfTorch
+                )
                 {
                     map.AddGameObject(new Torch(x, y));
                     //map.DebugInfo.Add($"Added torch at ({x},{y}).");
@@ -615,12 +743,24 @@ class DungeonGenerator
                 if (levelType == Level.Cave)
                 {
                     // - add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
-                    if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
+                    if (
+                        x > 0
+                        && (
+                            map.Tiles[x - 1, y].TileType == TileType.Floor
+                            || map.Tiles[x - 1, y].TileType == TileType.Black
+                        )
+                    )
                     {
                         map.AddGameObject(new CaveEdge(x, y, 5, 0, -1));
                     }
 
-                    if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                    if (
+                        x < map.Width - 1
+                        && (
+                            map.Tiles[x + 1, y].TileType == TileType.Floor
+                            || map.Tiles[x + 1, y].TileType == TileType.Black
+                        )
+                    )
                     {
                         map.AddGameObject(new CaveEdge(x, y, 6, 0, 1));
                     }
@@ -634,12 +774,24 @@ class DungeonGenerator
             // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
             if (map.Tiles[x, y].TileType == TileType.Wall)
             {
-                if (x > 0 && (map.Tiles[x - 1, y].TileType == TileType.Floor || map.Tiles[x - 1, y].TileType == TileType.Black))
+                if (
+                    x > 0
+                    && (
+                        map.Tiles[x - 1, y].TileType == TileType.Floor
+                        || map.Tiles[x - 1, y].TileType == TileType.Black
+                    )
+                )
                 {
                     map.AddGameObject(new CaveEdge(x, y, 3, 0, -1));
                 }
 
-                if (x < map.Width - 1 && (map.Tiles[x + 1, y].TileType == TileType.Floor || map.Tiles[x + 1, y].TileType == TileType.Black))
+                if (
+                    x < map.Width - 1
+                    && (
+                        map.Tiles[x + 1, y].TileType == TileType.Floor
+                        || map.Tiles[x + 1, y].TileType == TileType.Black
+                    )
+                )
                 {
                     map.AddGameObject(new CaveEdge(x, y, 4, 0, 1));
                 }
@@ -652,7 +804,8 @@ class DungeonGenerator
     T GetRandomElement<T>(T[] elements) => elements[random.Next(0, elements.Length)];
 
 #pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
-    T GetRandomElement<T>(IEnumerable<T> elements) => elements.ElementAt(random.Next(0, elements.Count()));
+    T GetRandomElement<T>(IEnumerable<T> elements) =>
+        elements.ElementAt(random.Next(0, elements.Count()));
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
 
     T GetRandomElementWeighted<T>(T[] elements, double[] weights)
@@ -680,7 +833,10 @@ class DungeonGenerator
     {
         // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
         map.Tiles[x, y].TileSet = map.DungeonWallSet;
-        map.Tiles[x, y].TileIndex = GetRandomElementWeighted(map.DungeonWallSet.ImageBaseIndexes, map.DungeonWallSet.ImageBaseWeights);
+        map.Tiles[x, y].TileIndex = GetRandomElementWeighted(
+            map.DungeonWallSet.ImageBaseIndexes,
+            map.DungeonWallSet.ImageBaseWeights
+        );
         map.Tiles[x, y].Blocking = true;
     }
 
@@ -694,7 +850,8 @@ class DungeonGenerator
 
     void CreateRoomFloor(Room room) => CreateRoom(room, true);
 
-    void CreateRoom(Room room, bool elideOuterWalls = false) => CreateRoom(room.X, room.Y, room.Width, room.Height, elideOuterWalls);
+    void CreateRoom(Room room, bool elideOuterWalls = false) =>
+        CreateRoom(room.X, room.Y, room.Width, room.Height, elideOuterWalls);
 
     void CreateRoom(int left_x, int top_y, int width, int height, bool elideOuterWalls = false)
     {
@@ -703,7 +860,11 @@ class DungeonGenerator
         // choose random floor-set for this room
         var floorset = GetRandomElement(configuration.StandardFloorSets);
         //bool specialRoom = false;
-        if (width >= SpecialRoomWidth && height >= SpecialRoomHeight && random.NextDouble() < PercentageChanceOfSpecialRoom)
+        if (
+            width >= SpecialRoomWidth
+            && height >= SpecialRoomHeight
+            && random.NextDouble() < PercentageChanceOfSpecialRoom
+        )
         {
             //specialRoom = true;
             floorset = GetRandomElement(configuration.SpecialFloorSets);

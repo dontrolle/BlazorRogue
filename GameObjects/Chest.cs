@@ -2,35 +2,35 @@
 
 namespace BlazorRogue.GameObjects;
 
-class Chest(
-    int x,
-    int y,
-    string id,
-    InventoryComponent content) : GameObject(
+class Chest(int x, int y, string id, InventoryComponent content)
+    : GameObject(
         x,
         y,
         References.Configuration.StaticDecorativeObjectTypes[id].Name,
         useableComponent: new UseableComponent(Use),
-        inventoryComponent: content)
+        inventoryComponent: content
+    )
 {
     readonly string id = id;
 
-    public override string InfoText => $"{References.Configuration.StaticDecorativeObjectTypes[id].InfoText} ({ChestStateToString(this)})";
+    public override string InfoText =>
+        $"{References.Configuration.StaticDecorativeObjectTypes[id].InfoText} ({ChestStateToString(this)})";
 
     internal enum ChestState
     {
         Closed,
-        Open
+        Open,
     }
 
     public ChestState State = ChestState.Closed;
 
-    static string ChestStateToString(Chest chest) => chest.State switch
-    {
-        ChestState.Closed => "Closed",
-        ChestState.Open => $"{chest.InventoryComponent!.Gold} gold",
-        _ => throw new InvalidOperationException($"Unknown ChestState: {chest.State}"),
-    };
+    static string ChestStateToString(Chest chest) =>
+        chest.State switch
+        {
+            ChestState.Closed => "Closed",
+            ChestState.Open => $"{chest.InventoryComponent!.Gold} gold",
+            _ => throw new InvalidOperationException($"Unknown ChestState: {chest.State}"),
+        };
 
     static void Use(GameObject go)
     {
@@ -50,7 +50,9 @@ class Chest(
                 case ChestState.Open:
                     if (chest.InventoryComponent.Gold > 0)
                     {
-                        References.Map.Player.InventoryComponent!.Gold += chest.InventoryComponent.Gold;
+                        References.Map.Player.InventoryComponent!.Gold += chest
+                            .InventoryComponent
+                            .Gold;
                         chest.InventoryComponent.Gold = 0;
                         References.SoundManager.PlayPickupMoney();
                     }
@@ -66,7 +68,9 @@ class Chest(
         }
         else
         {
-            throw new InvalidOperationException($"{nameof(Use)} called with {nameof(GameObject)} not of type {nameof(Chest)}.");
+            throw new InvalidOperationException(
+                $"{nameof(Use)} called with {nameof(GameObject)} not of type {nameof(Chest)}."
+            );
         }
     }
 
@@ -81,14 +85,25 @@ class Chest(
                 img = sdot.ImageVariants["closed"];
                 break;
             case ChestState.Open:
-                img = InventoryComponent!.Gold > 0 ? sdot.ImageVariants["open_full"] : sdot.ImageVariants["open_empty"];
+                img =
+                    InventoryComponent!.Gold > 0
+                        ? sdot.ImageVariants["open_full"]
+                        : sdot.ImageVariants["open_empty"];
 
                 break;
             default:
                 break;
         }
 
-        map.Decorations[X, Y].Add(new Decoration(this, img, sdot.ImgFolder) { Character = sdot.Character, CharacterColor = sdot.CharacterColor, OnUse = UseableComponent!.Use });
+        map.Decorations[X, Y]
+            .Add(
+                new Decoration(this, img, sdot.ImgFolder)
+                {
+                    Character = sdot.Character,
+                    CharacterColor = sdot.CharacterColor,
+                    OnUse = UseableComponent!.Use,
+                }
+            );
         //TODO:Cleanup
         //// add a separate decoration for onUse (without own graphic) to interact with the door
         //map.Decorations[x, y].Add(new Decoration(this, null) { OnUse = UseableComponent.Use });

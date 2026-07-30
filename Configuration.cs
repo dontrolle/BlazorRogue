@@ -12,9 +12,9 @@ namespace BlazorRogue;
 /// </summary>
 /// <remarks>
 /// Designed for tilesets from Ultimate Fantasy set, right now.
-/// Not too hard to generalize, though; simply work with together with generalization of <see cref="TileSet"/> to point only to images for tiles 
+/// Not too hard to generalize, though; simply work with together with generalization of <see cref="TileSet"/> to point only to images for tiles
 /// and their positions.
-/// 
+///
 /// Allows only a single character + color for a tileset.
 /// </remarks>
 class Configuration
@@ -33,7 +33,8 @@ class Configuration
     public IReadOnlyDictionary<string, MoveableType> HeroTypes => heroTypes;
 
     readonly Dictionary<string, StaticDecorativeObjectType> staticDecorativeObjectTypes = [];
-    public IReadOnlyDictionary<string, StaticDecorativeObjectType> StaticDecorativeObjectTypes => staticDecorativeObjectTypes;
+    public IReadOnlyDictionary<string, StaticDecorativeObjectType> StaticDecorativeObjectTypes =>
+        staticDecorativeObjectTypes;
 
     readonly HashSet<string> floorSetIds = [];
 
@@ -55,27 +56,39 @@ class Configuration
 
     public void Parse() // Task async
     {
-        var options = new JsonDocumentOptions
-        {
-            AllowTrailingCommas = true
-        };
+        var options = new JsonDocumentOptions { AllowTrailingCommas = true };
 
         ParseDataFile(options, HeroesFileName, "heroes", e => ParseMoveableType(e, heroTypes));
-        ParseDataFile(options, MonsterFileName, "monsters", e => ParseMoveableType(e, monsterTypes));
+        ParseDataFile(
+            options,
+            MonsterFileName,
+            "monsters",
+            e => ParseMoveableType(e, monsterTypes)
+        );
         ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
         ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
-        ParseDataFile(options, DecorationsFileName, "static_decorations", ParseStaticDecorativeType);
+        ParseDataFile(
+            options,
+            DecorationsFileName,
+            "static_decorations",
+            ParseStaticDecorativeType
+        );
     }
 
     /// <summary>
-    /// Parse JSON data file. Expects a single type of assets in the file, and a named root property given in <paramref name="rootProperty"/> 
+    /// Parse JSON data file. Expects a single type of assets in the file, and a named root property given in <paramref name="rootProperty"/>
     /// with an array of elements inside parsable by <paramref name="parseElement"/>.
     /// </summary>
     /// <param name="options">JsonDocumentOptions for JsonDocument.Parse().</param>
     /// <param name="fileName">Name of data file to parse.</param>
     /// <param name="rootProperty">Root property in JSON file to look for.</param>
     /// <param name="parseElement">Parse function for each element.</param>
-    static void ParseDataFile(JsonDocumentOptions options, string fileName, string rootProperty, Action<JsonElement> parseElement)
+    static void ParseDataFile(
+        JsonDocumentOptions options,
+        string fileName,
+        string rootProperty,
+        Action<JsonElement> parseElement
+    )
     {
         using var jsonFile = File.OpenRead(fileName);
         using var doc = JsonDocument.Parse(jsonFile, options);
@@ -88,7 +101,10 @@ class Configuration
 
     void ParseFloorSetType(JsonElement element)
     {
-        string id, imgPrefix, charFloor, charColor;
+        string id,
+            imgPrefix,
+            charFloor,
+            charColor;
         bool special;
         var imgFloorList = new List<int>();
 
@@ -99,7 +115,15 @@ class Configuration
         charFloor = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
-        var t = new TileSet(id, TileType.Floor, imgPrefix, [.. imgFloorList], null, character: charFloor, characterColor: charColor);
+        var t = new TileSet(
+            id,
+            TileType.Floor,
+            imgPrefix,
+            [.. imgFloorList],
+            null,
+            character: charFloor,
+            characterColor: charColor
+        );
 
         if (!floorSetIds.Add(id))
         {
@@ -118,7 +142,10 @@ class Configuration
 
     void ParseWallSetType(JsonElement element)
     {
-        string id, imgPrefix, character, charColor;
+        string id,
+            imgPrefix,
+            character,
+            charColor;
         string levelType;
         var imgBaseIndexes = new List<int>();
         var imgBaseWeights = new List<double>();
@@ -132,9 +159,18 @@ class Configuration
         imgPrefix = GetRequiredString(element, "img_prefix");
 
         ParseIndexAndWeights(element, "img_base", imgBaseIndexes, imgBaseWeights);
-        ParseIndexAndWeights(element, "img_base_edge_south", imgBaseEdgeSouthIndexes, imgBaseEdgeSouthWeights);
+        ParseIndexAndWeights(
+            element,
+            "img_base_edge_south",
+            imgBaseEdgeSouthIndexes,
+            imgBaseEdgeSouthWeights
+        );
         GetIntArray(element.GetProperty("img_edge_north"), "simple", imgSimpleEdgeNorthIndexes);
-        GetIntArray(element.GetProperty("img_edge_north"), "decorated", imgDecoratedEdgeNorthIndexes);
+        GetIntArray(
+            element.GetProperty("img_edge_north"),
+            "decorated",
+            imgDecoratedEdgeNorthIndexes
+        );
 
         character = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
@@ -150,7 +186,8 @@ class Configuration
             [.. imgSimpleEdgeNorthIndexes],
             [.. imgDecoratedEdgeNorthIndexes],
             character: character,
-            characterColor: charColor);
+            characterColor: charColor
+        );
 
         if (!wallSetIds.Add(id))
         {
@@ -167,7 +204,9 @@ class Configuration
         }
         else
         {
-            throw new InvalidOperationException($"Unknown level_type '{levelType}' in wall-set with id: {id}.");
+            throw new InvalidOperationException(
+                $"Unknown level_type '{levelType}' in wall-set with id: {id}."
+            );
         }
     }
 
@@ -181,18 +220,30 @@ class Configuration
     /// Get the string value of a required JSON property. Throws if the property's value is JSON null,
     /// since the data files aren't expected to ever supply null for these fields.
     /// </summary>
-    static string GetRequiredString(JsonElement element, string property) => RequireNonNullString(element.GetProperty(property), property);
+    static string GetRequiredString(JsonElement element, string property) =>
+        RequireNonNullString(element.GetProperty(property), property);
 
-    static string RequireNonNullString(JsonElement stringElement, string propertyNameForError) => stringElement.GetString() ?? throw new InvalidOperationException($"Property '{propertyNameForError}' was expected to have a non-null string value.");
+    static string RequireNonNullString(JsonElement stringElement, string propertyNameForError) =>
+        stringElement.GetString()
+        ?? throw new InvalidOperationException(
+            $"Property '{propertyNameForError}' was expected to have a non-null string value."
+        );
 
-    static void ParseIndexAndWeights(JsonElement element, string imgName, List<int> imgArray, List<double> imgWeightArray)
+    static void ParseIndexAndWeights(
+        JsonElement element,
+        string imgName,
+        List<int> imgArray,
+        List<double> imgWeightArray
+    )
     {
         var indexAndWeights = element.GetProperty(imgName);
         foreach (var indexAndWeight in indexAndWeights.EnumerateArray())
         {
             if (indexAndWeight.GetArrayLength() != 2)
             {
-                throw new InvalidOperationException($"All elements of {imgName} must be tuples of [<index>,<weight>], i.e., JSON arrays of length 2.");
+                throw new InvalidOperationException(
+                    $"All elements of {imgName} must be tuples of [<index>,<weight>], i.e., JSON arrays of length 2."
+                );
             }
 
             imgArray.Add(indexAndWeight[0].GetInt32());
@@ -200,7 +251,10 @@ class Configuration
         }
     }
 
-    static void ParseMoveableType(JsonElement element, Dictionary<string, MoveableType> moveableDictionary)
+    static void ParseMoveableType(
+        JsonElement element,
+        Dictionary<string, MoveableType> moveableDictionary
+    )
     {
         ParseMoveable(
             element,
@@ -213,9 +267,21 @@ class Configuration
             out int wounds,
             out string animationClass,
             out string character,
-            out string characterColor);
+            out string characterColor
+        );
 
-        var m = new MoveableType(id, name, animationClass, character, characterColor, weaponSkill, weaponDamage, toughness, armour, wounds);
+        var m = new MoveableType(
+            id,
+            name,
+            animationClass,
+            character,
+            characterColor,
+            weaponSkill,
+            weaponDamage,
+            toughness,
+            armour,
+            wounds
+        );
         moveableDictionary.Add(id, m);
     }
 
@@ -230,7 +296,8 @@ class Configuration
         out int wounds,
         out string animationClass,
         out string character,
-        out string characterColor)
+        out string characterColor
+    )
     {
         id = GetRequiredString(element, "id");
         name = GetRequiredString(element, "name");
@@ -255,7 +322,7 @@ class Configuration
         var imageProperty = element.GetProperty(imagePropertyName);
         if (imageProperty.ValueKind == JsonValueKind.Object)
         {
-            /* Expected format 
+            /* Expected format
              * {
              *  "<tag>" : "<imagefilenameWithoutPng>",
              *  ...
@@ -264,17 +331,20 @@ class Configuration
 
             foreach (var iElem in imageProperty.EnumerateObject())
             {
-                images.Add(iElem.Name, RequireNonNullString(iElem.Value, $"{imagePropertyName}.{iElem.Name}"));
+                images.Add(
+                    iElem.Name,
+                    RequireNonNullString(iElem.Value, $"{imagePropertyName}.{iElem.Name}")
+                );
             }
         }
         else if (imageProperty.ValueKind == JsonValueKind.Array)
         {
-            /* Expected format 
+            /* Expected format
              * [
              *  "<imagefilenameWithoutPng>",
              *  ...
              * ]
-             * 
+             *
              * Tags will be set to "0", "1", ...
              */
 
@@ -287,9 +357,9 @@ class Configuration
         }
         else if (imageProperty.ValueKind == JsonValueKind.String)
         {
-            /* Expected format 
+            /* Expected format
              *  "<imagefilenameWithoutPng>"
-             * 
+             *
              * Tag will be set to ""
              */
 
@@ -297,7 +367,9 @@ class Configuration
         }
         else
         {
-            throw new InvalidOperationException($"{imagePropertyName} should be either a single string, an array of strings, or an object with string, string pairs.");
+            throw new InvalidOperationException(
+                $"{imagePropertyName} should be either a single string, an array of strings, or an object with string, string pairs."
+            );
         }
 
         string infoText = GetRequiredString(element, "info_text");
@@ -317,7 +389,17 @@ class Configuration
             blocking = blockingElement.GetBoolean();
         }
 
-        var dec = new StaticDecorativeObjectType(id, name, images, infoText, verticalOffset, character, characterColor, blocking, imgFolder);
+        var dec = new StaticDecorativeObjectType(
+            id,
+            name,
+            images,
+            infoText,
+            verticalOffset,
+            character,
+            characterColor,
+            blocking,
+            imgFolder
+        );
         staticDecorativeObjectTypes.Add(id, dec);
     }
 }

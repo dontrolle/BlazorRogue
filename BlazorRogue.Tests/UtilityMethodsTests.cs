@@ -8,7 +8,10 @@ public class UtilityMethodsTests
     [InlineData("g", "G")]
     [InlineData("g1", "G1")]
     [InlineData("ALREADY", "ALREADY")]
-    public void FirstLetterToUpperCaseCapitalizesOnlyFirstCharacter(string input, string expected) => Assert.Equal(expected, input.FirstLetterToUpperCase());
+    public void FirstLetterToUpperCaseCapitalizesOnlyFirstCharacter(
+        string input,
+        string expected
+    ) => Assert.Equal(expected, input.FirstLetterToUpperCase());
 
     [Fact]
     public void FirstLetterToUpperCaseReturnsEmptyStringForNull()
@@ -18,5 +21,6 @@ public class UtilityMethodsTests
     }
 
     [Fact]
-    public void FirstLetterToUpperCaseReturnsEmptyStringForEmpty() => Assert.Equal(string.Empty, "".FirstLetterToUpperCase());
+    public void FirstLetterToUpperCaseReturnsEmptyStringForEmpty() =>
+        Assert.Equal(string.Empty, "".FirstLetterToUpperCase());
 }

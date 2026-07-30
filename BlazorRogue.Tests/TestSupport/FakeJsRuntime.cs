@@ -9,9 +9,14 @@ namespace BlazorRogue.Tests.TestSupport;
 /// </summary>
 sealed class FakeJsRuntime : IJSRuntime
 {
-    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+        ValueTask.FromResult(default(TValue)!);
 
-    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+    public ValueTask<TValue> InvokeAsync<TValue>(
+        string identifier,
+        CancellationToken cancellationToken,
+        object?[]? args
+    ) => ValueTask.FromResult(default(TValue)!);
 }
 
 /// <summary>
@@ -22,5 +27,6 @@ sealed class FakeJsRuntime : IJSRuntime
 static class AssemblySetup
 {
     [ModuleInitializer]
-    public static void Initialize() => References.SoundManager = new SoundManager(new FakeJsRuntime());
+    public static void Initialize() =>
+        References.SoundManager = new SoundManager(new FakeJsRuntime());
 }

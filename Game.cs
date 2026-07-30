@@ -9,6 +9,7 @@ class Game
 
     public DungeonGenerator DungeonGenerator { get; private set; }
     public Map Map { get; private set; }
+
     // Set up before the first Game instance is constructed; null! avoids forcing nullable-checks
     // throughout the codebase for a value that's always non-null in practice.
     public static SoundManager SoundManager { get; set; } = null!;
@@ -21,7 +22,7 @@ class Game
         Configuration = new Configuration();
         References.Configuration = Configuration;
 
-        // TODO: pass as async 
+        // TODO: pass as async
         Configuration.Parse();
         DungeonGenerator = new DungeonGenerator(Width, Height, this);
         FightingSystem = new FightingSystem(this);

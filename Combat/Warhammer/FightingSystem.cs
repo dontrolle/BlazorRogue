@@ -14,13 +14,20 @@ class FightingSystem(Game game)
 
         Debug.WriteLine($"----------------------------");
         int toHitRoll = Dice.RollD100();
-        Debug.WriteLine($"{attacker.Owner!.Name} rolls {toHitRoll} and has adv {attacker.Advantage}");
+        Debug.WriteLine(
+            $"{attacker.Owner!.Name} rolls {toHitRoll} and has adv {attacker.Advantage}"
+        );
         int attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
         Debug.WriteLine($" => SL {attackerSL}");
 
         int toDefendRoll = Dice.RollD100();
-        Debug.WriteLine($"{defender.Owner!.Name} rolls {toDefendRoll} and has adv {defender.Advantage}");
-        int defenderSL = Dice.GetSuccessLevel(toDefendRoll, defender.WeaponSkill + defender.Advantage);
+        Debug.WriteLine(
+            $"{defender.Owner!.Name} rolls {toDefendRoll} and has adv {defender.Advantage}"
+        );
+        int defenderSL = Dice.GetSuccessLevel(
+            toDefendRoll,
+            defender.WeaponSkill + defender.Advantage
+        );
         Debug.WriteLine($" => {defenderSL}");
 
         bool hit = false;

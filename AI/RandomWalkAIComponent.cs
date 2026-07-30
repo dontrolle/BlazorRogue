@@ -14,7 +14,6 @@ class RandomWalkAIComponent(Map map) : AIComponent(map)
             return;
         }
 
-
         int dx = random.Next(-1, 2);
         int dy = random.Next(-1, 2);
 

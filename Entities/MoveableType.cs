@@ -10,7 +10,8 @@ class MoveableType(
     int weaponDamage,
     int toughness,
     int armour,
-    int wounds)
+    int wounds
+)
 {
     public string AnimationClass { get; } = animationClass;
     public string Id { get; } = id;
