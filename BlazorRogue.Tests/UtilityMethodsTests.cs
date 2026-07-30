@@ -1,29 +1,22 @@
-namespace BlazorRogue.Tests
+﻿namespace BlazorRogue.Tests;
+
+public class UtilityMethodsTests
 {
-  public class UtilityMethodsTests
-  {
     [Theory]
     [InlineData("goblin", "Goblin")]
     [InlineData("Goblin", "Goblin")]
     [InlineData("g", "G")]
     [InlineData("g1", "G1")]
     [InlineData("ALREADY", "ALREADY")]
-    public void FirstLetterToUpperCase_CapitalizesOnlyFirstCharacter(string input, string expected)
+    public void FirstLetterToUpperCaseCapitalizesOnlyFirstCharacter(string input, string expected) => Assert.Equal(expected, input.FirstLetterToUpperCase());
+
+    [Fact]
+    public void FirstLetterToUpperCaseReturnsEmptyStringForNull()
     {
-      Assert.Equal(expected, input.FirstLetterToUpperCase());
+        string? input = null;
+        Assert.Equal(string.Empty, input!.FirstLetterToUpperCase());
     }
 
     [Fact]
-    public void FirstLetterToUpperCase_ReturnsEmptyStringForNull()
-    {
-      string? input = null;
-      Assert.Equal(string.Empty, input!.FirstLetterToUpperCase());
-    }
-
-    [Fact]
-    public void FirstLetterToUpperCase_ReturnsEmptyStringForEmpty()
-    {
-      Assert.Equal(string.Empty, "".FirstLetterToUpperCase());
-    }
-  }
+    public void FirstLetterToUpperCaseReturnsEmptyStringForEmpty() => Assert.Equal(string.Empty, "".FirstLetterToUpperCase());
 }

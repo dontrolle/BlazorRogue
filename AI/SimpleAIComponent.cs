@@ -1,42 +1,41 @@
 ﻿using System;
 
-namespace BlazorRogue.AI
+namespace BlazorRogue.AI;
+
+class SimpleAIComponent(Map map) : AIComponent(map)
 {
-  public class SimpleAIComponent(Map map) : AIComponent(map)
-  {
     public const string ComponentId = "SimpleAIComponent";
 
     public override void TakeTurn()
     {
-      if (!Awake)
-      {
-        // Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
-        return;
-      }
-
-      var dx = Math.Sign(Map.Player.x - Owner!.x);
-      var dy = Math.Sign(Map.Player.y - Owner.y);
-
-      var destX = Owner.x + dx;
-      var destY = Owner.y + dy;
-
-      if (!Map.IsBlocked(destX, destY))
-      {
-        // where we came from is definetely not blocking anymore, since we just vacated the tile
-        Map.BlocksMovementMap[Owner.x, Owner.y] = false;
-        // do the move
-        Owner.Move(dx, dy);
-        // and we need to update blocked status for the destination tile (for the benefit of other moveables)
-        Map.BlocksMovementMap[destX, destY] = true;
-      }
-      else
-      {
-        if (Map.Player.x == destX && Map.Player.y == destY)
+        if (!Awake)
         {
-          var hit = Map.Game.FightingSystem.CloseCombatAttack(Owner.CombatComponent!, Map.Player.CombatComponent!);
-          References.SoundManager.PlayCombatSound(hit);
+            // Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
+            return;
         }
-      }
+
+        int dx = Math.Sign(map.Player.X - Owner!.X);
+        int dy = Math.Sign(map.Player.Y - Owner.Y);
+
+        int destX = Owner.X + dx;
+        int destY = Owner.Y + dy;
+
+        if (!map.IsBlocked(destX, destY))
+        {
+            // where we came from is definetely not blocking anymore, since we just vacated the tile
+            map.BlocksMovementMap[Owner.X, Owner.Y] = false;
+            // do the move
+            Owner.Move(dx, dy);
+            // and we need to update blocked status for the destination tile (for the benefit of other moveables)
+            map.BlocksMovementMap[destX, destY] = true;
+        }
+        else
+        {
+            if (map.Player.X == destX && map.Player.Y == destY)
+            {
+                bool hit = Combat.Warhammer.FightingSystem.CloseCombatAttack(Owner.CombatComponent!, map.Player.CombatComponent!);
+                References.SoundManager.PlayCombatSound(hit);
+            }
+        }
     }
-  }
 }

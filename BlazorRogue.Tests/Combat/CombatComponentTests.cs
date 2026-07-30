@@ -1,105 +1,103 @@
-using BlazorRogue.Combat.Warhammer;
-using BlazorRogue.Entities;
+﻿using BlazorRogue.Entities;
 
-namespace BlazorRogue.Tests.Combat
+namespace BlazorRogue.Tests.Combat;
+
+public class CombatComponentTests
 {
-  public class CombatComponentTests
-  {
-    private static Moveable CreateMoveable(int weaponSkill = 30, int weaponDamage = 8, int toughness = 30, int armour = 2, int wounds = 10)
+    static Moveable CreateMoveable(int weaponSkill = 30, int weaponDamage = 8, int toughness = 30, int armour = 2, int wounds = 10)
     {
-      var type = new MoveableType(
-          id: "test",
-          name: "Test Dummy",
-          animationClass: "animated_test",
-          asciiCharacter: "t",
-          asciiColour: "white",
-          weaponSkill: weaponSkill,
-          weaponDamage: weaponDamage,
-          toughness: toughness,
-          armour: armour,
-          wounds: wounds);
+        var type = new MoveableType(
+            id: "test",
+            name: "Test Dummy",
+            animationClass: "animated_test",
+            asciiCharacter: "t",
+            asciiColour: "white",
+            weaponSkill: weaponSkill,
+            weaponDamage: weaponDamage,
+            toughness: toughness,
+            armour: armour,
+            wounds: wounds);
 
-      return new Moveable(0, 0, aIComponent: null, type);
+        return new Moveable(0, 0, aIComponent: null, type);
     }
 
     [Fact]
-    public void ToughnessBonus_IsToughnessDividedByTen()
+    public void ToughnessBonusIsToughnessDividedByTen()
     {
-      var moveable = CreateMoveable(toughness: 35);
-      Assert.Equal(3, moveable.CombatComponent!.ToughnessBonus);
+        var moveable = CreateMoveable(toughness: 35);
+        Assert.Equal(3, moveable.CombatComponent!.ToughnessBonus);
     }
 
     [Fact]
-    public void ApplyDamage_ReducesWoundsByDamageMinusToughnessBonusAndArmour()
+    public void ApplyDamageReducesWoundsByDamageMinusToughnessBonusAndArmour()
     {
-      // toughness 30 => bonus 3, armour 2 soaks 5 of the 8 damage, leaving 3 wounds lost
-      var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
-      moveable.CombatComponent!.ApplyDamage(8);
+        // toughness 30 => bonus 3, armour 2 soaks 5 of the 8 damage, leaving 3 wounds lost
+        var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
+        moveable.CombatComponent!.ApplyDamage(8);
 
-      Assert.Equal(7, moveable.CombatComponent.Wounds);
+        Assert.Equal(7, moveable.CombatComponent.Wounds);
     }
 
     [Fact]
-    public void ApplyDamage_BelowSoakThreshold_DoesNotIncreaseWoundsBeyondMaxWounds()
+    public void ApplyDamageBelowSoakThresholdDoesNotIncreaseWoundsBeyondMaxWounds()
     {
-      // When soaked damage (toughness bonus + armour) exceeds the raw damage, wounds 
-      // should not go up. In other words, MaxWounds (aka initial wounds) should be respected.
-      var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
-      moveable.CombatComponent!.ApplyDamage(1);
+        // When soaked damage (toughness bonus + armour) exceeds the raw damage, wounds 
+        // should not go up. In other words, MaxWounds (aka initial wounds) should be respected.
+        var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10);
+        moveable.CombatComponent!.ApplyDamage(1);
 
-      Assert.Equal(10, moveable.CombatComponent.Wounds);
+        Assert.Equal(10, moveable.CombatComponent.Wounds);
     }
 
     [Fact]
-    public void ApplyDamage_KillsOwnerWhenWoundsReachZero()
+    public void ApplyDamageKillsOwnerWhenWoundsReachZero()
     {
-      var moveable = CreateMoveable(toughness: 0, armour: 0, wounds: 5);
-      var killed = false;
-      moveable.GameObjectKilled += (_, _) => killed = true;
+        var moveable = CreateMoveable(toughness: 0, armour: 0, wounds: 5);
+        bool killed = false;
+        moveable.GameObjectKilled += (_, _) => killed = true;
 
-      moveable.CombatComponent!.ApplyDamage(5);
+        moveable.CombatComponent!.ApplyDamage(5);
 
-      Assert.True(killed);
-      Assert.True(moveable.CombatComponent.Wounds <= 0);
+        Assert.True(killed);
+        Assert.True(moveable.CombatComponent.Wounds <= 0);
     }
 
-    [Fact(Skip = "Advantage disabled for now")]
-    public void GainAdvantage_IsCappedAtEight()
+    [Fact]
+    public void GainAdvantageIsCappedAtEight()
     {
-      var moveable = CreateMoveable();
-      moveable.CombatComponent!.GainAdvantage(20);
+        var moveable = CreateMoveable();
+        moveable.CombatComponent!.GainAdvantage(20);
 
-      Assert.Equal(8, moveable.CombatComponent.Advantage);
+        Assert.Equal(8, moveable.CombatComponent.Advantage);
     }
 
-    [Fact(Skip = "Advantage disabled for now")]
-    public void GainAdvantage_Accumulates()
+    [Fact]
+    public void GainAdvantageAccumulates()
     {
-      var moveable = CreateMoveable();
-      moveable.CombatComponent!.GainAdvantage();
-      moveable.CombatComponent.GainAdvantage(2);
+        var moveable = CreateMoveable();
+        moveable.CombatComponent!.GainAdvantage();
+        moveable.CombatComponent.GainAdvantage(2);
 
-      Assert.Equal(3, moveable.CombatComponent.Advantage);
+        Assert.Equal(3, moveable.CombatComponent.Advantage);
     }
 
-    [Fact(Skip = "Advantage disabled for now")]
-    public void ResetAdvantage_SetsAdvantageToZero()
+    [Fact]
+    public void ResetAdvantageSetsAdvantageToZero()
     {
-      var moveable = CreateMoveable();
-      moveable.CombatComponent!.GainAdvantage(4);
-      moveable.CombatComponent.ResetAdvantage();
+        var moveable = CreateMoveable();
+        moveable.CombatComponent!.GainAdvantage(4);
+        moveable.CombatComponent.ResetAdvantage();
 
-      Assert.Equal(0, moveable.CombatComponent.Advantage);
+        Assert.Equal(0, moveable.CombatComponent.Advantage);
     }
 
-    [Fact(Skip = "Advantage disabled for now")]
-    public void LooseAdvantage_DecrementsByOne()
+    [Fact]
+    public void LooseAdvantageDecrementsByOne()
     {
-      var moveable = CreateMoveable();
-      moveable.CombatComponent!.GainAdvantage(4);
-      moveable.CombatComponent.LooseAdvantage();
+        var moveable = CreateMoveable();
+        moveable.CombatComponent!.GainAdvantage(4);
+        moveable.CombatComponent.LooseAdvantage();
 
-      Assert.Equal(3, moveable.CombatComponent.Advantage);
+        Assert.Equal(3, moveable.CombatComponent.Advantage);
     }
-  }
 }

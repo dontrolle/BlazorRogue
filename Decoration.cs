@@ -1,10 +1,10 @@
 ﻿using System;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue
+namespace BlazorRogue;
+
+class Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
 {
-  public class Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
-  {
     public GameObject GameObject { get; private set; } = gameObject;
     public string? ImageName { get; private set; } = imageName;
     public string ImageFolder { get; private set; } = imageFolder;
@@ -16,25 +16,12 @@ namespace BlazorRogue
     public bool BlocksLight => GameObject.BlocksLight;
     public bool Shake { get; set; }
 
-    private string? character;
-
     public string Character
     {
-      get
-      {
-        if (character != null)
-        {
-          return character;
-        }
+        get => (field) ?? "";
 
-        return "";
-      }
-      set
-      {
-        character = value;
-      }
+        set;
     }
 
     public string CharacterColor { get; set; } = "orange";
-  }
 }

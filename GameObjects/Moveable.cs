@@ -4,10 +4,10 @@ using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue
+namespace BlazorRogue;
+
+class Moveable : GameObject
 {
-  public class Moveable : GameObject
-  {
     public string AnimationClass { get; protected set; }
     public string Id { get; }
     public string AsciiCharacter { get; }
@@ -22,15 +22,15 @@ namespace BlazorRogue
             new CombatComponent(monsterType.WeaponSkill, monsterType.WeaponDamage, monsterType.Toughness, monsterType.Armour, monsterType.Wounds),
             inventoryComponent: inventoryComponent)
     {
-      InvisibleOutsideFov = true;
-      Blocking = true;
-      AnimationClass = monsterType.AnimationClass;
-      Id = monsterType.Id;
-      AsciiCharacter = monsterType.AsciiCharacter;
-      AsciiColour = monsterType.AsciiColour;
-      InfoText = Name;
+        InvisibleOutsideFov = true;
+        Blocking = true;
+        AnimationClass = monsterType.AnimationClass;
+        Id = monsterType.Id;
+        AsciiCharacter = monsterType.AsciiCharacter;
+        AsciiColour = monsterType.AsciiColour;
+        InfoText = Name;
 
-      // Note, can't block light due to the way Moveables are treated in Map
+        // Note, can't block light due to the way Moveables are treated in Map
     }
 
     public Moveable(Tuple<int, int> coord, AIComponent? aIComponent, MoveableType monsterType, InventoryComponent? inventoryComponent = null) :
@@ -39,18 +39,17 @@ namespace BlazorRogue
 
     public override void Render(Map map)
     {
-      if (AnimationClass == null)
-      {
-        throw new InvalidOperationException("AnimationClass not set.");
-      }
+        if (AnimationClass == null)
+        {
+            throw new InvalidOperationException("AnimationClass not set.");
+        }
 
-      map.MoveableDecorations[x, y].Add(new Decoration(this, null) { AnimationClass = AnimationClass, Character = AsciiCharacter, CharacterColor = AsciiColour });
+        map.MoveableDecorations[X, Y].Add(new Decoration(this, null) { AnimationClass = AnimationClass, Character = AsciiCharacter, CharacterColor = AsciiColour });
     }
 
     public override void Move(int xDelta, int yDelta)
     {
-      base.Move(xDelta, yDelta);
-      References.SoundManager.PlayWalkSound();
+        base.Move(xDelta, yDelta);
+        References.SoundManager.PlayWalkSound();
     }
-  }
 }

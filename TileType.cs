@@ -1,10 +1,9 @@
-﻿namespace BlazorRogue
+﻿namespace BlazorRogue;
+
+enum TileType
 {
-  public enum TileType
-  {
     Black,
     Wall,
     Floor,
     Ground,
-  }
 }

@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using BlazorRogue.GameObjects;
+using System.Linq;
 using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
 using BlazorRogue.Vision;
 
-namespace BlazorRogue
+namespace BlazorRogue;
+
+class Map
 {
-  public class Map
-  {
     public int Width { get; private set; }
     public int Height { get; private set; }
 
@@ -24,18 +24,18 @@ namespace BlazorRogue
 
     public Tile[,] Tiles { get; }
 
-    private readonly List<GameObject> gameObjects;
+    readonly List<GameObject> gameObjects;
     public IEnumerable<GameObject> GameObjects => gameObjects;
 
     /* moveables contain both monsters and player */
-    private readonly List<Moveable> moveables;
+    readonly List<Moveable> moveables;
     public IEnumerable<Moveable> Moveables => moveables;
 
     /* Actually, currently these are GameObjects with AI */
-    private readonly List<Moveable> monsters;
+    readonly List<Moveable> monsters;
     public IEnumerable<Moveable> Monsters => monsters;
 
-    private readonly List<GameObject>[,] gameObjectByCoord;
+    readonly List<GameObject>[,] gameObjectByCoord;
     public IEnumerable<GameObject>[,] GameObjectByCoord => gameObjectByCoord;
 
     public List<Decoration>[,] Decorations { get; }
@@ -48,56 +48,53 @@ namespace BlazorRogue
     public bool[,] BlocksLightMap;
     public bool[,] BlocksMovementMap;
 
-    private readonly Visibility VisibilityAlgorithm;
-    private bool PostGenInitialized = false;
+    readonly Visibility visibilityAlgorithm;
+    bool postGenInitialized;
 
-    public IEnumerable<Decoration> AllDecorations(int x, int y)
-    {
-      return Decorations[x, y].Concat(MoveableDecorations[x, y]);
-    }
+    public IEnumerable<Decoration> AllDecorations(int x, int y) => Decorations[x, y].Concat(MoveableDecorations[x, y]);
 
     public Map(int width, int height, TileSet dungeonWallSet, Game game)
     {
-      DungeonWallSet = dungeonWallSet;
-      Game = game;
-      Width = width;
-      Height = height;
-      Tiles = new Tile[width, height];
-      Decorations = new List<Decoration>[width, height];
-      MoveableDecorations = new List<Decoration>[width, height];
-      gameObjectByCoord = new List<GameObject>[width, height];
-      IsMappedMap = new bool[width, height];
-      IsVisibleMap = new bool[width, height];
-      BlocksLightMap = new bool[width, height];
-      BlocksMovementMap = new bool[width, height];
+        DungeonWallSet = dungeonWallSet;
+        Game = game;
+        Width = width;
+        Height = height;
+        Tiles = new Tile[width, height];
+        Decorations = new List<Decoration>[width, height];
+        MoveableDecorations = new List<Decoration>[width, height];
+        gameObjectByCoord = new List<GameObject>[width, height];
+        IsMappedMap = new bool[width, height];
+        IsVisibleMap = new bool[width, height];
+        BlocksLightMap = new bool[width, height];
+        BlocksMovementMap = new bool[width, height];
 
-      // TODO: UF
-      // A field, if necessary?
-      var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
+        // TODO: UF
+        // A field, if necessary?
+        var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
 
-      for (int i = 0; i < width; i++)
-      {
-        for (int j = 0; j < height; j++)
+        for (int i = 0; i < width; i++)
         {
-          // initalize map with dark floor tiles
-          Tiles[i, j] = new Tile(
-              i,
-              j,
-              blackTileSet,
-              11
-          )
-          { Blocking = true };
+            for (int j = 0; j < height; j++)
+            {
+                // initalize map with dark floor tiles
+                Tiles[i, j] = new Tile(
+                    i,
+                    j,
+                    blackTileSet,
+                    11
+                )
+                { Blocking = true };
 
-          Decorations[i, j] = [];
-          MoveableDecorations[i, j] = [];
-          gameObjectByCoord[i, j] = [];
+                Decorations[i, j] = [];
+                MoveableDecorations[i, j] = [];
+                gameObjectByCoord[i, j] = [];
+            }
         }
-      }
 
-      gameObjects = [];
-      moveables = [];
-      VisibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
-      monsters = [];
+        gameObjects = [];
+        moveables = [];
+        visibilityAlgorithm = new AdamMilVisibility(BlocksLight, SetVisible, GetDistanceSquared);
+        monsters = [];
     }
 
     /// <summary>
@@ -105,382 +102,340 @@ namespace BlazorRogue
     /// </summary>
     public void PostGenInitalize()
     {
-      PostGenInitialized = true;
+        postGenInitialized = true;
 
-      // Init lookup maps
-      ForEachTile(
-          (x, y) =>
-          {
-            UpdateBlocksLight(x, y);
-            UpdateBlockMovement(x, y);
-          }
-      );
+        // Init lookup maps
+        ForEachTile(
+            (x, y) =>
+            {
+                UpdateBlocksLight(x, y);
+                UpdateBlockMovement(x, y);
+            }
+        );
 
-      RecomputeVisibility();
-      RenderGameObjects();
-      RenderMoveables();
+        RecomputeVisibility();
+        RenderGameObjects();
+        RenderMoveables();
     }
 
     public void PlayerTookTurn()
     {
-      foreach (var monster in Monsters)
-      {
-        monster.AIComponent?.TakeTurn();
-      }
+        foreach (var monster in Monsters)
+        {
+            monster.AIComponent?.TakeTurn();
+        }
     }
 
     public void UpdateBlocksLight(int x, int y, bool recomputeVisibility = false)
     {
-      BlocksLightMap[x, y] = Tiles[x, y].Blocking || gameObjectByCoord[x, y].Any(g => g.BlocksLight);
+        BlocksLightMap[x, y] = Tiles[x, y].Blocking || gameObjectByCoord[x, y].Any(g => g.BlocksLight);
 
-      if (recomputeVisibility)
-        RecomputeVisibility();
+        if (recomputeVisibility)
+            RecomputeVisibility();
     }
 
     public void UpdateBlockMovement(int x, int y)
     {
-      BlocksMovementMap[x, y] = Tiles[x, y].Blocking || gameObjectByCoord[x, y].Any(g => g.Blocking);
+        BlocksMovementMap[x, y] = Tiles[x, y].Blocking || gameObjectByCoord[x, y].Any(g => g.Blocking);
 
-      BlocksMovementMap[x, y] |= moveables.Any(m => m.Blocking && m.x == x && m.y == y);
+        BlocksMovementMap[x, y] |= moveables.Any(m => m.Blocking && m.X == x && m.Y == y);
     }
 
-    private void ClearTwoDimListArray<T>(List<T>[,] clearArray)
+    static void ClearTwoDimListArray<T>(List<T>[,] clearArray)
     {
-      for (int i = 0; i < clearArray.GetLength(0); i++)
-      {
-        for (int j = 0; j < clearArray.GetLength(1); j++)
+        for (int i = 0; i < clearArray.GetLength(0); i++)
         {
-          clearArray[i, j].Clear();
+            for (int j = 0; j < clearArray.GetLength(1); j++)
+            {
+                clearArray[i, j].Clear();
+            }
         }
-      }
     }
 
-    public void ForEachTile(Action<int, int> apply)
-    {
-      ForEachTile(apply, 0, Width, 0, Height);
-    }
+    public void ForEachTile(Action<int, int> apply) => ForEachTile(apply, 0, Width, 0, Height);
 
     public void ForEachTile(Action<int, int> apply, int xMin, int xMax, int yMin, int yMax)
     {
-      xMin = Math.Max(0, xMin);
-      xMax = Math.Min(Width, xMax);
-      yMin = Math.Max(0, yMin);
-      yMax = Math.Min(Height, yMax);
+        xMin = Math.Max(0, xMin);
+        xMax = Math.Min(Width, xMax);
+        yMin = Math.Max(0, yMin);
+        yMax = Math.Min(Height, yMax);
 
-      for (int x = xMin; x < xMax; x++)
-      {
-        for (int y = yMin; y < yMax; y++)
+        for (int x = xMin; x < xMax; x++)
         {
-          apply(x, y);
+            for (int y = yMin; y < yMax; y++)
+            {
+                apply(x, y);
+            }
         }
-      }
     }
 
-    public void ClearMoveables()
-    {
-      ClearTwoDimListArray(MoveableDecorations);
-    }
-    private void ClearDecorations()
-    {
-      ClearTwoDimListArray(Decorations);
-    }
+    public void ClearMoveables() => ClearTwoDimListArray(MoveableDecorations);
+    void ClearDecorations() => ClearTwoDimListArray(Decorations);
 
-    private void ClearDecorations(int x, int y)
-    {
-      Decorations[x, y].Clear();
-    }
+    void ClearDecorations(int x, int y) => Decorations[x, y].Clear();
 
     // Renders GameObjects to Decorations, updating the latter
     public void RenderGameObjects()
     {
-      if (!PostGenInitialized)
-        throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
+        if (!postGenInitialized)
+            throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
 
-      ClearDecorations();
-      foreach (var gameObject in GameObjects)
-      {
-        gameObject.Render(this);
-      }
+        ClearDecorations();
+        foreach (var gameObject in GameObjects)
+        {
+            gameObject.Render(this);
+        }
     }
 
     public void RenderGameObjects(int x, int y)
     {
-      if (!PostGenInitialized)
-        throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
+        if (!postGenInitialized)
+            throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
 
-      ClearDecorations(x, y);
-      var reRenderGameObjects = GameObjectByCoord[x, y];
-      foreach (var gameObject in reRenderGameObjects)
-      {
-        gameObject.Render(this);
-      }
+        ClearDecorations(x, y);
+        var reRenderGameObjects = GameObjectByCoord[x, y];
+        foreach (var gameObject in reRenderGameObjects)
+        {
+            gameObject.Render(this);
+        }
     }
 
     public void AddGameObject(GameObject gameObject)
     {
-      gameObjects.Add(gameObject);
-      gameObjectByCoord[gameObject.x, gameObject.y].Add(gameObject);
+        gameObjects.Add(gameObject);
+        gameObjectByCoord[gameObject.X, gameObject.Y].Add(gameObject);
     }
 
     public void AddPlayer(Moveable player)
     {
-      AddMoveable(player);
-      this.Player = player;
+        AddMoveable(player);
+        Player = player;
     }
 
     public void AddMonster(Moveable monster)
     {
-      AddMoveable(monster);
-      monster.GameObjectKilled += MonsterKilled;
-      this.monsters.Add(monster);
+        AddMoveable(monster);
+        monster.GameObjectKilled += MonsterKilled;
+        monsters.Add(monster);
     }
 
-    private void MonsterKilled(object? sender, EventArgs e)
+    void MonsterKilled(object? sender, EventArgs e)
     {
-      if (sender is not Moveable killedMonster)
-      {
-        throw new InvalidOperationException("MonsterKilled should only be invoked with Moveable's.");
-      }
+        if (sender is not Moveable killedMonster)
+        {
+            throw new InvalidOperationException("MonsterKilled should only be invoked with Moveable's.");
+        }
 
-      if (!monsters.Remove(killedMonster))
-      {
-        throw new InvalidOperationException("MonsterKilled should only be invoked with a monster in the monsters list.");
-      }
-      
-      if (!moveables.Remove(killedMonster))
-      {
-        throw new InvalidOperationException("MonsterKilled should only be invoked with a moveable in the moveables list.");
-      }    
+        if (!monsters.Remove(killedMonster))
+        {
+            throw new InvalidOperationException("MonsterKilled should only be invoked with a monster in the monsters list.");
+        }
 
-      // Place a blood puddle
-      var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
-      var puddleObject = new StaticDecorativeObject(
-          killedMonster.x,
-          killedMonster.y,
-          puddleType,
-          nameOverride: killedMonster.Name + "_puddle",
-          infoTextOverride: $"Blood puddle of {killedMonster.Name}");
+        if (!moveables.Remove(killedMonster))
+        {
+            throw new InvalidOperationException("MonsterKilled should only be invoked with a moveable in the moveables list.");
+        }
 
-      AddGameObject(puddleObject);
-      // somewhat icky calling RenderXxx here...
-      RenderGameObjects(killedMonster.x, killedMonster.y);
-      System.Diagnostics.Debug.WriteLine(killedMonster.GetHashCode().ToString() + " dead");
+        // Place a blood puddle
+        var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
+        var puddleObject = new StaticDecorativeObject(
+            killedMonster.X,
+            killedMonster.Y,
+            puddleType,
+            nameOverride: killedMonster.Name + "_puddle",
+            infoTextOverride: $"Blood puddle of {killedMonster.Name}");
+
+        AddGameObject(puddleObject);
+        // somewhat icky calling RenderXxx here...
+        RenderGameObjects(killedMonster.X, killedMonster.Y);
     }
 
-    public void AddMoveable(Moveable moveable)
-    {
-      moveables.Add(moveable);
-    }
+    public void AddMoveable(Moveable moveable) => moveables.Add(moveable);
 
     public void RenderMoveables()
     {
-      if (!PostGenInitialized)
-        throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
+        if (!postGenInitialized)
+            throw new InvalidOperationException("Remember to call PostGenInitialization after generation of Map.");
 
-      ClearMoveables();
-      foreach (var moveable in Moveables)
-      {
-        moveable.Render(this);
-      }
+        ClearMoveables();
+        foreach (var moveable in Moveables)
+        {
+            moveable.Render(this);
+        }
     }
 
     public bool HandlePlayerAction(bool shiftKey, char numKey)
     {
-      References.EffectsSystem.Reset();
+        References.EffectsSystem.Reset();
 
-      bool stateChanged;
-      bool playerMoved = false;
-      if (shiftKey)
-      {
-        stateChanged = HandlePlayerUse(numKey);
-      }
-      else
-      {
-        stateChanged = HandlePlayerMove(numKey);
-        playerMoved = stateChanged;
-      }
-
-      if (stateChanged)
-      {
-        // we need to recompute visibility maps
-        RecomputeVisibility();
-
-        // wake visible monsters (visibility is reflexive)
-        WakeVisibleMonsters(Player.x, Player.y, PlayerSightRadius);
-      }
-
-      if(playerMoved && !Player.CombatComponent!.IsStarving)
-      {
-        Player.CombatComponent.HealByMove();
-      }
-
-      return true;
-    }
-
-    private bool HandlePlayerUse(char numKey)
-    {
-      CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
-
-      bool stateChanged = false;
-
-      // handle use'able GameObject's
-      foreach (var go in gameObjectByCoord[destX, destY])
-      {
-        if (go.UseableComponent != null)
+        bool stateChanged;
+        bool playerMoved = false;
+        if (shiftKey)
         {
-          go.UseableComponent.Use();
-          stateChanged = true;
+            stateChanged = HandlePlayerUse(numKey);
         }
-      }
-
-      if (stateChanged)
-      {
-        UpdateBlocksLight(destX, destY);
-        UpdateBlockMovement(destX, destY);
-        RenderGameObjects(destX, destY);
-      }
-
-      return stateChanged;
-    }
-
-    private bool HandlePlayerMove(char numKey)
-    {
-      // Handle basic player movement
-      CalculateDeltaAndDest(numKey, out var xDelta, out var yDelta, out var destX, out var destY);
-
-      bool stateChanged = false;
-
-      // Check for blocking Walls or GameObject's
-      if (!IsBlocked(destX, destY))
-      {
-        // where we came from is definetely not blocking anymore, since we just vacated the tile
-        BlocksMovementMap[this.Player.x, this.Player.y] = false;
-        // do the move
-        Player.Move(xDelta, yDelta);
-        // and we need to update blocked status for the destination tile (for the benefit of other moveables)
-        BlocksMovementMap[destX, destY] = true;
-        stateChanged = true;
-      }
-      else
-      {
-        // player skipped a turn; also prevents player from attacking oneself... ;)
-        if (xDelta == 0 && yDelta == 0)
+        else
         {
-          // NOTE: Changed this to true to enable healing while idling, doesn't seem to have any adverse effects ... (flw)
-          return true;
+            stateChanged = HandlePlayerMove(numKey);
+            playerMoved = stateChanged;
         }
 
-        // handle moveables - I take a copy as moveables may be modified, because of death 
-        // TODO: FIX, THIS IS CLUNKY AS HELL...
-        foreach (var mo in moveables.Where(m => m.x == destX && m.y == destY).ToList())
+        if (stateChanged)
         {
-          // what to do if it doesn't have a CombatComponent?
-          if (mo.CombatComponent != null)
-          {
-            var hit = Game.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
-            References.SoundManager.PlayCombatSound(hit);
-            References.EffectsSystem.Shake = hit;
-            UpdateBlockMovement(destX, destY);
-            stateChanged = true;
-          }
+            // we need to recompute visibility maps
+            RecomputeVisibility();
+
+            // wake visible monsters (visibility is reflexive)
+            WakeVisibleMonsters(Player.X, Player.Y, PlayerSightRadius);
         }
-      }
 
-      return stateChanged;
-    }
-
-    private void CalculateDeltaAndDest(char numKey, out int xDelta, out int yDelta, out int destX, out int destY)
-    {
-      xDelta = 0;
-      yDelta = 0;
-      if ("147".IndexOf(numKey) > -1)
-        xDelta = -1;
-      else if ("369".IndexOf(numKey) > -1)
-      {
-        xDelta = 1;
-      }
-
-      if ("789".IndexOf(numKey) > -1)
-        yDelta = -1;
-      else if ("123".IndexOf(numKey) > -1)
-      {
-        yDelta = 1;
-      }
-
-      destX = this.Player.x + xDelta;
-      destY = this.Player.y + yDelta;
-    }
-
-    private void WakeVisibleMonsters(int x, int y, int playerSightRadius)
-    {
-      ForEachTile((xx, yy) =>
-      {
-        if (IsVisibleMap[xx, yy])
+        if (playerMoved && !Player.CombatComponent!.IsStarving)
         {
-          foreach (var mo in moveables.Where(m => m.x == xx && m.y == yy))
-          {
-            mo.AIComponent?.Wake();
-          };
+            Player.CombatComponent.HealByMove();
         }
-      },
-      x - playerSightRadius, x + playerSightRadius + 1, y - playerSightRadius, y + playerSightRadius + 1);
-    }
 
-    private void RecomputeVisibility()
-    {
-      // TODO: Can I optimize this clearing? Or, fold it into the Compute()?
-      ForEachTile(
-          (x, y) =>
-          {
-            IsVisibleMap[x, y] = false;
-          }
-      );
-
-      VisibilityAlgorithm.Compute(new LevelPoint((uint)Player.x, (uint)Player.y), PlayerSightRadius);
-    }
-
-    public bool IsBlocked(int x, int y)
-    {
-      if (PostGenInitialized)
-        return BlocksMovementMap[x, y];
-      else
-      {
-        if (Tiles[x, y].Blocking)
-          return true;
-
-        if (gameObjectByCoord[x, y].Any(g => g.Blocking))
-          return true;
-
-        return moveables.Where(m => m.Blocking).Any(m => m.x == x && m.y == y);
-      }
-    }
-
-    public bool BlocksLight(int x, int y)
-    {
-      if (x < 0 || x >= Width || y < 0 || y >= Height)
         return true;
-
-      return BlocksLightMap[x, y];
     }
+
+    bool HandlePlayerUse(char numKey)
+    {
+        CalculateDeltaAndDest(numKey, out _, out _, out int destX, out int destY);
+
+        bool stateChanged = false;
+
+        // handle use'able GameObject's
+        foreach (var go in gameObjectByCoord[destX, destY])
+        {
+            if (go.UseableComponent != null)
+            {
+                go.UseableComponent.Use();
+                stateChanged = true;
+            }
+        }
+
+        if (stateChanged)
+        {
+            UpdateBlocksLight(destX, destY);
+            UpdateBlockMovement(destX, destY);
+            RenderGameObjects(destX, destY);
+        }
+
+        return stateChanged;
+    }
+
+    bool HandlePlayerMove(char numKey)
+    {
+        // Handle basic player movement
+        CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
+
+        bool stateChanged = false;
+
+        // Check for blocking Walls or GameObject's
+        if (!IsBlocked(destX, destY))
+        {
+            // where we came from is definetely not blocking anymore, since we just vacated the tile
+            BlocksMovementMap[Player.X, Player.Y] = false;
+            // do the move
+            Player.Move(xDelta, yDelta);
+            // and we need to update blocked status for the destination tile (for the benefit of other moveables)
+            BlocksMovementMap[destX, destY] = true;
+            stateChanged = true;
+        }
+        else
+        {
+            // player skipped a turn; also prevents player from attacking oneself... ;)
+            if (xDelta == 0 && yDelta == 0)
+            {
+                // NOTE: Changed this to true to enable healing while idling, doesn't seem to have any adverse effects ... (flw)
+                return true;
+            }
+
+            // handle moveables - I take a copy as moveables may be modified, because of death 
+            // TODO: FIX, THIS IS CLUNKY AS HELL...
+            foreach (var mo in moveables.Where(m => m.X == destX && m.Y == destY).ToList())
+            {
+                // what to do if it doesn't have a CombatComponent?
+                if (mo.CombatComponent != null)
+                {
+                    bool hit = Combat.Warhammer.FightingSystem.CloseCombatAttack(Player.CombatComponent!, mo.CombatComponent);
+                    References.SoundManager.PlayCombatSound(hit);
+                    References.EffectsSystem.Shake = hit;
+                    UpdateBlockMovement(destX, destY);
+                    stateChanged = true;
+                }
+            }
+        }
+
+        return stateChanged;
+    }
+
+    void CalculateDeltaAndDest(char numKey, out int xDelta, out int yDelta, out int destX, out int destY)
+    {
+        xDelta = 0;
+        yDelta = 0;
+        if ("147".Contains(numKey, StringComparison.Ordinal))
+        {
+            xDelta = -1;
+        }
+        else if ("369".Contains(numKey, StringComparison.Ordinal))
+        {
+            xDelta = 1;
+        }
+
+        if ("789".Contains(numKey, StringComparison.Ordinal))
+        {
+            yDelta = -1;
+        }
+        else if ("123".Contains(numKey, StringComparison.Ordinal))
+        {
+            yDelta = 1;
+        }
+
+        destX = Player.X + xDelta;
+        destY = Player.Y + yDelta;
+    }
+
+    void WakeVisibleMonsters(int x, int y, int playerSightRadius) => ForEachTile((xx, yy) =>
+                                                                          {
+                                                                              if (IsVisibleMap[xx, yy])
+                                                                              {
+                                                                                  foreach (var mo in moveables.Where(m => m.X == xx && m.Y == yy))
+                                                                                  {
+                                                                                      mo.AIComponent?.Wake();
+                                                                                  }
+                                                                                  ;
+                                                                              }
+                                                                          },
+        x - playerSightRadius, x + playerSightRadius + 1, y - playerSightRadius, y + playerSightRadius + 1);
+
+    void RecomputeVisibility()
+    {
+        // TODO: Can I optimize this clearing? Or, fold it into the Compute()?
+        ForEachTile(
+            (x, y) => IsVisibleMap[x, y] = false);
+
+        visibilityAlgorithm.Compute(new LevelPoint((uint)Player.X, (uint)Player.Y), PlayerSightRadius);
+    }
+
+    public bool IsBlocked(int x, int y) => postGenInitialized
+            ? BlocksMovementMap[x, y]
+            : Tiles[x, y].Blocking || gameObjectByCoord[x, y].Any(g => g.Blocking) || moveables.Where(m => m.Blocking).Any(m => m.X == x && m.Y == y);
+
+    public bool BlocksLight(int x, int y) => x < 0 || x >= Width || y < 0 || y >= Height || BlocksLightMap[x, y];
 
     public void SetVisible(int x, int y)
     {
-      if (x < 0 || x >= Width || y < 0 || y >= Height)
-        return;
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+            return;
 
-      IsVisibleMap[x, y] = true;
-      IsMappedMap[x, y] = true;
+        IsVisibleMap[x, y] = true;
+        IsMappedMap[x, y] = true;
     }
 
-    public static int GetDistance(int x, int y)
-    {
-      // we are ok with truncation here
-      return (int)Math.Sqrt(x * x + y * y);
-    }
+    public static int GetDistance(int x, int y) =>
+        // we are ok with truncation here
+        (int)Math.Sqrt((x * x) + (y * y));
 
-    public static int GetDistanceSquared(int x, int y)
-    {
-      return x * x + y * y;
-    }
-  }
+    public static int GetDistanceSquared(int x, int y) => (x * x) + (y * y);
 }

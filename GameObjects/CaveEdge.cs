@@ -1,16 +1,10 @@
-﻿using System;
+﻿namespace BlazorRogue.GameObjects;
 
-namespace BlazorRogue.GameObjects
+class CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : GameObject(x, y, "CaveEdge")
 {
-  public class CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset) : GameObject(x, y, "CaveEdge")
-  {
-    private int CaveEdgeIndex = caveEdgeIndex;
-    private readonly int Offset = offset;
-    private readonly int HOffset = hOffset;
+    readonly int caveEdgeIndex = caveEdgeIndex;
+    readonly int offset = offset;
+    readonly int hOffset = hOffset;
 
-    public override void Render(Map map)
-    {
-      map.Decorations[x, y].Add(new Decoration(this, "wall_cave_edge_" + CaveEdgeIndex) { HorizontalOffset = HOffset, VerticalOffset = Offset });
-    }
-  }
+    public override void Render(Map map) => map.Decorations[X, Y].Add(new Decoration(this, "wall_cave_edge_" + caveEdgeIndex) { HorizontalOffset = hOffset, VerticalOffset = offset });
 }
