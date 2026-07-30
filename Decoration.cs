@@ -19,7 +19,6 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     public string Character
     {
         get => (field) ?? "";
-
         set;
     }
 

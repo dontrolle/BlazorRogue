@@ -3,5 +3,5 @@
 enum Orientation
 {
     Horizontal,
-    Vertical
+    Vertical,
 }

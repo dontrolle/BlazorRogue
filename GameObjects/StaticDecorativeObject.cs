@@ -18,13 +18,22 @@ class StaticDecorativeObject : GameObject
         string? imageTag = null,
         int? verticalOffsetOverride = null,
         string? nameOverride = null,
-        string? infoTextOverride = null) : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
+        string? infoTextOverride = null
+    )
+        : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
     {
         if (imageTag != null)
         {
-            if (!staticDecorativeObjectType.ImageVariants.TryGetValue(imageTag, out string? imageVariant))
+            if (
+                !staticDecorativeObjectType.ImageVariants.TryGetValue(
+                    imageTag,
+                    out string? imageVariant
+                )
+            )
             {
-                throw new ArgumentException($"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}.");
+                throw new ArgumentException(
+                    $"{nameof(imageTag)} must be a key into {nameof(staticDecorativeObjectType.ImageVariants)}."
+                );
             }
 
             image = imageVariant;
@@ -44,5 +53,14 @@ class StaticDecorativeObject : GameObject
         Blocking = staticDecorativeObjectType.Blocking;
     }
 
-    public override void Render(Map map) => map.Decorations[X, Y].Add(new Decoration(this, image, imgFolder) { VerticalOffset = verticalOffset, Character = character, CharacterColor = characterColor });
+    public override void Render(Map map) =>
+        map.Decorations[X, Y]
+            .Add(
+                new Decoration(this, image, imgFolder)
+                {
+                    VerticalOffset = verticalOffset,
+                    Character = character,
+                    CharacterColor = characterColor,
+                }
+            );
 }

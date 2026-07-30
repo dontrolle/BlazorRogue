@@ -4,14 +4,14 @@ using System.Linq;
 namespace BlazorRogue.Entities;
 
 /// <summary>
-/// A small collection of images and characters for tiles intended to be used together, e.g., a set of blue wall-tiles, 
+/// A small collection of images and characters for tiles intended to be used together, e.g., a set of blue wall-tiles,
 /// or a set of floor-tiles that goes well together.
 /// </summary>
 /// <remarks>
 /// Designed for tilesets from Ultimate Fantasy set, right now.
-/// (Interface employed by rest of code is primarily to get <see cref="ImageName"/> and <see cref="Character"/> and <see cref="CharacterColor"/>, though, 
+/// (Interface employed by rest of code is primarily to get <see cref="ImageName"/> and <see cref="Character"/> and <see cref="CharacterColor"/>, though,
 /// so pretty simple to refactor.)
-/// 
+///
 /// Allows only a single character + color for entire tileset.
 /// </remarks>
 class TileSet
@@ -27,7 +27,8 @@ class TileSet
     public double[] ImageSouthEdgeWeights { get; }
     public int[] ImageSimpleEdgeNorthIndexes { get; }
     public int[] ImageDecoratedEdgeNorthIndexes { get; }
-    public int[] ImageEdgeNorthIndexes => [.. ImageSimpleEdgeNorthIndexes, .. ImageDecoratedEdgeNorthIndexes];
+    public int[] ImageEdgeNorthIndexes =>
+        [.. ImageSimpleEdgeNorthIndexes, .. ImageDecoratedEdgeNorthIndexes];
 
     public string Character { get; }
     public string CharacterColor { get; }
@@ -43,7 +44,8 @@ class TileSet
         int[]? imgSimpleEdgeNorthIndexes = null,
         int[]? imgDecoratedEdgeNorthIndexes = null,
         string character = "¤",
-        string characterColor = "fuchsia")
+        string characterColor = "fuchsia"
+    )
     {
         Id = id;
         TileType = tileType;
@@ -62,11 +64,16 @@ class TileSet
         CharacterColor = characterColor;
     }
 
-    static double[] SetWeights(int[] imgIndexes, double[]? imgWeights) => imgWeights != null
+    static double[] SetWeights(int[] imgIndexes, double[]? imgWeights) =>
+        imgWeights != null
             ? imgWeights.Length != imgIndexes.Length
-                ? throw new ArgumentException($"If given, {nameof(imgWeights)} is required to be of same length as {nameof(imgIndexes)}", nameof(imgWeights))
+                ? throw new ArgumentException(
+                    $"If given, {nameof(imgWeights)} is required to be of same length as {nameof(imgIndexes)}",
+                    nameof(imgWeights)
+                )
                 : imgWeights
             : [.. Enumerable.Repeat(1.0d, imgIndexes.Length)];
 
-    public virtual string ImageName(int index) => TileType.ToTileSetPrefix() + "_" + ImgPrefix + "_" + index;
+    public virtual string ImageName(int index) =>
+        TileType.ToTileSetPrefix() + "_" + ImgPrefix + "_" + index;
 }

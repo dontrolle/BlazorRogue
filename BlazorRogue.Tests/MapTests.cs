@@ -14,13 +14,15 @@ public class MapTests
     [InlineData(0, 0, 0)]
     [InlineData(3, 4, 5)]
     [InlineData(6, 8, 10)]
-    public void GetDistanceComputesEuclideanDistanceTruncated(int dx, int dy, int expected) => Assert.Equal(expected, Map.GetDistance(dx, dy));
+    public void GetDistanceComputesEuclideanDistanceTruncated(int dx, int dy, int expected) =>
+        Assert.Equal(expected, Map.GetDistance(dx, dy));
 
     [Theory]
     [InlineData(0, 0, 0)]
     [InlineData(3, 4, 25)]
     [InlineData(-3, 4, 25)]
-    public void GetDistanceSquaredComputesSquaredDistance(int dx, int dy, int expected) => Assert.Equal(expected, Map.GetDistanceSquared(dx, dy));
+    public void GetDistanceSquaredComputesSquaredDistance(int dx, int dy, int expected) =>
+        Assert.Equal(expected, Map.GetDistanceSquared(dx, dy));
 
     [Fact]
     public void ForEachTileVisitsEveryTileExactlyOnce()

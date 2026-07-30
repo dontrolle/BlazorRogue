@@ -2,7 +2,13 @@
 
 namespace BlazorRogue.Combat.Warhammer;
 
-class CombatComponent(int weaponSkill, int weaponDamage, int toughness, int armourPoints, int wounds) : Component
+class CombatComponent(
+    int weaponSkill,
+    int weaponDamage,
+    int toughness,
+    int armourPoints,
+    int wounds
+) : Component
 {
     public int MaxWounds { get; private set; } = wounds;
     public int WeaponSkill { get; private set; } = weaponSkill;
@@ -21,7 +27,8 @@ class CombatComponent(int weaponSkill, int weaponDamage, int toughness, int armo
         {
             // we use MaxWounds as an ultimate upper bound - no wounds value can go beyond that. 
             // Means temporary higher max wounds must be reflected in the Maxwounds field.
-            field = Math.Min(value, MaxWounds);
+            field =
+                Math.Min(value, MaxWounds);
 
             if (Owner != null)
             {
@@ -41,7 +48,6 @@ class CombatComponent(int weaponSkill, int weaponDamage, int toughness, int armo
     public int Advantage
     {
         get;
-
         private set
         {
             field = value;

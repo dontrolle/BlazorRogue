@@ -12,12 +12,12 @@ static class Dice
     {
         CheckValidD100Value(d100Roll);
 
-        // handle 3-digit 
+        // handle 3-digit
         if (d100Roll == 100)
             return 100;
 
         (int t, int o) = GetD100Digits(d100Roll);
-        return (o*10)+t;
+        return (o * 10) + t;
     }
 
     /// <summary>
@@ -37,7 +37,9 @@ static class Dice
     {
         if (value is < 1 or > 100)
         {
-            throw new ArgumentException("Expected valid d100 value between 1 and 100, not " + value);
+            throw new ArgumentException(
+                "Expected valid d100 value between 1 and 100, not " + value
+            );
         }
     }
 

@@ -4,7 +4,17 @@ using System.Linq;
 
 namespace BlazorRogue.Entities;
 
-class StaticDecorativeObjectType(string id, string name, Dictionary<string, string> image, string infoText, int verticalOffset, string character, string characterColor, bool blocking, string imgFolder)
+class StaticDecorativeObjectType(
+    string id,
+    string name,
+    Dictionary<string, string> image,
+    string infoText,
+    int verticalOffset,
+    string character,
+    string characterColor,
+    bool blocking,
+    string imgFolder
+)
 {
     readonly Random random = new();
 
