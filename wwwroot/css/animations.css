@@ -314,6 +314,36 @@
 
 /************/
 
+@keyframes rat {
+  0% {
+    background-image: url('../img/uf_heroes/rat_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/rat_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/rat_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/rat_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/rat_1.png');
+  }
+}
+
+.animated_rat {
+  animation-name: rat;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+/************/
+
 @keyframes hit_fx1 {
   0% {
     background-image: url('../img/uf_FX_impact/uf_FX_impact_09.png');

@@ -1,6 +1,18 @@
 ﻿{
   "monsters": [
     {
+      "id": "rat",
+      "name": "Rat",
+      "weaponSkill": 15,
+      "weaponDamage": 4,
+      "toughness": 20,
+      "armour": 1,
+      "wounds": 6,
+      "animationClass": "animated_rat",
+      "character": "r",
+      "character_color": "#9f6e1f"
+    },
+    {
       "id": "skeleton",
       "name": "Skeleton",
       "weaponSkill": 25,
