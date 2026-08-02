@@ -73,6 +73,10 @@
 }
 
 .decinfront {
+  z-index: 3;
+}
+
+.decmiddle {
   z-index: 2;
 }
 
@@ -89,7 +93,7 @@
   background: transparent;
   border: none;
   color: transparent;
-  z-index: 2;
+  z-index: 3;
 }
 
 .toggle_button {
@@ -114,7 +118,7 @@
 }
 
   /* Tooltips */
-  div [data-tool-tip]::after {
+div [data-tool-tip]::after {
   content: attr(data-tool-tip);
   display: block;
   position: absolute;
@@ -127,6 +131,7 @@
   left: 0;
   white-space: nowrap;
   visibility: hidden;
+  z-index: 5;
 }
 
 div[data-tool-tip]:hover::after {

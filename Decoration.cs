@@ -5,6 +5,13 @@ namespace BlazorRogue;
 
 class Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
 {
+    internal enum Layer
+    {
+        Infront,
+        Middleground,
+        Behind,
+    }
+
     public GameObject GameObject { get; private set; } = gameObject;
     public string? ImageName { get; private set; } = imageName;
     public string ImageFolder { get; private set; } = imageFolder;
@@ -12,7 +19,9 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     public Action? OnUse { get; set; }
     public int VerticalOffset { get; set; }
     public int HorizontalOffset { get; set; }
-    public bool InFront { get; set; }
+
+    public Layer DecorationLayer { get; set; } = Layer.Middleground;
+
     public bool BlocksLight => GameObject.BlocksLight;
     public bool Shake { get; set; }
 
