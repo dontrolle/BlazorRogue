@@ -9,7 +9,7 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     {
         Infront,
         Middleground,
-        Behind
+        Behind,
     }
 
     public GameObject GameObject { get; private set; } = gameObject;
@@ -19,7 +19,7 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     public Action? OnUse { get; set; }
     public int VerticalOffset { get; set; }
     public int HorizontalOffset { get; set; }
-    
+
     public Layer DecorationLayer { get; set; } = Layer.Middleground;
 
     public bool BlocksLight => GameObject.BlocksLight;

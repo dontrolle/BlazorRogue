@@ -48,7 +48,12 @@ class Door : GameObject
                     );
                 // place 10 on door tile - raised 1 z-index, to be in front of player
                 map.Decorations[X, Y]
-                    .Add(new Decoration(this, ImagePrefix + 10) { DecorationLayer = Decoration.Layer.Infront });
+                    .Add(
+                        new Decoration(this, ImagePrefix + 10)
+                        {
+                            DecorationLayer = Decoration.Layer.Infront,
+                        }
+                    );
             }
             else
             {

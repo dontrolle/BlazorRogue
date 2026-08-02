@@ -64,7 +64,7 @@ class StaticDecorativeObject : GameObject
                     VerticalOffset = verticalOffset,
                     Character = character,
                     CharacterColor = characterColor,
-                    DecorationLayer = decorationLayer
+                    DecorationLayer = decorationLayer,
                 }
             );
 }
