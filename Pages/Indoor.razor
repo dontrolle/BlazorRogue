@@ -9,28 +9,27 @@
 @inject IWebHostEnvironment WebHostEnvironment;
 
 @{
-  int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
-  string mapStyle = $"grid-template-rows: repeat({windowHeight}, {gridTileSize}px); grid-template-columns: repeat({windowWidth}, {gridTileSize}px);";
+    int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+    string mapStyle = $"grid-template-rows: repeat({windowHeight}, {gridTileSize}px); grid-template-columns: repeat({windowWidth}, {gridTileSize}px);";
 
-  const string shakeClass = "shakehit0";
-  string mapClass = "map";
-  string spanClass = "";
-  if (References.EffectsSystem.Shake)
-  {
-      if (tikTok)
-      {
-          mapClass = $"{mapClass} {shakeClass}";
-      }
-      else
-      {
-          spanClass = $"{shakeClass}";
-      }
-  }
-  tikTok = !tikTok;
+    const string shakeClass = "shakehit0";
+    string mapClass = "map";
+    string spanClass = "";
+    if (References.EffectsSystem.Shake)
+    {
+        if (tikTok)
+        {
+            mapClass = $"{mapClass} {shakeClass}";
+        }
+        else
+        {
+            spanClass = $"{shakeClass}";
+        }
+    }
+    tikTok = !tikTok;
 }
 
 <div class="main_window">
-
     <div id="left_menu" class="left_menu">
         <button type="button" id="mode_switch" class="toggle_button" @onclick="ToggleRenderMode">Switch mode</button>
         <br />
@@ -91,7 +90,8 @@
                             }
                             else
                             {
-                                <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')" alt="@x,@y (@tiletype)"> </div>
+                                <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')"
+                                     alt="@x,@y (@tiletype)"> </div>
                             }
 
                             @foreach (var decoration in game.Map.AllDecorations(x, y))
@@ -110,7 +110,7 @@
 
                                 // - handle layer class
                                 string layerClass;
-                                layerClass = decoration.DecorationLayer switch 
+                                layerClass = decoration.DecorationLayer switch
                                 {
                                     Decoration.Layer.Infront => "decinfront",
                                     Decoration.Layer.Middleground => "decmiddle",
@@ -153,7 +153,8 @@
                                     if (decoration.VerticalOffset != 0)
                                     {
                                         // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
-                                        if(game.Map.MoveableDecorations[x,y + decoration.VerticalOffset].Any()){
+                                        if (game.Map.MoveableDecorations[x, y + decoration.VerticalOffset].Any())
+                                        {
                                             opacityValue = "0.5";
                                         }
                                         offset = $"top: {decoration.VerticalOffset * gridTileSize}px;";
@@ -161,7 +162,8 @@
                                     if (decoration.HorizontalOffset != 0)
                                     {
                                         // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
-                                        if(game.Map.MoveableDecorations[x + decoration.HorizontalOffset,y].Any()){
+                                        if (game.Map.MoveableDecorations[x + decoration.HorizontalOffset, y].Any())
+                                        {
                                             opacityValue = "0.5";
                                         }
                                         offset += $"left: {decoration.HorizontalOffset * gridTileSize}px;";
@@ -181,7 +183,8 @@
                                         datatooltip = infoText;
                                     }
 
-                                    <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip" alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
+                                    <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip"
+                                         alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
                                         @divContent
                                     </div>
                                 }
@@ -258,183 +261,183 @@
         _selfRef?.Dispose();
     }
 
-  private async Task FitMapToViewportAsync()
-  {
-      var area = await JsRuntime.InvokeAsync<MapArea>(
-          "blazorViewport.getAvailableMapArea",
-          "mapcontainer",   // map div id
-          "left_menu",      // left panel id
-          "debuginfo"       // debug panel id
-      );
+    private async Task FitMapToViewportAsync()
+    {
+        var area = await JsRuntime.InvokeAsync<MapArea>(
+            "blazorViewport.getAvailableMapArea",
+            "mapcontainer", // map div id
+            "left_menu", // left panel id
+            "debuginfo"       // debug panel id
+        );
 
-      int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+        int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
 
-      // enforce a sane minimum so game remains playable
-      const int minTilesX = 8;
-      const int minTilesY = 8;
+        // enforce a sane minimum so game remains playable
+        const int minTilesX = 8;
+        const int minTilesY = 8;
 
-      int tilesX = Math.Max(minTilesX, area.AvailableWidth / tileSize);
-      int tilesY = Math.Max(minTilesY, area.AvailableHeight / tileSize);
+        int tilesX = Math.Max(minTilesX, area.AvailableWidth / tileSize);
+        int tilesY = Math.Max(minTilesY, area.AvailableHeight / tileSize);
 
-      windowWidth = Math.Clamp(tilesX, minTilesX, game.Map.Width);
-      windowHeight = Math.Clamp(tilesY, minTilesY, game.Map.Height);
+        windowWidth = Math.Clamp(tilesX, minTilesX, game.Map.Width);
+        windowHeight = Math.Clamp(tilesY, minTilesY, game.Map.Height);
 
-      // re-center viewport around player
-      int optimalXOffset = game.Map.Player.X - windowWidth / 2;
-      windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
+        // re-center viewport around player
+        int optimalXOffset = game.Map.Player.X - windowWidth / 2;
+        windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
-      int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
-      windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
+        int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
+        windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
 
-      // optional: keep move buffer proportional after resize
-      windowMoveBufferX = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowWidth / 3));
-      windowMoveBufferY = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowHeight / 3));
-  }
+        // optional: keep move buffer proportional after resize
+        windowMoveBufferX = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowWidth / 3));
+        windowMoveBufferY = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowHeight / 3));
+    }
 
-  private async Task ToggleRenderMode()
-  {
-    renderAscii = !renderAscii;
-    await FitMapToViewportAsync();
-  }
-  bool renderAscii = false;
-  const int asciiGridTileSize = 20;
-  const int graphicGridTileSize = 48;
-  bool tikTok = false;
+    private async Task ToggleRenderMode()
+    {
+        renderAscii = !renderAscii;
+        await FitMapToViewportAsync();
+    }
+    bool renderAscii = false;
+    const int asciiGridTileSize = 20;
+    const int graphicGridTileSize = 48;
+    bool tikTok = false;
 
-  Game game = new Game();
+    Game game = new Game();
 
-  int windowMoveBufferX = Map.PlayerSightRadius + 1;
-  int windowMoveBufferY = Map.PlayerSightRadius + 1;
+    int windowMoveBufferX = Map.PlayerSightRadius + 1;
+    int windowMoveBufferY = Map.PlayerSightRadius + 1;
 
-  int windowWidth = 25;
-  int windowHeight = 20;
-  int windowXOffset = Int32.MaxValue;
-  int windowYOffset = Int32.MaxValue;
+    int windowWidth = 25;
+    int windowHeight = 20;
+    int windowXOffset = Int32.MaxValue;
+    int windowYOffset = Int32.MaxValue;
 
-  protected override void OnInitialized()
-  {
-      // Fall back to the ASCII renderer by default if the (licensed, not
-      // included in the repo) Ultimate Fantasy tileset hasn't been placed
-      // under wwwroot/img - otherwise the tileset view would just render
-      // empty/broken tiles. uf_terrain is used pervasively (floors/walls),
-      // so its presence is a good proxy for "the tileset is installed".
-      string tilesetProbeDirectory = Path.Combine(WebHostEnvironment.WebRootPath, "img", "uf_terrain");
-      if (!Directory.Exists(tilesetProbeDirectory) || !Directory.EnumerateFiles(tilesetProbeDirectory).Any())
-      {
-          renderAscii = true;
-      }
+    protected override void OnInitialized()
+    {
+        // Fall back to the ASCII renderer by default if the (licensed, not
+        // included in the repo) Ultimate Fantasy tileset hasn't been placed
+        // under wwwroot/img - otherwise the tileset view would just render
+        // empty/broken tiles. uf_terrain is used pervasively (floors/walls),
+        // so its presence is a good proxy for "the tileset is installed".
+        string tilesetProbeDirectory = Path.Combine(WebHostEnvironment.WebRootPath, "img", "uf_terrain");
+        if (!Directory.Exists(tilesetProbeDirectory) || !Directory.EnumerateFiles(tilesetProbeDirectory).Any())
+        {
+            renderAscii = true;
+        }
 
-      int optimalXOffset = game.Map.Player.X - windowWidth / 2;
-      windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
+        int optimalXOffset = game.Map.Player.X - windowWidth / 2;
+        windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
-      int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
-      windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
-  }
+        int optimalYOffset = game.Map.Player.Y - windowHeight / 2;
+        windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
+    }
 
-  internal void OnClick(Decoration decoration)
-  {
-      decoration.OnUse?.Invoke();
-      // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
-      //       When I begin to do effecs, I may need to revisit this...
-      game.Map.UpdateBlocksLight(decoration.GameObject.X, decoration.GameObject.Y, recomputeVisibility: true);
-      game.Map.UpdateBlockMovement(decoration.GameObject.X, decoration.GameObject.Y);
-      game.Map.RenderGameObjects(decoration.GameObject.X, decoration.GameObject.Y);
-      // TODO Don't I need to Render Moveables here also?
-  }
+    internal void OnClick(Decoration decoration)
+    {
+        decoration.OnUse?.Invoke();
+        // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
+        // When I begin to do effecs, I may need to revisit this...
+        game.Map.UpdateBlocksLight(decoration.GameObject.X, decoration.GameObject.Y, recomputeVisibility: true);
+        game.Map.UpdateBlockMovement(decoration.GameObject.X, decoration.GameObject.Y);
+        game.Map.RenderGameObjects(decoration.GameObject.X, decoration.GameObject.Y);
+        // TODO Don't I need to Render Moveables here also?
+    }
 
-  void KeyUp(KeyboardEventArgs e)
-  {
-      if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
-      {
-          game.Map.RenderMoveables();
-          game.Map.PlayerTookTurn();
+    void KeyUp(KeyboardEventArgs e)
+    {
+        if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
+        {
+            game.Map.RenderMoveables();
+            game.Map.PlayerTookTurn();
 
-          // adjust window
-          // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
+            // adjust window
+            // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
           if (game.Map.Player.X - windowXOffset < windowMoveBufferX)
-          {
-              windowXOffset--;
-          }
+            {
+                windowXOffset--;
+            }
 
-          if (windowXOffset + windowWidth - game.Map.Player.X < windowMoveBufferX)
-          {
-              windowXOffset++;
-          }
+            if (windowXOffset + windowWidth - game.Map.Player.X < windowMoveBufferX)
+            {
+                windowXOffset++;
+            }
 
-          windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
+            windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
 
-          if (game.Map.Player.Y - windowYOffset < windowMoveBufferY)
-          {
-              windowYOffset--;
-          }
+            if (game.Map.Player.Y - windowYOffset < windowMoveBufferY)
+            {
+                windowYOffset--;
+            }
 
-          if (windowYOffset + windowHeight - game.Map.Player.Y < windowMoveBufferY)
-          {
-              windowYOffset++;
-          }
+            if (windowYOffset + windowHeight - game.Map.Player.Y < windowMoveBufferY)
+            {
+                windowYOffset++;
+            }
 
-          windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
-      }
-  }
+            windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
+        }
+    }
 
-  bool OnKeyPress(string key, string keyCode, bool shiftKey)
-  {
-      char numKey;
-      // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
+    bool OnKeyPress(string key, string keyCode, bool shiftKey)
+    {
+        char numKey;
+        // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
 
-      if (keyCode.ToLower().StartsWith("numpad"))
-      {
-          numKey = keyCode[6];
+        if (keyCode.ToLower().StartsWith("numpad"))
+        {
+            numKey = keyCode[6];
 
-          // handle shift + numpad
-          if (key != numKey.ToString())
-          {
-              // we know shiftKey must have been held, as else we have, for all single digits X
-              //   key=="X"  iff  numKey=="NumpadX"
-              shiftKey = true;
-          }
-      }
+            // handle shift + numpad
+            if (key != numKey.ToString())
+            {
+                // we know shiftKey must have been held, as else we have, for all single digits X
+                // key=="X" iff numKey=="NumpadX"
+                shiftKey = true;
+            }
+        }
 
-      // fast hacky support for laptop-movement
-      else if (keyCode.ToLower() == "keyq")
-      {
-          numKey = '7';
-      }
-      else if (keyCode.ToLower() == "keyw")
-      {
-          numKey = '8';
-      }
-      else if (keyCode.ToLower() == "keye")
-      {
-          numKey = '9';
-      }
-      else if (keyCode.ToLower() == "keya")
-      {
-          numKey = '4';
-      }
-      else if (keyCode.ToLower() == "keys")
-      {
-          numKey = '5';
-      }
-      else if (keyCode.ToLower() == "keyd")
-      {
-          numKey = '6';
-      }
-      else if (keyCode.ToLower() == "keyz")
-      {
-          numKey = '1';
-      }
-      else if (keyCode.ToLower() == "keyx")
-      {
-          numKey = '2';
-      }
-      else if (keyCode.ToLower() == "keyc")
-      {
-          numKey = '3';
-      }
-      else
-          return false;
+        // fast hacky support for laptop-movement
+        else if (keyCode.ToLower() == "keyq")
+        {
+            numKey = '7';
+        }
+        else if (keyCode.ToLower() == "keyw")
+        {
+            numKey = '8';
+        }
+        else if (keyCode.ToLower() == "keye")
+        {
+            numKey = '9';
+        }
+        else if (keyCode.ToLower() == "keya")
+        {
+            numKey = '4';
+        }
+        else if (keyCode.ToLower() == "keys")
+        {
+            numKey = '5';
+        }
+        else if (keyCode.ToLower() == "keyd")
+        {
+            numKey = '6';
+        }
+        else if (keyCode.ToLower() == "keyz")
+        {
+            numKey = '1';
+        }
+        else if (keyCode.ToLower() == "keyx")
+        {
+            numKey = '2';
+        }
+        else if (keyCode.ToLower() == "keyc")
+        {
+            numKey = '3';
+        }
+        else
+            return false;
 
-      return game.Map.HandlePlayerAction(shiftKey, numKey);
-  }
+        return game.Map.HandlePlayerAction(shiftKey, numKey);
+    }
 }
