@@ -109,11 +109,15 @@
                                 string divContent = "";
 
                                 // - handle layer class
-                                var layerClass = "decbehind";
-                                if (decoration.InFront)
+                                string layerClass;
+                                layerClass = decoration.DecorationLayer switch 
                                 {
-                                    layerClass = "decinfront";
-                                }
+                                    Decoration.Layer.Infront => "decinfront",
+                                    Decoration.Layer.Middleground => "decmiddle",
+                                    Decoration.Layer.Behind => "decbehind",
+                                    _ => throw new InvalidOperationException("Unhandled Decoration.Layer value.")
+                                };
+
                                 if (renderAscii)
                                 {
                                     baseCssClass += " decoration-ascii";

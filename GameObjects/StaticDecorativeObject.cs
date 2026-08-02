@@ -10,6 +10,7 @@ class StaticDecorativeObject : GameObject
     readonly int verticalOffset;
     readonly string character;
     readonly string characterColor;
+    readonly Decoration.Layer decorationLayer;
 
     public StaticDecorativeObject(
         int x,
@@ -18,7 +19,8 @@ class StaticDecorativeObject : GameObject
         string? imageTag = null,
         int? verticalOffsetOverride = null,
         string? nameOverride = null,
-        string? infoTextOverride = null
+        string? infoTextOverride = null,
+        Decoration.Layer decorationLayer = Decoration.Layer.Middleground
     )
         : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
     {
@@ -49,6 +51,7 @@ class StaticDecorativeObject : GameObject
         verticalOffset = verticalOffsetOverride ?? staticDecorativeObjectType.VerticalOffset;
         character = staticDecorativeObjectType.Character;
         characterColor = staticDecorativeObjectType.CharacterColor;
+        this.decorationLayer = decorationLayer;
 
         Blocking = staticDecorativeObjectType.Blocking;
     }
@@ -61,6 +64,7 @@ class StaticDecorativeObject : GameObject
                     VerticalOffset = verticalOffset,
                     Character = character,
                     CharacterColor = characterColor,
+                    DecorationLayer = decorationLayer
                 }
             );
 }

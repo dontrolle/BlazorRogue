@@ -257,7 +257,8 @@ class Map
             killedMonster.Y,
             puddleType,
             nameOverride: killedMonster.Name + "_puddle",
-            infoTextOverride: $"Blood puddle of {killedMonster.Name}"
+            infoTextOverride: $"Blood puddle of {killedMonster.Name}",
+            decorationLayer: Decoration.Layer.Behind
         );
 
         AddGameObject(puddleObject);
