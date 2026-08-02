@@ -1,6 +1,6 @@
 # BlazorRogue
 
-[![Build](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml/badge.svg)](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml)
+[![CI](https://github.com/dontrolle/BlazorRogue/actions/workflows/CI.yml/badge.svg)](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
