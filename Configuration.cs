@@ -19,12 +19,31 @@ namespace BlazorRogue;
 /// </remarks>
 class Configuration
 {
-    // TODO Ensure that read files are from output dir, i.e., built files
-    const string MonsterFileName = "Data\\monsters.json";
-    const string HeroesFileName = "Data\\heroes.json";
-    const string FloorSetsFileName = "Data\\floorsets.json";
-    const string WallSetsFileName = "Data\\wallsets.json";
-    const string DecorationsFileName = "Data\\decorations.json";
+    static readonly string MonsterFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "monsters.json"
+    );
+    static readonly string HeroesFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "heroes.json"
+    );
+    static readonly string FloorSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "floorsets.json"
+    );
+    static readonly string WallSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "wallsets.json"
+    );
+    static readonly string DecorationsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "decorations.json"
+    );
 
     readonly Dictionary<string, MoveableType> monsterTypes = [];
     public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;

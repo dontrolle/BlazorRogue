@@ -11,6 +11,8 @@ dotnet test                     # Run all tests (BlazorRogue.Tests, xUnit)
 dotnet test --filter "FullyQualifiedName~ClassName.MethodName"   # Run a single test
 dotnet tool restore && dotnet csharpier check .   # Check formatting (what CI runs)
 dotnet csharpier format .       # Auto-fix formatting
+docker build -t blazorrogue .   # Build the Linux container image (see Dockerfile)
+docker run -p 8080:8080 blazorrogue   # Run it, then open http://localhost:8080
 ```
 
 There is no separate lint step beyond `.editorconfig` conventions (see below) and the compiler's
@@ -25,6 +27,12 @@ page load. The proprietary Ultimate Fantasy Tileset image assets are excluded fr
 (`wwwroot/img/` populated manually if you own a license) — without them the game falls back
 automatically to the built-in ASCII renderer, so the tileset is never required for local dev.
 
+A `Dockerfile`/`.dockerignore` at the repo root build a Linux container image via multi-stage
+`dotnet publish` (`mcr.microsoft.com/dotnet/sdk:10.0` → `mcr.microsoft.com/dotnet/aspnet:10.0`).
+`.dockerignore` deliberately excludes `wwwroot/img/uf_*` so the tileset can never end up in the
+image even if it's present on the build machine's disk — the containerized game always runs in
+ASCII mode.
+
 ## Architecture
 
 - **`Game`** (`Game.cs`) is the root object built once per game session. It owns the
@@ -35,7 +43,10 @@ automatically to the built-in ASCII renderer, so the tileset is never required f
   receiving them via DI/constructor injection — keep this pattern in mind when wiring new code.
 - **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
-  strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all
+  strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). File paths
+  are resolved relative to `AppContext.BaseDirectory` (not the process's current working directory),
+  so `Data/*.json` is a `CopyToOutputDirectory` content item in `BlazorRogue.csproj` — it ships next
+  to the built assembly in both `dotnet build`/`dotnet publish` output. Nearly all
   visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded — new
   monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#. New
   JSON-configurable data goes in the matching file under `Data/`, parsed via a `Parse*Type` method
