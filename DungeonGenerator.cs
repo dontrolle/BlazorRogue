@@ -563,13 +563,13 @@ class DungeonGenerator
                 && !map.IsBlocked(x, y)
             )
             {
-                string chestId = "chest_gold";
-                if (random.Next(0, 2) == 0)
-                {
-                    chestId = "chest_silver";
-                }
-
+                string chestId = "chest_silver";
                 int gold = random.Next(0, 4);
+                if (random.Next(0, 4) == 0)
+                {
+                    chestId = "chest_gold";
+                    gold += 4;
+                }
 
                 map.AddGameObject(
                     new Chest(x, y, chestId, new InventoryComponent() { Gold = gold })
