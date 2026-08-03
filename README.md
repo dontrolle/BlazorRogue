@@ -73,6 +73,18 @@ dotnet test
 
 There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build` followed by `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/build.yml`).
 
+### Docker
+
+```
+docker build -t blazorrogue .
+docker run -p 8080:8080 blazorrogue
+```
+
+Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage
+`dotnet publish` (see `Dockerfile`) and intentionally excludes the proprietary tileset assets
+(`wwwroot/img/uf_*`, gitignored and license-restricted — see [Tileset](#tileset)) via `.dockerignore`,
+so the containerized game always runs in ASCII-renderer mode.
+
 ## How to play
 
 | Action | Keys |

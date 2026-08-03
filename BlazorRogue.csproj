@@ -29,4 +29,12 @@
          mirroring how app code (e.g. Pages/Indoor.razor) wires them up at runtime. -->
     <InternalsVisibleTo Include="BlazorRogue.Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Configuration.cs resolves these relative to AppContext.BaseDirectory, so they must ship
+         next to the built assembly (build output and publish output alike). -->
+    <None Include="Data\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

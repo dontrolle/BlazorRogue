@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+.git/
+.github/
+.vscode/
+artifacts/
+*.user
+*.binlog
+BlazorRogue.Tests/
+wwwroot/img/uf_*
