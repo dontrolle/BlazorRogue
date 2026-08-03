@@ -37,4 +37,17 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Licensed Ultimate Fantasy tileset (wwwroot/img/uf_*, see README "Tileset") - present only
+         on machines that own a license, gitignored and dockerignored otherwise. `dotnet publish`
+         already mirrors it via the normal static web assets pipeline, but Indoor.razor's tileset
+         auto-detection checks WebHostEnvironment.WebRootPath, which for a plain `dotnet build`
+         output points at bin/.../wwwroot - so mirror it there too when present. When absent, this
+         glob simply matches nothing. Docker's exclusion is unaffected: .dockerignore strips these
+         files from the build context before any csproj item ever sees them. -->
+    <None Include="wwwroot\img\uf_*\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
