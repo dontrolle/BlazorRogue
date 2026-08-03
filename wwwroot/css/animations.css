@@ -344,6 +344,36 @@
 
 /************/
 
+@keyframes flies {
+  0% {
+    background-image: url('../img/uf_heroes/flies_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/flies_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/flies_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/flies_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/flies_1.png');
+  }
+}
+
+.animated_flies {
+  animation-name: flies;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+/************/
+
 @keyframes hit_fx1 {
   0% {
     background-image: url('../img/uf_FX_impact/uf_FX_impact_09.png');

@@ -1,6 +1,18 @@
 ﻿{
   "monsters": [
     {
+      "id": "flies",
+      "name": "Flies",
+      "weaponSkill": 10,
+      "weaponDamage": 4,
+      "toughness": 20,
+      "armour": 1,
+      "wounds": 5,
+      "animationClass": "animated_flies",
+      "character": "F",
+      "character_color": "#c3c3c3"
+    },
+    {
       "id": "rat",
       "name": "Rat",
       "weaponSkill": 15,
@@ -57,7 +69,7 @@
       "armour": 2,
       "wounds": 15,
       "animationClass": "animated_spider_black_giant",
-      "character": "s",
+      "character": "S",
       "character_color": "LightSlateGrey"
     },
     {
@@ -69,7 +81,7 @@
       "armour": 1,
       "wounds": 10,
       "animationClass": "animated_spider_brown_giant",
-      "character": "s",
+      "character": "S",
       "character_color": "#bf8040"
     },
     {
