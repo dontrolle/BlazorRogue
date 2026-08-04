@@ -16,6 +16,12 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     public string? ImageName { get; private set; } = imageName;
     public string ImageFolder { get; private set; } = imageFolder;
     public string? AnimationClass { get; set; }
+
+    /// <summary>
+    /// Freezes <see cref="AnimationClass"/> on a single frame, for things that are still drawn but
+    /// no longer moving - a dead player's corpse, for instance.
+    /// </summary>
+    public bool AnimationPaused { get; set; }
     public Action? OnUse { get; set; }
     public int VerticalOffset { get; set; }
     public int HorizontalOffset { get; set; }

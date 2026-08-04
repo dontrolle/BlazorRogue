@@ -94,4 +94,113 @@ public class MapTests
 
         Assert.False(map.IsBlocked(2, 2));
     }
+
+    // Death drops a blood puddle and re-renders, both of which need a real Game and a post-gen
+    // map behind them - so these use a fully generated game rather than CreateMap().
+    static int PuddleCount(Map map, Moveable owner) =>
+        map.GameObjects.Count(g => g.Name == owner.Name + "_puddle");
+
+    static Decoration PlayerDecoration(Map map) =>
+        map.MoveableDecorations[map.Player.X, map.Player.Y].Single(d => d.GameObject == map.Player);
+
+    [Fact]
+    public void NewGameIsNotGameOver()
+    {
+        var game = new Game();
+
+        Assert.False(game.Map.IsGameOver);
+    }
+
+    [Fact]
+    public void PlayerDyingEndsTheGame()
+    {
+        var game = new Game();
+
+        game.Map.Player.CombatComponent!.ApplyDamage(1000);
+
+        Assert.True(game.Map.IsGameOver);
+    }
+
+    [Fact]
+    public void GameOverIsNotTriggeredByAMonsterDying()
+    {
+        var game = new Game();
+        var monster = game.Map.Monsters.First();
+
+        monster.CombatComponent!.ApplyDamage(1000);
+
+        Assert.DoesNotContain(monster, game.Map.Monsters);
+        Assert.False(game.Map.IsGameOver);
+    }
+
+    [Fact]
+    public void DeadPlayerLeavesACorpseOverABloodPuddle()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+        (int x, int y) = (player.X, player.Y);
+
+        Assert.Equal(0, PuddleCount(game.Map, player));
+
+        player.CombatComponent!.ApplyDamage(1000);
+
+        // The corpse stays on the map rather than being removed, unlike a dead monster.
+        Assert.Contains(player, game.Map.Moveables);
+
+        var puddle = game
+            .Map.Decorations[x, y]
+            .Single(d => d.GameObject.Name == player.Name + "_puddle");
+
+        // Behind (z-index 1) puts the puddle under the player's Middleground (2) decoration.
+        Assert.Equal(Decoration.Layer.Behind, puddle.DecorationLayer);
+    }
+
+    [Fact]
+    public void DeadPlayerIsStillDrawnButWithItsAnimationStopped()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+
+        Assert.False(PlayerDecoration(game.Map).AnimationPaused);
+
+        player.CombatComponent!.ApplyDamage(1000);
+
+        var corpse = PlayerDecoration(game.Map);
+        Assert.True(corpse.AnimationPaused);
+
+        // Frozen, not removed - dropping the animation class would render nothing at all.
+        Assert.False(string.IsNullOrEmpty(corpse.AnimationClass));
+    }
+
+    [Fact]
+    public void FurtherHitsOnADeadPlayerDoNotRepeatTheDeath()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+
+        // Several monsters attack within one turn, and CombatComponent raises GameObjectKilled on
+        // every hit that leaves the player at or below zero - so the death must be handled once,
+        // or the puddles (and the lose jingle) would stack up.
+        player.CombatComponent!.ApplyDamage(1000);
+        player.CombatComponent.ApplyDamage(1000);
+        player.CombatComponent.ApplyDamage(1000);
+
+        Assert.True(game.Map.IsGameOver);
+        Assert.Equal(1, PuddleCount(game.Map, player));
+    }
+
+    [Fact]
+    public void HandlePlayerActionIsRefusedOnceTheGameIsOver()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+        player.CombatComponent!.ApplyDamage(1000);
+        (int x, int y) = (player.X, player.Y);
+
+        // '6' moves right; a dead player must not be able to take another turn even if the UI
+        // somehow sends input.
+        Assert.False(game.Map.HandlePlayerAction(shiftKey: false, numKey: '6'));
+        Assert.Equal(x, player.X);
+        Assert.Equal(y, player.Y);
+    }
 }

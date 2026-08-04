@@ -64,6 +64,11 @@
   background-color: black;
 }
 
+/* Freezes a sprite animation on one frame - see Decoration.AnimationPaused. */
+.animation-paused {
+  animation-play-state: paused;
+}
+
 .outoffov {
   filter: brightness(50%);
 }
@@ -115,6 +120,45 @@
 
 .toggle_button:hover {
   color: white;
+}
+
+/* Once the game is over, starting a new one is the only thing left to do - so draw the eye to it. */
+.toggle_button.highlighted {
+  background-color: #b71c1c;
+  animation: newgamepulse 1.4s ease-in-out infinite;
+}
+
+@keyframes newgamepulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
+  }
+
+  50% {
+    box-shadow: 0 0 0 9px rgba(255, 82, 82, 0);
+  }
+}
+
+/* Dimmed while the game is over, since the keys it documents no longer do anything. */
+.instructions_disabled {
+  opacity: 0.4;
+}
+
+/* Sits at the bottom of the play area, above decorations (z-index 3) and tooltips (5). */
+.game_over {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  padding: 0.15em 0;
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: red;
+  text-shadow: 0 0 6px black, 2px 2px 3px black;
+  background-color: rgba(0, 0, 0, 0.65);
+  pointer-events: none;
 }
 
   /* Tooltips */

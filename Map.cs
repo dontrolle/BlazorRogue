@@ -217,7 +217,61 @@ class Map
     public void AddPlayer(Moveable player)
     {
         AddMoveable(player);
+        player.GameObjectKilled += PlayerKilled;
         Player = player;
+    }
+
+    /// <summary>
+    /// True once the player has died. The game is then finished: no further turns are accepted and
+    /// the only way on is to start a new game.
+    /// </summary>
+    public bool IsGameOver { get; private set; }
+
+    void PlayerKilled(object? sender, EventArgs e)
+    {
+        if (sender is not Moveable killedPlayer)
+        {
+            throw new InvalidOperationException(
+                "PlayerKilled should only be invoked with Moveable's."
+            );
+        }
+
+        // Several monsters attack within a single PlayerTookTurn(), and CombatComponent raises
+        // GameObjectKilled on every hit that leaves the player at or below zero wounds - so this
+        // can fire more than once for one death. Only the first time counts.
+        if (IsGameOver)
+        {
+            return;
+        }
+
+        IsGameOver = true;
+        References.SoundManager.PlayGameLoose();
+
+        // The player's corpse is deliberately left on the map rather than removed, so the final
+        // position stays visible behind the game over message. Mark the spot the same way a dead
+        // monster is marked (see MonsterKilled).
+        PlaceBloodPuddle(killedPlayer);
+
+        // The player dies inside PlayerTookTurn(), by which point the turn's RenderMoveables() has
+        // already run - so re-render to pick up the corpse's stopped animation.
+        RenderMoveables();
+    }
+
+    void PlaceBloodPuddle(Moveable killed)
+    {
+        var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
+        var puddleObject = new StaticDecorativeObject(
+            killed.X,
+            killed.Y,
+            puddleType,
+            nameOverride: killed.Name + "_puddle",
+            infoTextOverride: $"Blood puddle of {killed.Name}",
+            decorationLayer: Decoration.Layer.Behind
+        );
+
+        AddGameObject(puddleObject);
+        // somewhat icky calling RenderXxx here...
+        RenderGameObjects(killed.X, killed.Y);
     }
 
     public void AddMonster(Moveable monster)
@@ -250,20 +304,7 @@ class Map
             );
         }
 
-        // Place a blood puddle
-        var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
-        var puddleObject = new StaticDecorativeObject(
-            killedMonster.X,
-            killedMonster.Y,
-            puddleType,
-            nameOverride: killedMonster.Name + "_puddle",
-            infoTextOverride: $"Blood puddle of {killedMonster.Name}",
-            decorationLayer: Decoration.Layer.Behind
-        );
-
-        AddGameObject(puddleObject);
-        // somewhat icky calling RenderXxx here...
-        RenderGameObjects(killedMonster.X, killedMonster.Y);
+        PlaceBloodPuddle(killedMonster);
     }
 
     public void AddMoveable(Moveable moveable) => moveables.Add(moveable);
@@ -286,6 +327,13 @@ class Map
 
     public bool HandlePlayerAction(bool shiftKey, char numKey)
     {
+        // The UI stops sending input once the game is over; this is the engine-side backstop, so a
+        // dead player can never take another turn.
+        if (IsGameOver)
+        {
+            return false;
+        }
+
         References.EffectsSystem.Reset();
 
         bool stateChanged;
