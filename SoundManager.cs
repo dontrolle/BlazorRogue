@@ -10,10 +10,26 @@ class SoundManager(IJSRuntime jsRuntime)
     readonly Random random = new();
     readonly string footstepDirtPrefix = "Footstep_Dirt_0";
 
-    async Task PlaySound(string sound) =>
-        _ = await jsRuntime
-            .InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{sound}")
-            .ConfigureAwait(false);
+    async Task PlaySound(string sound)
+    {
+        try
+        {
+            _ = await jsRuntime
+                .InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{sound}")
+                .ConfigureAwait(false);
+        }
+        catch (JSDisconnectedException)
+        {
+            // The circuit went away (typically a page reload) while a fire-and-forget sound was
+            // still in flight. Every caller below is `async void`, so letting this escape would
+            // surface as an unhandled exception on a thread pool thread rather than as a lost
+            // sound effect. Reloads are routine now that games survive them.
+        }
+        catch (ObjectDisposedException)
+        {
+            // As above, for a JS runtime that has already been torn down.
+        }
+    }
 
     public async void PlayWalkSound()
     {
