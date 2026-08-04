@@ -29,12 +29,24 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object built once per game session. It owns the
-  `DungeonGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`.
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`,
+  `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`,
+  not by the Blazor component. Prefer `new Game(configuration)` with the shared, already-parsed
+  configuration; the parameterless `new Game()` parses its own and is for tests/standalone use.
+- **Sessions** (`GameSession.cs`, `GameSessionStore.cs`) are what make a game survive a page reload,
+  since a reload starts a brand new Blazor circuit. `GameSessionStore` is a DI singleton keyed by an
+  id the browser keeps in `localStorage`. A session holds only `[id, Game, view preferences,
+  timestamps]` — all game-authoritative state stays in `Game`/`Map` — and `GameSession.Game` is
+  replaceable, so never cache it across a `StartNewGame()`. Sessions are in-memory only and must
+  never hold circuit-scoped state such as `SoundManager`.
 - **`References`** (`References.cs`) is a static service-locator-style holder for the current
-  `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`, set up during `Game`'s constructor.
+  `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`.
   Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than
   receiving them via DI/constructor injection — keep this pattern in mind when wiring new code.
+  **Gotcha:** they are per-process while several sessions may be alive, and constructing a `Game`
+  writes them as a side effect — so every handler touching game state must call
+  `session.Activate(soundManager)` first, or one player's input mutates another's map. Safe only
+  because the game loop is synchronous. Don't read `References.*` during render.
 - **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
   strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all

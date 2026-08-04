@@ -35,12 +35,34 @@ ASCII mode.
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object built once per game session. It owns the
-  `DungeonGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`.
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`,
+  `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`,
+  **not** by the Blazor component (see *Sessions* below). Prefer `new Game(configuration)` with the
+  shared, already-parsed configuration; the parameterless `new Game()` parses its own and exists for
+  tests and standalone use.
+- **Sessions** (`GameSession.cs`, `GameSessionStore.cs`) are what make a game survive a page reload.
+  A reload starts a brand new Blazor circuit, so the game cannot live in the component.
+  `GameSessionStore` is a DI singleton holding `GameSession`s keyed by an id the browser keeps in
+  `localStorage` (`blazorrogue.sessionId`, created by `ensureSessionId()` in `wwwroot/blazorrogue.js`).
+  A session holds `[id, Game, view preferences, timestamps]` and nothing else — all
+  game-authoritative state stays inside `Game`/`Map`. `GameSession.Game` is **replaceable**
+  (`StartNewGame()`), so never cache it anywhere a swap can't reach. Sessions are in memory only:
+  they are lost on process restart, and are evicted after ~2h idle or when the LRU cap is hit
+  (swept opportunistically inside `GetOrCreate`, so there is no background timer). Because sessions
+  outlive circuits they must never hold circuit-scoped state — notably `SoundManager`, which wraps a
+  per-circuit `IJSRuntime` and is therefore passed *in* to `Activate()` rather than stored.
 - **`References`** (`References.cs`) is a static service-locator-style holder for the current
-  `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`, set up during `Game`'s constructor.
-  Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than
-  receiving them via DI/constructor injection — keep this pattern in mind when wiring new code.
+  `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`. Code throughout the engine (e.g.
+  `GameObject.Kill()`, `Chest.Use()`) reaches these statics directly rather than receiving them via
+  DI/constructor injection — keep this pattern in mind when wiring new code.
+  **Gotcha:** these are per-process, but more than one `GameSession` can be alive at once, and
+  constructing a `Game` writes them as a side effect. So whichever game was built last would
+  otherwise win — one player's keypress mutating another's map. Every handler that touches game
+  state must therefore call `session.Activate(soundManager)` first (see `KeyUp` in
+  `Pages/Indoor.razor`); `Activate` is the single place the statics are written. This is safe only
+  because the game loop is fully synchronous — nothing awaits between activation and the end of the
+  handler, so no other circuit can interleave. **Do not read `References.*` during render**, which
+  happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
   strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). File paths
@@ -51,7 +73,8 @@ ASCII mode.
   monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#. New
   JSON-configurable data goes in the matching file under `Data/`, parsed via a `Parse*Type` method
   in `Configuration.cs` following the existing pattern (and the `GetRequiredString`/
-  `RequireNonNullString` helpers for required fields).
+  `RequireNonNullString` helpers for required fields). `Configuration` is immutable once parsed and
+  is registered as a **DI singleton** shared by every `Game` — don't re-parse it per game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` subclasses
@@ -63,12 +86,31 @@ ASCII mode.
   Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
   per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching
   between tileset and ASCII based on the `renderAscii` flag.
+  Most map state is *derived*: `Decorations`, `MoveableDecorations`, `BlocksLightMap`,
+  `BlocksMovementMap` and `IsVisibleMap` are all rebuilt by `PostGenInitalize()`/the `Render*`
+  methods. Only `Tiles`, the game-object list, moveables and `IsMappedMap` are authoritative.
+  Watch the render ordering: `KeyUp` calls `RenderMoveables()` **before** `PlayerTookTurn()`, so
+  anything that changes a moveable's appearance during the monsters' turn has to re-render itself
+  (as `PlayerKilled` does).
+- **Game over**: `Map.IsGameOver` is set when the player dies — `AddPlayer` subscribes to the
+  player's `GameObjectKilled`, mirroring `AddMonster`/`MonsterKilled`. The handler must be
+  idempotent: several monsters attack within one `PlayerTookTurn()` and `CombatComponent` re-raises
+  `GameObjectKilled` on *every* hit at or below zero wounds. The corpse is left on the map (unlike a
+  dead monster, which is removed) over a blood puddle from the shared `PlaceBloodPuddle` helper, with
+  its sprite frozen via `Decoration.AnimationPaused`. Note a paused animation class is used rather
+  than dropping it — a decoration with neither an animation class nor an image name renders nothing
+  at all. `HandlePlayerAction` refuses input once the game is over, backing up the UI's own guards.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/`
   (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
   parsed from the same `Configuration` JSON files.
 - **Hosting**: `Program.cs` uses the minimal hosting API plus the unified Blazor Components model
   (`AddRazorComponents().AddInteractiveServerComponents()` /
-  `MapRazorComponents<App>().AddInteractiveServerRenderMode()`). `App.razor` is the root HTML shell
+  `MapRazorComponents<App>().AddInteractiveServerRenderMode()`), and registers the `Configuration`,
+  `TimeProvider` and `GameSessionStore` singletons. `GameSessionStore` is registered with an explicit
+  factory so the container can't pick its tests-only constructor overload. Note that prerendering
+  constructs the page component twice, so anything expensive in a field initializer runs twice per
+  page load — which is why the game is resolved in `OnAfterRenderAsync` (also the earliest point JS
+  interop, and therefore the session id, is available). `App.razor` is the root HTML shell
   (`<HeadOutlet>` + `<Routes>`), and `Routes.razor` holds the `<Router>`. Gotcha: `~/`-style Tag
   Helper URL resolution (e.g. `<base href="~/">`) does **not** work inside `.razor` components —
   only inside `.cshtml` Razor Pages — so static asset URLs in `App.razor` must be plain absolute
@@ -85,6 +127,40 @@ does it at runtime), and mirrors `Data/*.json` into its own output directory sin
 update tests here for changes to game logic (combat, configuration parsing, map/dungeon generation).
 For changes that are hard to unit test (rendering, Blazor components, JS interop), describe how you
 manually verified the change (screenshot or in-browser testing) in the PR description instead.
+
+`MapTests.CreateMap()` builds a bare `Map` with `game: null!` and without `PostGenInitalize()`. That
+is fine for geometry helpers but **not** for anything that kills a `Moveable`: death drops a blood
+puddle (needs `Game.Configuration`) and re-renders (needs a post-gen map). Use `new Game()` for
+those — it generates a real dungeon in a few ms, as `GameTests` already does.
+
+## Verifying in the browser
+
+Session, rendering and input behaviour can't be unit tested, so it gets checked by driving the real
+app (`dotnet run --urls http://localhost:5000`). Hard-won notes:
+
+- **Drive the game with synthetic key events, not real keypresses.** The map only receives keys when
+  `#mapcontainer` has focus, and focus is easily lost between automation steps. Dispatching directly
+  at the element works regardless of focus and can be looped in a single call:
+  `el.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD', bubbles: true }))`.
+  Blazor Server handles these fine. `OnKeyPress` reads `e.Code` (`KeyD`), so set **both** `key` and
+  `code`. Allow ~60ms between events for the circuit round trip.
+- **Assert on the DOM, not on screenshots.** Every tile is `<div id="x,y" class="cell">` and every
+  decoration carries `alt="x,y (Name=..., Blocking=...)"`, so map state can be snapshotted as a
+  dictionary keyed by cell id. Computed styles are the way to check rendering (`animationPlayState`,
+  `zIndex`, `backgroundImage`).
+- **Any such snapshot is viewport-dependent.** The visible window is re-fitted on resize, so a
+  browser-window change alters how many cells render and makes two snapshots incomparable. Compare
+  only cells present in *both*, or keep the window size fixed.
+- **To test two independent players**, set a different `blazorrogue.sessionId` in `localStorage`
+  before opening a second tab. The sharp check for the `References` cross-wiring bug is to make the
+  *second* tab's game the most recently constructed, then confirm keys in the *first* tab still move
+  the first tab's player and leave the second untouched.
+- **To reach player death**, temporarily set the hero to `"wounds": 1, "toughness": 0, "armour": 0`
+  in `Data/heroes.json`, then `git checkout Data/heroes.json` and re-run the build/tests against the
+  real data. Wandering to find a monster is unreliable (400 random steps in one dungeon found none);
+  cycling **New game** and waiting a few turns in each is far faster, since any hit is then lethal.
+- Screenshot and zoom regions are in **device** pixels, while `getBoundingClientRect()` returns CSS
+  pixels — scale by the display factor (e.g. 1568/1280 ≈ 1.225) or the zoom will miss its target.
 
 ## Conventions
 
