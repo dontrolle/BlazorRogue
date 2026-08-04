@@ -54,8 +54,6 @@ else
         <br />
         <div class="instructions @(game.Map.IsGameOver ? "instructions_disabled" : "")">
             <dl>
-                <dt>Play game</dt>
-                <dd>Click on map to set focus</dd>
                 <dt>New game</dt>
                 <dd>Use the <b>New game</b> button</dd>
                 <dt>
@@ -82,7 +80,7 @@ else
     </div>
 
     <span class="@spanClass">
-        <div class="@mapClass" style="@mapStyle" id="mapcontainer" @onkeyup="@KeyUp" tabindex="0">
+        <div class="@mapClass" style="@mapStyle" id="mapcontainer">
             <!-- map is rendered row by row, top to bottom -->
             @for (int wY = 0; wY < windowHeight; wY++)
             {
@@ -284,6 +282,7 @@ else
 
         _selfRef = DotNetObjectReference.Create(this);
         await JsRuntime.InvokeVoidAsync("blazorViewport.registerResize", _selfRef);
+        await JsRuntime.InvokeVoidAsync("blazorroguefuncs.registerKeyup", _selfRef);
 
         StateHasChanged();
     }
@@ -293,6 +292,7 @@ else
         try
         {
             await JsRuntime.InvokeVoidAsync("blazorViewport.unregisterResize");
+            await JsRuntime.InvokeVoidAsync("blazorroguefuncs.unregisterKeyup");
         }
         catch
         {
@@ -437,7 +437,17 @@ else
         // TODO Don't I need to Render Moveables here also?
     }
 
-    void KeyUp(KeyboardEventArgs e)
+    // Invoked from JS on every document-level keyup (see blazorroguefuncs.registerKeyup), rather
+    // than a Blazor @onkeyup on the map div - keys drive the game regardless of which element has
+    // focus, so there's no click-to-focus step and no input dropped after e.g. a button click.
+    [JSInvokable]
+    public async Task OnGlobalKeyUp(string key, string code, bool shiftKey)
+    {
+        KeyUp(key, code, shiftKey);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void KeyUp(string key, string code, bool shiftKey)
     {
         // A finished game accepts no further input; only the New game button remains live.
         if (session is null || game.Map.IsGameOver)
@@ -450,7 +460,7 @@ else
         // in use, so an actively played game is never evicted as idle.
         session.Activate(soundManager!);
 
-        if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
+        if (OnKeyPress(key, code, shiftKey))
         {
             game.Map.RenderMoveables();
             game.Map.PlayerTookTurn();
