@@ -116,14 +116,16 @@ Vision/                           Field-of-view implementation
 Entities/                         Type definitions parsed from configuration (MoveableType, etc.)
 Data/                             JSON game data: monsters, heroes, floorsets, wallsets, decorations
 Configuration.cs                  Parses Data/*.json into the strongly-typed Entities
-Game.cs / Map.cs / References.cs  Core game/session state (see Architecture below)
+Game.cs / Map.cs / References.cs  Core game state (see Architecture below)
+GameSession*.cs                   Per-browser session state that survives page reloads
 wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
 ```
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object built once per game session. It owns the `DungeonGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`.
-- **`References`** (`References.cs`) is a static service-locator-style holder for the current `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`, set up during `Game`'s constructor. Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than receiving them via DI/constructor injection.
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`, not by the Blazor page.
+- **Sessions** (`GameSession.cs`, `GameSessionStore.cs`) keep a game alive across page reloads. A reload starts a new Blazor circuit, so the game can't live in the component; instead `GameSessionStore` (a DI singleton) holds it against an id the browser keeps in `localStorage`. Sessions are in-memory only — they don't survive a server restart — and are evicted once idle. Starting over is an explicit **New game** button rather than a page refresh.
+- **`References`** (`References.cs`) is a static service-locator-style holder for the current `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`. Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than receiving them via DI/constructor injection. Since several sessions can be alive in one process, `GameSession.Activate()` re-points them at the active game before any game logic runs.
 - **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/` into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`, `StaticDecorativeObject`). Behavior is composed via optional `Component` subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at construction — a `Component` always knows its `Owner` via `SetOwner`.
 - **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it. `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm). Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching between tileset and ASCII based on the `renderAscii` flag.
