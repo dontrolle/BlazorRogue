@@ -39,4 +39,24 @@ window.blazorroguefuncs = {
             return newId();
         }
     },
+
+    // Listens for keyup on the whole document rather than a focused element, so movement keys
+    // always drive the game - no click-to-focus step, and focus lost between actions (e.g. after
+    // clicking a button) doesn't stop input from working.
+    registerKeyup: function (dotNetRef) {
+        window.blazorroguefuncs.unregisterKeyup();
+
+        const handler = (e) => {
+            dotNetRef.invokeMethodAsync("OnGlobalKeyUp", e.key, e.code, e.shiftKey);
+        };
+        window.blazorroguefuncs._keyupHandler = handler;
+        document.addEventListener("keyup", handler);
+    },
+
+    unregisterKeyup: function () {
+        if (window.blazorroguefuncs._keyupHandler) {
+            document.removeEventListener("keyup", window.blazorroguefuncs._keyupHandler);
+            window.blazorroguefuncs._keyupHandler = null;
+        }
+    },
 }

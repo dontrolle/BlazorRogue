@@ -62,6 +62,11 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and
   `Pages/Indoor.razor` is the Blazor page that render the grid, switching
   between tileset and ASCII based on the `renderAscii` flag.
+- **Input**: keys drive the game via a `document`-level `keyup` listener registered from JS
+  (`blazorroguefuncs.registerKeyup`), not a Blazor `@onkeyup` on the map div — so movement works
+  regardless of what element has focus, with no click-to-focus step. It calls back into
+  `Indoor.OnGlobalKeyUp` (`[JSInvokable]`), which must call `StateHasChanged` itself since a
+  JS-invoked callback doesn't auto-render like a Blazor-bound event does.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (e.g.
   `FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
   parsed from the same `Configuration` JSON files.

@@ -92,6 +92,14 @@ ASCII mode.
   Watch the render ordering: `KeyUp` calls `RenderMoveables()` **before** `PlayerTookTurn()`, so
   anything that changes a moveable's appearance during the monsters' turn has to re-render itself
   (as `PlayerKilled` does).
+- **Input**: keys drive the game via a `document`-level `keyup` listener
+  (`blazorroguefuncs.registerKeyup` in `wwwroot/blazorrogue.js`), not a Blazor `@onkeyup` on the map
+  div — so movement works no matter what has focus (or nothing does), with no click-to-focus step.
+  The listener is registered once in `OnAfterRenderAsync` against a shared `DotNetObjectReference`
+  (the same one `blazorViewport.registerResize` uses) and calls back into `Indoor.OnGlobalKeyUp`,
+  which forwards to the same `KeyUp`/`OnKeyPress` logic and then calls `StateHasChanged` itself,
+  since a JS-invoked callback doesn't auto-render the way a Blazor-bound event does. Both listeners
+  are unregistered in `DisposeAsync`.
 - **Game over**: `Map.IsGameOver` is set when the player dies — `AddPlayer` subscribes to the
   player's `GameObjectKilled`, mirroring `AddMonster`/`MonsterKilled`. The handler must be
   idempotent: several monsters attack within one `PlayerTookTurn()` and `CombatComponent` re-raises
@@ -138,12 +146,14 @@ those — it generates a real dungeon in a few ms, as `GameTests` already does.
 Session, rendering and input behaviour can't be unit tested, so it gets checked by driving the real
 app (`dotnet run --urls http://localhost:5000`). Hard-won notes:
 
-- **Drive the game with synthetic key events, not real keypresses.** The map only receives keys when
-  `#mapcontainer` has focus, and focus is easily lost between automation steps. Dispatching directly
-  at the element works regardless of focus and can be looped in a single call:
-  `el.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD', bubbles: true }))`.
-  Blazor Server handles these fine. `OnKeyPress` reads `e.Code` (`KeyD`), so set **both** `key` and
-  `code`. Allow ~60ms between events for the circuit round trip.
+- **Drive the game with synthetic key events, not real keypresses.** Real keypresses can be flaky in
+  automation (focus can land somewhere unexpected between steps). Dispatching on `document` matches
+  what the game actually listens to and works regardless of focus, and can be looped in a single
+  call: `document.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD', bubbles: true
+  }))`. Blazor Server handles these fine. `OnKeyPress` reads `e.Code` (`KeyD`), so set **both** `key`
+  and `code`. Allow ~60ms between events for the circuit round trip. Since input is a document-level
+  listener (see *Input* above), a good regression check is dispatching a movement key right after
+  clicking some other element (e.g. a button) and confirming the player still moves.
 - **Assert on the DOM, not on screenshots.** Every tile is `<div id="x,y" class="cell">` and every
   decoration carries `alt="x,y (Name=..., Blocking=...)"`, so map state can be snapshotted as a
   dictionary keyed by cell id. Computed styles are the way to check rendering (`animationPlayState`,
