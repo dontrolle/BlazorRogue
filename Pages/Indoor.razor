@@ -49,10 +49,10 @@ else
         }
         else
         {
-            <button type="button" id="new_game" class="toggle_button" @onclick="RequestNewGame">New game</button>
+            <button type="button" id="new_game" class="toggle_button @(game.Map.IsGameOver ? "highlighted" : "")" @onclick="RequestNewGame">New game</button>
         }
         <br />
-        <div class="instructions">
+        <div class="instructions @(game.Map.IsGameOver ? "instructions_disabled" : "")">
             <dl>
                 <dt>Play game</dt>
                 <dd>Click on map to set focus</dd>
@@ -193,7 +193,8 @@ else
 
                                 if (renderDiv)
                                 {
-                                    baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)}";
+                                    string pausedClass = decoration.AnimationPaused ? "animation-paused" : "";
+                                    baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)} {(pausedClass)}";
 
                                     string? datatooltip = null;
                                     string infoText = decoration.GameObject.InfoText;
@@ -211,6 +212,11 @@ else
                         }
                     </div>
                 }
+            }
+
+            @if (game.Map.IsGameOver)
+            {
+                <div class="game_over">Game over</div>
             }
         </div>
     </span>
@@ -341,7 +347,18 @@ else
         await FitMapToViewportAsync();
     }
 
-    void RequestNewGame() => confirmNewGame = true;
+    // Once the game is over there is no progress left to protect, so skip straight past the confirm
+    // step - the button is the only thing the player can still do.
+    async Task RequestNewGame()
+    {
+        if (session is not null && game.Map.IsGameOver)
+        {
+            await StartNewGame();
+            return;
+        }
+
+        confirmNewGame = true;
+    }
 
     void CancelNewGame() => confirmNewGame = false;
 
@@ -404,7 +421,7 @@ else
 
     internal void OnClick(Decoration decoration)
     {
-        if (session is null)
+        if (session is null || game.Map.IsGameOver)
         {
             return;
         }
@@ -422,7 +439,8 @@ else
 
     void KeyUp(KeyboardEventArgs e)
     {
-        if (session is null)
+        // A finished game accepts no further input; only the New game button remains live.
+        if (session is null || game.Map.IsGameOver)
         {
             return;
         }

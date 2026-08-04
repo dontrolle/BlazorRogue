@@ -61,11 +61,16 @@ class Moveable : GameObject
             throw new InvalidOperationException("AnimationClass not set.");
         }
 
+        // Wounds only ever reach zero by way of Kill(), so this is simply "is a corpse". Dead
+        // monsters are removed from the map, which leaves the dead player as the case in practice.
+        bool isDead = CombatComponent is not null && CombatComponent.Wounds <= 0;
+
         map.MoveableDecorations[X, Y]
             .Add(
                 new Decoration(this, null)
                 {
                     AnimationClass = AnimationClass,
+                    AnimationPaused = isDead,
                     Character = AsciiCharacter,
                     CharacterColor = AsciiColour,
                 }
