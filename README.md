@@ -132,7 +132,7 @@ wwwroot/                          Static assets: CSS, JS interop, sounds, tilese
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are parsed from the same `Configuration` JSON files.
 - **Hosting**: `Program.cs` uses the minimal hosting API plus the unified Blazor Components model (`AddRazorComponents().AddInteractiveServerComponents()` / `MapRazorComponents<App>().AddInteractiveServerRenderMode()`). `App.razor` is the root HTML shell (`<HeadOutlet>` + `<Routes>`), and `Routes.razor` holds the `<Router>`.
 
-A more detailed, AI-agent-oriented version of this section (including gotchas like the `~/`-style Tag Helper URL resolution not working inside `.razor` components) lives in [`.github/copilot-instructions.md`](.github/copilot-instructions.md) — worth a read before making structural changes.
+More detailed, AI-agent-oriented versions of this section (including gotchas like the `~/`-style Tag Helper URL resolution not working inside `.razor` components) lives in [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`CLAUDE.md`](CLAUDE.md) — worth a read before making structural changes.
 
 ## Game data / configuration
 
