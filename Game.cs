@@ -10,20 +10,29 @@ class Game
     public DungeonGenerator DungeonGenerator { get; private set; }
     public Map Map { get; private set; }
 
-    // Set up before the first Game instance is constructed; null! avoids forcing nullable-checks
-    // throughout the codebase for a value that's always non-null in practice.
-    public static SoundManager SoundManager { get; set; } = null!;
     public FightingSystem FightingSystem { get; private set; }
     public Configuration Configuration { get; private set; }
     public EffectsSystem EffectsSystem { get; private set; }
 
+    /// <summary>
+    /// Creates a game backed by its own freshly parsed <see cref="BlazorRogue.Configuration"/>.
+    /// </summary>
+    /// <remarks>
+    /// The app shares a single parsed configuration (see Program.cs) and so uses
+    /// <see cref="Game(Configuration)"/>; this overload exists for tests and standalone use.
+    /// </remarks>
     public Game()
+        : this(ParseConfiguration()) { }
+
+    /// <summary>
+    /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
+    /// shared with other games - it is immutable once parsed.
+    /// </summary>
+    public Game(Configuration configuration)
     {
-        Configuration = new Configuration();
+        Configuration = configuration;
         References.Configuration = Configuration;
 
-        // TODO: pass as async
-        Configuration.Parse();
         DungeonGenerator = new DungeonGenerator(Width, Height, this);
         FightingSystem = new FightingSystem(this);
 
@@ -32,5 +41,14 @@ class Game
 
         EffectsSystem = new EffectsSystem();
         References.EffectsSystem = EffectsSystem;
+    }
+
+    static Configuration ParseConfiguration()
+    {
+        var configuration = new Configuration();
+
+        // TODO: pass as async
+        configuration.Parse();
+        return configuration;
     }
 }

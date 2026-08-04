@@ -7,6 +7,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime;
 @inject IWebHostEnvironment WebHostEnvironment;
+@inject GameSessionStore Sessions;
 
 @{
     int gridTileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
@@ -15,7 +16,7 @@
     const string shakeClass = "shakehit0";
     string mapClass = "map";
     string spanClass = "";
-    if (References.EffectsSystem.Shake)
+    if (session is not null && game.EffectsSystem.Shake)
     {
         if (tikTok)
         {
@@ -29,16 +30,34 @@
     tikTok = !tikTok;
 }
 
+@if (session is null)
+{
+    <div class="main_window">
+        <p>Loading&hellip;</p>
+    </div>
+}
+else
+{
 <div class="main_window">
     <div id="left_menu" class="left_menu">
         <button type="button" id="mode_switch" class="toggle_button" @onclick="ToggleRenderMode">Switch mode</button>
+        <br />
+        @if (confirmNewGame)
+        {
+            <button type="button" id="new_game_confirm" class="toggle_button" @onclick="StartNewGame">Discard game?</button>
+            <button type="button" id="new_game_cancel" class="toggle_button" @onclick="CancelNewGame">Cancel</button>
+        }
+        else
+        {
+            <button type="button" id="new_game" class="toggle_button" @onclick="RequestNewGame">New game</button>
+        }
         <br />
         <div class="instructions">
             <dl>
                 <dt>Play game</dt>
                 <dd>Click on map to set focus</dd>
                 <dt>New game</dt>
-                <dd>Refresh page</dd>
+                <dd>Use the <b>New game</b> button</dd>
                 <dt>
                     Move / Attack
                 </dt>
@@ -196,6 +215,7 @@
         </div>
     </span>
 </div>
+}
 
 <audio id="bgsound" autoplay loop>
     <source src="sound/Ambience_Cave_00.mp3" type="audio/mpeg">
@@ -208,7 +228,7 @@
     [JSInvokable]
     public async Task OnBrowserResized()
     {
-        if (_resizeHandlingInProgress)
+        if (_resizeHandlingInProgress || session is null)
             return;
 
         _resizeHandlingInProgress = true;
@@ -236,9 +256,24 @@
             return;
         }
 
-        Game.SoundManager = new SoundManager(JsRuntime);
-        References.SoundManager = Game.SoundManager;
+        // The SoundManager wraps this circuit's IJSRuntime, so it is created per circuit and handed
+        // to the session on activation rather than being stored on the (longer-lived) session.
+        soundManager = new SoundManager(JsRuntime);
 
+        // The browser keeps a stable id in localStorage; that is what lets the server hand back the
+        // game already in progress rather than generating a new dungeon. JS interop is unavailable
+        // until after the first render, which is why the session is resolved here and not in
+        // OnInitialized.
+        string sessionId = await JsRuntime.InvokeAsync<string>("blazorroguefuncs.ensureSessionId");
+
+        session = Sessions.GetOrCreate(sessionId);
+        game = session.Game;
+        session.Activate(soundManager);
+
+        // A stored preference only applies when the tileset is actually installed.
+        renderAscii = !tilesetAvailable || session.PreferAscii;
+
+        CenterViewportOnPlayer();
         await FitMapToViewportAsync();
 
         _selfRef = DotNetObjectReference.Create(this);
@@ -297,14 +332,45 @@
     private async Task ToggleRenderMode()
     {
         renderAscii = !renderAscii;
+
+        if (session is not null)
+        {
+            session.PreferAscii = renderAscii;
+        }
+
         await FitMapToViewportAsync();
     }
+
+    void RequestNewGame() => confirmNewGame = true;
+
+    void CancelNewGame() => confirmNewGame = false;
+
+    // Progress now survives reloads, so discarding it deserves a deliberate second click.
+    async Task StartNewGame()
+    {
+        confirmNewGame = false;
+
+        session!.StartNewGame();
+        game = session.Game;
+        session.Activate(soundManager!);
+
+        CenterViewportOnPlayer();
+        await FitMapToViewportAsync();
+    }
+
     bool renderAscii = false;
     const int asciiGridTileSize = 20;
     const int graphicGridTileSize = 48;
     bool tikTok = false;
+    bool tilesetAvailable;
+    bool confirmNewGame;
 
-    Game game = new Game();
+    GameSession? session;
+    SoundManager? soundManager;
+
+    // Both are assigned alongside `session` once the browser's session id is known; the markup is
+    // guarded on `session is null` so neither is dereferenced before that.
+    Game game = null!;
 
     int windowMoveBufferX = Map.PlayerSightRadius + 1;
     int windowMoveBufferY = Map.PlayerSightRadius + 1;
@@ -322,11 +388,13 @@
         // empty/broken tiles. uf_terrain is used pervasively (floors/walls),
         // so its presence is a good proxy for "the tileset is installed".
         string tilesetProbeDirectory = Path.Combine(WebHostEnvironment.WebRootPath, "img", "uf_terrain");
-        if (!Directory.Exists(tilesetProbeDirectory) || !Directory.EnumerateFiles(tilesetProbeDirectory).Any())
-        {
-            renderAscii = true;
-        }
+        tilesetAvailable = Directory.Exists(tilesetProbeDirectory)
+            && Directory.EnumerateFiles(tilesetProbeDirectory).Any();
+        renderAscii = !tilesetAvailable;
+    }
 
+    void CenterViewportOnPlayer()
+    {
         int optimalXOffset = game.Map.Player.X - windowWidth / 2;
         windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 
@@ -336,6 +404,13 @@
 
     internal void OnClick(Decoration decoration)
     {
+        if (session is null)
+        {
+            return;
+        }
+
+        session.Activate(soundManager!);
+
         decoration.OnUse?.Invoke();
         // NOTE: Rerender only gameobject? or rerender every decoration in tile...? Going for the latter, right now...
         // When I begin to do effecs, I may need to revisit this...
@@ -347,6 +422,16 @@
 
     void KeyUp(KeyboardEventArgs e)
     {
+        if (session is null)
+        {
+            return;
+        }
+
+        // Re-point the static References hub at this session's game before any game logic runs:
+        // another browser's session may have been the last to touch it. Also marks this session as
+        // in use, so an actively played game is never evicted as idle.
+        session.Activate(soundManager!);
+
         if (OnKeyPress(e.Key, e.Code, e.ShiftKey))
         {
             game.Map.RenderMoveables();

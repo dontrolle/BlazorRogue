@@ -8,6 +8,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
+// Parsed once and shared by every game: Configuration is immutable once parsed, and reads five
+// JSON files off disk that would otherwise be re-read on every page load.
+builder.Services.AddSingleton(_ =>
+{
+    var configuration = new Configuration();
+    configuration.Parse();
+    return configuration;
+});
+builder.Services.AddSingleton(TimeProvider.System);
+
+// Holds each browser's game in memory so it survives a page reload. Constructed explicitly rather
+// than by type so the DI container can't pick the tests-only constructor overload.
+builder.Services.AddSingleton(sp => new GameSessionStore(
+    sp.GetRequiredService<Configuration>(),
+    sp.GetRequiredService<TimeProvider>()
+));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
