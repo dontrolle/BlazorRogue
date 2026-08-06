@@ -33,6 +33,20 @@ A `Dockerfile`/`.dockerignore` at the repo root build a Linux container image vi
 image even if it's present on the build machine's disk — the containerized game always runs in
 ASCII mode.
 
+`Dockerfile.graphics`/`Dockerfile.graphics.dockerignore` are a **local-build-only** variant for
+producing a tileset-enabled image (e.g. for a hosted playtest build) — identical build, but the
+paired `.dockerignore` doesn't exclude `wwwroot/img/uf_*`, so it bundles whatever tileset is present
+on disk (Docker prefers a `<dockerfile-name>.dockerignore` sibling over `.dockerignore` when built
+with `-f`). Never build this in CI (the tileset isn't there) and never push the resulting image to a
+public registry — it embeds proprietary, licensed assets. Build and ship it with:
+
+```
+az acr login --name <registry>
+docker build -f Dockerfile.graphics -t <registry>.azurecr.io/blazorrogue:graphics .
+docker push <registry>.azurecr.io/blazorrogue:graphics
+az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.io/blazorrogue:graphics
+```
+
 ## Architecture
 
 - **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`,
