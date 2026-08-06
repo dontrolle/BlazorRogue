@@ -408,6 +408,18 @@ class Configuration
             blocking = blockingElement.GetBoolean();
         }
 
+        bool makeCoveringOffsetDecsTransparent = false;
+        if (
+            element.TryGetProperty(
+                "makeCoveringOffsetDecsTransparent",
+                out var makeCoveringOffsetDecsTransparentElement
+            )
+        )
+        {
+            makeCoveringOffsetDecsTransparent =
+                makeCoveringOffsetDecsTransparentElement.GetBoolean();
+        }
+
         var dec = new StaticDecorativeObjectType(
             id,
             name,
@@ -417,7 +429,8 @@ class Configuration
             character,
             characterColor,
             blocking,
-            imgFolder
+            imgFolder,
+            makeCoveringOffsetDecsTransparent
         );
         staticDecorativeObjectTypes.Add(id, dec);
     }

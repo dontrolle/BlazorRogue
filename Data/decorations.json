@@ -36,7 +36,8 @@
       "info_text": "",
       "vertical_offset": 0,
       "character": "",
-      "character_color": ""
+      "character_color": "",
+      "makeCoveringOffsetDecsTransparent": true
     },
     {
       "id": "spiderweb",
@@ -55,7 +56,8 @@
       "vertical_offset": 0,
       "character": "■",
       "character_color": "peru",
-      "blocking": true
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true      
     },
     {
       "id": "table",
@@ -65,7 +67,8 @@
       "vertical_offset": 0,
       "character": "╦",
       "character_color": "sienna",
-      "blocking": true
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true      
     },
     {
       "id": "altar_blood",
@@ -75,7 +78,8 @@
       "vertical_offset": 0,
       "character": "▄",
       "character_color": "LightSlateGrey",
-      "blocking": true
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true      
     },
     {
       "id": "chest_gold",
@@ -89,7 +93,8 @@
       "vertical_offset": 0,
       "character": "&",
       "character_color": "gold",
-      "img_folder": "uf_items"
+      "img_folder": "uf_items",
+      "makeCoveringOffsetDecsTransparent": true      
     },
     {
       "id": "chest_silver",
@@ -103,7 +108,8 @@
       "vertical_offset": 0,
       "character": "&",
       "character_color": "silver",
-      "img_folder": "uf_items"
+      "img_folder": "uf_items",
+      "makeCoveringOffsetDecsTransparent": true      
     }
   ]
 }

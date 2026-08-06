@@ -25,6 +25,7 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     public Action? OnUse { get; set; }
     public int VerticalOffset { get; set; }
     public int HorizontalOffset { get; set; }
+    public bool MakeCoveringOffsetDecsTransparent { get; set; }
 
     public Layer DecorationLayer { get; set; } = Layer.Middleground;
 

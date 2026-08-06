@@ -102,6 +102,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
                     Character = sdot.Character,
                     CharacterColor = sdot.CharacterColor,
                     OnUse = UseableComponent!.Use,
+                    MakeCoveringOffsetDecsTransparent = sdot.MakeCoveringOffsetDecsTransparent,
                 }
             );
         //TODO:Cleanup

@@ -11,6 +11,7 @@ class StaticDecorativeObject : GameObject
     readonly string character;
     readonly string characterColor;
     readonly Decoration.Layer decorationLayer;
+    readonly bool makeCoveringOffsetDecsTransparent;
 
     public StaticDecorativeObject(
         int x,
@@ -51,9 +52,10 @@ class StaticDecorativeObject : GameObject
         verticalOffset = verticalOffsetOverride ?? staticDecorativeObjectType.VerticalOffset;
         character = staticDecorativeObjectType.Character;
         characterColor = staticDecorativeObjectType.CharacterColor;
-        this.decorationLayer = decorationLayer;
-
         Blocking = staticDecorativeObjectType.Blocking;
+        makeCoveringOffsetDecsTransparent =
+            staticDecorativeObjectType.MakeCoveringOffsetDecsTransparent;
+        this.decorationLayer = decorationLayer; // TODO: Shouldn't this be driven from config data.json as well?
     }
 
     public override void Render(Map map) =>
@@ -65,6 +67,7 @@ class StaticDecorativeObject : GameObject
                     Character = character,
                     CharacterColor = characterColor,
                     DecorationLayer = decorationLayer,
+                    MakeCoveringOffsetDecsTransparent = makeCoveringOffsetDecsTransparent,
                 }
             );
 }
