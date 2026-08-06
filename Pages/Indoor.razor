@@ -169,8 +169,8 @@ else
                                     string opacityValue = "1";
                                     if (decoration.VerticalOffset != 0)
                                     {
-                                        // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
-                                        if (game.Map.MoveableDecorations[x, y + decoration.VerticalOffset].Any())
+                                        // are there any decorations already on the tile we are going to put an offset decoration on top off
+                                        if (game.Map.Decorations[x, y + decoration.VerticalOffset].Any(d => d.MakeCoveringOffsetDecsTransparent) || game.Map.MoveableDecorations[x, y + decoration.VerticalOffset].Any())
                                         {
                                             opacityValue = "0.5";
                                         }
@@ -178,8 +178,8 @@ else
                                     }
                                     if (decoration.HorizontalOffset != 0)
                                     {
-                                        // test if there are any moveables on the tile we are going to put a vertically offset decoration on top off
-                                        if (game.Map.MoveableDecorations[x + decoration.HorizontalOffset, y].Any())
+                                        // are there any decorations already on the tile we are going to put an offset decoration on top off
+                                        if (game.Map.Decorations[x + decoration.HorizontalOffset, y].Any(d => d.MakeCoveringOffsetDecsTransparent) || game.Map.MoveableDecorations[x, y + decoration.HorizontalOffset].Any())
                                         {
                                             opacityValue = "0.5";
                                         }

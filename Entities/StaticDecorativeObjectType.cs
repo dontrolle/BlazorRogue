@@ -13,7 +13,8 @@ class StaticDecorativeObjectType(
     string character,
     string characterColor,
     bool blocking,
-    string imgFolder
+    string imgFolder,
+    bool makeCoveringOffsetDecsTransparent
 )
 {
     readonly Random random = new();
@@ -29,6 +30,7 @@ class StaticDecorativeObjectType(
     public string CharacterColor { get; } = characterColor;
     public bool Blocking { get; } = blocking;
     public string ImgFolder { get; } = imgFolder;
+    public bool MakeCoveringOffsetDecsTransparent { get; } = makeCoveringOffsetDecsTransparent;
 
     int RandomImageVariantIndex => random.Next(0, imageVariants.Count - 1);
 
