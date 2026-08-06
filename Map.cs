@@ -251,10 +251,6 @@ class Map
         // position stays visible behind the game over message. Mark the spot the same way a dead
         // monster is marked (see MonsterKilled).
         PlaceBloodPuddle(killedPlayer);
-
-        // The player dies inside PlayerTookTurn(), by which point the turn's RenderMoveables() has
-        // already run - so re-render to pick up the corpse's stopped animation.
-        RenderMoveables();
     }
 
     void PlaceBloodPuddle(Moveable killed)

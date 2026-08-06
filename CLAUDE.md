@@ -89,9 +89,12 @@ ASCII mode.
   Most map state is *derived*: `Decorations`, `MoveableDecorations`, `BlocksLightMap`,
   `BlocksMovementMap` and `IsVisibleMap` are all rebuilt by `PostGenInitalize()`/the `Render*`
   methods. Only `Tiles`, the game-object list, moveables and `IsMappedMap` are authoritative.
-  Watch the render ordering: `KeyUp` calls `RenderMoveables()` **before** `PlayerTookTurn()`, so
-  anything that changes a moveable's appearance during the monsters' turn has to re-render itself
-  (as `PlayerKilled` does).
+  `KeyUp` calls `RenderMoveables()` once, **after** `PlayerTookTurn()`, so a single render always
+  reflects the fully-resolved turn (the player's move plus every monster's move/attack/death) —
+  nothing in the player- or monster-turn logic needs to re-render itself. Keep it that way: an
+  earlier version rendered moveables *before* `PlayerTookTurn()`, which delayed a monster's moved
+  position from becoming visible until the *following* turn — by which point it might also be
+  attacking, making a two-turn move-then-attack look like it happened in one turn.
 - **Input**: keys drive the game via a `document`-level `keyup` listener
   (`blazorroguefuncs.registerKeyup` in `wwwroot/blazorrogue.js`), not a Blazor `@onkeyup` on the map
   div — so movement works no matter what has focus (or nothing does), with no click-to-focus step.
