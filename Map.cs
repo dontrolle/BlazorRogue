@@ -334,13 +334,14 @@ class Map
 
         bool stateChanged;
         bool playerMoved = false;
+        bool playerAttacked = false;
         if (shiftKey)
         {
             stateChanged = HandlePlayerUse(numKey);
         }
         else
         {
-            stateChanged = HandlePlayerMove(numKey);
+            stateChanged = HandlePlayerMove(numKey, out playerAttacked);
             playerMoved = stateChanged;
         }
 
@@ -353,7 +354,7 @@ class Map
             WakeVisibleMonsters(Player.X, Player.Y, PlayerSightRadius);
         }
 
-        if (playerMoved && !Player.CombatComponent!.IsStarving)
+        if (playerMoved && !playerAttacked && !Player.CombatComponent!.IsStarving)
         {
             Player.CombatComponent.HealByMove();
         }
@@ -387,12 +388,13 @@ class Map
         return stateChanged;
     }
 
-    bool HandlePlayerMove(char numKey)
+    bool HandlePlayerMove(char numKey, out bool playerAttacked)
     {
         // Handle basic player movement
         CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
 
         bool stateChanged = false;
+        playerAttacked = false;
 
         // Check for blocking Walls or GameObject's
         if (!IsBlocked(destX, destY))
@@ -429,6 +431,7 @@ class Map
                     References.EffectsSystem.Shake = hit;
                     UpdateBlockMovement(destX, destY);
                     stateChanged = true;
+                    playerAttacked = true;
                 }
             }
         }

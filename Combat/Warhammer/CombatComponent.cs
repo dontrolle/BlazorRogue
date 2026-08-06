@@ -19,6 +19,7 @@ class CombatComponent(
     public int DamageSoak => ToughnessBonus + ArmourPoints;
 
     readonly int healthGainedByOneStep = 1;
+    const int ChanceToHealInTurn = 33; // every third turn, approximately
 
     public int Wounds
     {
@@ -59,7 +60,13 @@ class CombatComponent(
 
     public void ApplyDamage(int damage) => Wounds -= damage - DamageSoak;
 
-    public void HealByMove() => Wounds += healthGainedByOneStep;
+    public void HealByMove()
+    {
+        if (Dice.RollD100() <= ChanceToHealInTurn)
+        {
+            Wounds += healthGainedByOneStep;
+        }
+    }
 
     public void GainAdvantage(int number = 1)
     {
