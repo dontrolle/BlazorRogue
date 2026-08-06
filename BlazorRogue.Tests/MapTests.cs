@@ -165,6 +165,11 @@ public class MapTests
 
         player.CombatComponent!.ApplyDamage(1000);
 
+        // Rendering moveables is the turn loop's job (Indoor.razor calls it once after
+        // PlayerTookTurn()), not the kill handler's - so a direct ApplyDamage() call like this,
+        // outside that loop, needs an explicit render to pick up the corpse's stopped animation.
+        game.Map.RenderMoveables();
+
         var corpse = PlayerDecoration(game.Map);
         Assert.True(corpse.AnimationPaused);
 

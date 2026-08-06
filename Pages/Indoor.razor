@@ -462,8 +462,12 @@ else
 
         if (OnKeyPress(key, code, shiftKey))
         {
-            game.Map.RenderMoveables();
             game.Map.PlayerTookTurn();
+
+            // Rendered once, after both the player's and the monsters' turns are fully resolved,
+            // so moveable decorations always reflect the final state of the turn - never a
+            // half-finished snapshot from before the monsters moved.
+            game.Map.RenderMoveables();
 
             // adjust window
             // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
