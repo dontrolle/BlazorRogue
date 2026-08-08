@@ -58,6 +58,17 @@
   top: 0px;
   background-size: cover;
   justify-content: center;
+  /* Decorations only exist to be looked at - the game has no click-to-interact step - so by
+     default they must not intercept the pointer. Without this, a decoration with no tooltip of
+     its own (e.g. a wall bled upward via VerticalOffset to sit in front of the tile above it)
+     can sit on top of a lower-layered decoration that DOES have a tooltip and steal :hover from
+     it, so the tooltip beneath never triggers. Re-enabled below for decorations that actually
+     have a tooltip, so hovering the topmost tooltip-bearing decoration still works normally. */
+  pointer-events: none;
+}
+
+.decoration[data-tool-tip] {
+  pointer-events: auto;
 }
 
 .decoration-ascii {
