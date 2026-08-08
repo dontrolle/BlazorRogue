@@ -46,6 +46,12 @@ class SoundManager(IJSRuntime jsRuntime)
         await PlaySound(sound).ConfigureAwait(false);
     }
 
+    public async void PlayBlockedDoorSound()
+    {
+        string sound = $"car-door-shut.mp3";
+        await PlaySound(sound).ConfigureAwait(false);
+    }
+
     public async void PlayCombatSound(bool hit)
     {
         string sound = hit ? "sfx-attack-sword-001.wav" : "Swoosh.mp3";

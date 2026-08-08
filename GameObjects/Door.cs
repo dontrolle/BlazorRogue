@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace BlazorRogue.GameObjects;
 
@@ -115,6 +116,12 @@ class Door : GameObject
 
     internal static void Use(GameObject go)
     {
+        // you can only close a door if no moveable is standing on its tile
+        if (References.Map.Moveables.Any(m => m.X == go.X && m.Y == go.Y))
+        {
+            References.SoundManager.PlayBlockedDoorSound();
+            return;
+        }
         if (go is Door door)
         {
             door.IsOpen = !door.IsOpen;
