@@ -1,6 +1,7 @@
 using System;
+using BlazorRogue.Entities;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Sessions;
 
 /// <summary>
 /// One browser's play session: the game currently in progress, plus the view preferences that

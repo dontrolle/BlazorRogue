@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Entities;
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using BlazorRogue.Components;
 
 namespace BlazorRogue.Combat.Warhammer;
 

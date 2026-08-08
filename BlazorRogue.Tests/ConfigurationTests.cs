@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.Tests;
+﻿using BlazorRogue.Entities;
+
+namespace BlazorRogue.Tests;
 
 public class ConfigurationTests
 {

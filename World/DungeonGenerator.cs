@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.AI;
+using BlazorRogue.Components;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue;
+namespace BlazorRogue.World;
 
 class DungeonGenerator
 {

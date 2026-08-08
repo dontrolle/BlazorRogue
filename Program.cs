@@ -1,5 +1,7 @@
 ﻿using System;
 using BlazorRogue;
+using BlazorRogue.Entities;
+using BlazorRogue.Sessions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

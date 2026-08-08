@@ -1,7 +1,7 @@
 ﻿using System;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Components;
 
 class UseableComponent(Action<GameObject> onUse) : Component
 {

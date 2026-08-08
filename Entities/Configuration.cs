@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using BlazorRogue.Entities;
+using BlazorRogue.World;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Entities;
 
 /// <summary>
 /// Parse and present json-based configuration for rest of game.

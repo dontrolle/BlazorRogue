@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.GameObjects;
+﻿using BlazorRogue.World;
+
+namespace BlazorRogue.GameObjects;
 
 class HalfWall(int x, int y, int halfWallIndex) : GameObject(x, y, "Halfwall")
 {

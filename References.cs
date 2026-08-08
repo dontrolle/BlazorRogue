@@ -1,4 +1,7 @@
-﻿namespace BlazorRogue;
+﻿using BlazorRogue.Entities;
+using BlazorRogue.World;
+
+namespace BlazorRogue;
 
 static class References
 {

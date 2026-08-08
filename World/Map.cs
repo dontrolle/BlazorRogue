@@ -5,7 +5,7 @@ using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Vision;
 
-namespace BlazorRogue;
+namespace BlazorRogue.World;
 
 class Map
 {

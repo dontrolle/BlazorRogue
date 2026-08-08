@@ -20,7 +20,7 @@ since `Configuration.Parse()` reads them via relative paths. There is no separat
 for new nullability warnings).
 
 CI runs `dotnet build` then `dotnet test` on every push/PR to `master` via GitHub Actions
-(`.github/workflows/build.yml`).
+(`.github/workflows/CI.yml`).
 
 To run locally, follow the ASP.NET Core Blazor "Get started" instructions. The tileset image
 files (`uf_split` from Oryx's Ultimate Fantasy Tileset) are proprietary and excluded from the
@@ -33,7 +33,7 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`,
   not by the Blazor component. Prefer `new Game(configuration)` with the shared, already-parsed
   configuration; the parameterless `new Game()` parses its own and is for tests/standalone use.
-- **Sessions** (`GameSession.cs`, `GameSessionStore.cs`) are what make a game survive a page reload,
+- **Sessions** (`Sessions/GameSession.cs`, `Sessions/GameSessionStore.cs`) are what make a game survive a page reload,
   since a reload starts a brand new Blazor circuit. `GameSessionStore` is a DI singleton keyed by an
   id the browser keeps in `localStorage`. A session holds only `[id, Game, view preferences,
   timestamps]` — all game-authoritative state stays in `Game`/`Map` — and `GameSession.Game` is
@@ -47,17 +47,17 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   writes them as a side effect — so every handler touching game state must call
   `session.Activate(soundManager)` first, or one player's input mutates another's map. Safe only
   because the game loop is synchronous. Don't read `References.*` during render.
-- **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/`
+- **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
   strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all
   visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
-  `StaticDecorativeObject`). Behavior is composed via optional `Component` subclasses
-  (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at
+  `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
+  subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at
   construction — a `Component` always knows its `Owner` via `SetOwner`. AI variants live under
   `AI/` (`SimpleAIComponent`, `RandomWalkAIComponent`).
-- **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it.
+- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; `World/DungeonGenerator.cs` procedurally builds it.
   `Vision/` implements field-of-view (`AdamMilVisibility` algorithm). Rendering is split between a
   tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and
   `Pages/Indoor.razor` is the Blazor page that render the grid, switching

@@ -2,8 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.Entities;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Sessions;
 
 /// <summary>
 /// Process-wide registry of <see cref="GameSession"/>s, keyed by an id the browser keeps in
