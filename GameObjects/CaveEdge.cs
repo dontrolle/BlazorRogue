@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.GameObjects;
+﻿using BlazorRogue.World;
+
+namespace BlazorRogue.GameObjects;
 
 class CaveEdge(int x, int y, int caveEdgeIndex, int offset, int hOffset)
     : GameObject(x, y, "CaveEdge")

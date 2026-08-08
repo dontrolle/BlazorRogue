@@ -1,4 +1,5 @@
 ﻿using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.Tests.Combat;
 

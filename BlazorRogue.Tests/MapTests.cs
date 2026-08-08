@@ -1,4 +1,6 @@
 ﻿using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 

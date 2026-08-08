@@ -1,7 +1,7 @@
 ﻿using System;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue;
+namespace BlazorRogue.World;
 
 class Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
 {

@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.GameObjects;
+﻿using BlazorRogue.World;
+
+namespace BlazorRogue.GameObjects;
 
 class Torch(int x, int y) : GameObject(x, y, "Torch")
 {

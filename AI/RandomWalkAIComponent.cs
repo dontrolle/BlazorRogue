@@ -1,4 +1,5 @@
 ﻿using System;
+using BlazorRogue.World;
 
 namespace BlazorRogue.AI;
 

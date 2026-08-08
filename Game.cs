@@ -1,4 +1,6 @@
 ﻿using BlazorRogue.Combat.Warhammer;
+using BlazorRogue.Entities;
+using BlazorRogue.World;
 
 namespace BlazorRogue;
 
@@ -15,7 +17,7 @@ class Game
     public EffectsSystem EffectsSystem { get; private set; }
 
     /// <summary>
-    /// Creates a game backed by its own freshly parsed <see cref="BlazorRogue.Configuration"/>.
+    /// Creates a game backed by its own freshly parsed <see cref="BlazorRogue.Entities.Configuration"/>.
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses

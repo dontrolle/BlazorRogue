@@ -1,4 +1,7 @@
-﻿namespace BlazorRogue.AI;
+﻿using BlazorRogue.Components;
+using BlazorRogue.World;
+
+namespace BlazorRogue.AI;
 
 abstract class AIComponent(Map map) : Component()
 {

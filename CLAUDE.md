@@ -54,7 +54,7 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   **not** by the Blazor component (see *Sessions* below). Prefer `new Game(configuration)` with the
   shared, already-parsed configuration; the parameterless `new Game()` parses its own and exists for
   tests and standalone use.
-- **Sessions** (`GameSession.cs`, `GameSessionStore.cs`) are what make a game survive a page reload.
+- **Sessions** (`Sessions/GameSession.cs`, `Sessions/GameSessionStore.cs`) are what make a game survive a page reload.
   A reload starts a brand new Blazor circuit, so the game cannot live in the component.
   `GameSessionStore` is a DI singleton holding `GameSession`s keyed by an id the browser keeps in
   `localStorage` (`blazorrogue.sessionId`, created by `ensureSessionId()` in `wwwroot/blazorrogue.js`).
@@ -77,7 +77,7 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   because the game loop is fully synchronous — nothing awaits between activation and the end of the
   handler, so no other circuit can interleave. **Do not read `References.*` during render**, which
   happens outside any handler; use the component's own `game` instance instead.
-- **`Configuration`** (`Configuration.cs`) parses all game data from JSON files under `Data/`
+- **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
   strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). File paths
   are resolved relative to `AppContext.BaseDirectory` (not the process's current working directory),
@@ -86,16 +86,19 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded — new
   monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#. New
   JSON-configurable data goes in the matching file under `Data/`, parsed via a `Parse*Type` method
-  in `Configuration.cs` following the existing pattern (and the `GetRequiredString`/
+  in `Entities/Configuration.cs` following the existing pattern (and the `GetRequiredString`/
   `RequireNonNullString` helpers for required fields). `Configuration` is immutable once parsed and
   is registered as a **DI singleton** shared by every `Game` — don't re-parse it per game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
-  `StaticDecorativeObject`). Behavior is composed via optional `Component` subclasses
-  (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at
-  construction — a `Component` always knows its `Owner` via `SetOwner`. AI variants live under
-  `AI/` (`SimpleAIComponent`, `RandomWalkAIComponent`).
-- **Map & rendering**: `Map.cs` holds the `Tile` grid; `DungeonGenerator.cs` procedurally builds it.
+  `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
+  subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`; the latter
+  two live in `Components/` alongside the base class) attached at construction — a `Component` always
+  knows its `Owner` via `SetOwner`. AI variants live under `AI/` (`SimpleAIComponent`,
+  `RandomWalkAIComponent`).
+- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; `World/DungeonGenerator.cs`
+  procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `TileSetInfo.cs`,
+  `Decoration.cs` and `Orientation.cs`.
   `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm, `AdamMilVisibility`).
   Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
   per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching

@@ -1,6 +1,6 @@
 ﻿using BlazorRogue.GameObjects;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Components;
 
 /// <summary>
 /// A generic component representing a distinct and separate aspect of a <see cref="GameObject"/>.

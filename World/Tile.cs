@@ -1,6 +1,6 @@
 ﻿using BlazorRogue.Entities;
 
-namespace BlazorRogue;
+namespace BlazorRogue.World;
 
 class Tile(int x, int y, TileSet tileSet, int tileIndex)
 {

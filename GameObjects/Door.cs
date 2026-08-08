@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using BlazorRogue.Components;
+using BlazorRogue.World;
 
 namespace BlazorRogue.GameObjects;
 

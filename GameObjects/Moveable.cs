@@ -1,10 +1,11 @@
 ﻿using System;
 using BlazorRogue.AI;
 using BlazorRogue.Combat.Warhammer;
+using BlazorRogue.Components;
 using BlazorRogue.Entities;
-using BlazorRogue.GameObjects;
+using BlazorRogue.World;
 
-namespace BlazorRogue;
+namespace BlazorRogue.GameObjects;
 
 class Moveable : GameObject
 {

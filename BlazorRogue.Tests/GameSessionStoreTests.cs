@@ -1,3 +1,5 @@
+using BlazorRogue.Entities;
+using BlazorRogue.Sessions;
 using BlazorRogue.Tests.TestSupport;
 
 namespace BlazorRogue.Tests;

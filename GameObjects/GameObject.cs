@@ -1,6 +1,8 @@
 ﻿using System;
 using BlazorRogue.AI;
 using BlazorRogue.Combat.Warhammer;
+using BlazorRogue.Components;
+using BlazorRogue.World;
 
 namespace BlazorRogue.GameObjects;
 

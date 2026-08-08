@@ -1,4 +1,4 @@
-﻿namespace BlazorRogue;
+﻿namespace BlazorRogue.Components;
 
 class InventoryComponent : Component
 {
