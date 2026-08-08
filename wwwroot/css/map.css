@@ -181,3 +181,12 @@ div [data-tool-tip]::after {
 div[data-tool-tip]:hover::after {
   visibility: visible;
 }
+
+/* A decoration's own z-index (decinfront/decmiddle/decbehind) gives its ::after tooltip a
+   stacking context scoped to that layer, so a higher-layered decoration elsewhere on the map -
+   notably an offset one bleeding into this tile - can still cover the tooltip despite its
+   z-index: 5. Boosting the hovered decoration itself above everything (including .game_over's 10)
+   lifts its whole stacking context, tooltip included, above every other tile's decorations. */
+div[data-tool-tip]:hover {
+  z-index: 1000;
+}
