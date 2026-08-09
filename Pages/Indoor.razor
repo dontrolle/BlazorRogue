@@ -52,9 +52,6 @@ else
             <button type="button" id="new_game" class="toggle_button @(game.Map.IsGameOver ? "highlighted" : "")" @onclick="RequestNewGame">New game</button>
         }
         <br />
-        <div class="instructions">
-            Press <tt>?</tt> for help
-        </div>
         <div id="debuginfo" class="debuginfo">
             @foreach (var debugInfo in game.Map.DebugInfo)
             {
@@ -65,6 +62,9 @@ else
             <p><b>Weap skill</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponSkill</p>
             <p><b>Weap dam</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponDamage</p>
             <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
+        </div>
+        <div class="instructions">
+            Press <tt>?</tt> for help
         </div>
     </div>
 
