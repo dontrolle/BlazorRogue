@@ -127,7 +127,7 @@
 }
 
 .toggle_button {
-  background-color: #4CAF50;
+  background-color: #4a6259;
   border: black;
   color: white;
   padding: 15px 32px;
@@ -149,7 +149,7 @@
 
 /* Once the game is over, starting a new one is the only thing left to do - so draw the eye to it. */
 .toggle_button.highlighted {
-  background-color: #b71c1c;
+  background-color: #e56634;
   animation: newgamepulse 1.4s ease-in-out infinite;
 }
 
@@ -180,7 +180,7 @@
   font-size: 3em;
   font-weight: bold;
   letter-spacing: 0.05em;
-  color: red;
+  color: #e56634;
   text-shadow: 0 0 6px black, 2px 2px 3px black;
   background-color: rgba(0, 0, 0, 0.65);
   pointer-events: none;
