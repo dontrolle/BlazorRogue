@@ -3,14 +3,26 @@
     {
       "id": "templar",
       "name": "Templar",
+      "weaponSkill": 35,
+      "weaponDamage": 7,
+      "toughness": 30,
+      "armour": 4,
+      "wounds": 20,
+      "animationClass": "animated_templar",
+      "character": "@",
+      "character_color": "white"
+    },
+    {
+      "id": "warrior_m",
+      "name": "Warrior",
       "weaponSkill": 40,
       "weaponDamage": 8,
       "toughness": 30,
       "armour": 3,
       "wounds": 20,
-      "animationClass": "animated_templar",
+      "animationClass": "animated_warrior_m",
       "character": "@",
       "character_color": "white"
-    }
+    }    
   ]
 }

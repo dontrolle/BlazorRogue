@@ -74,6 +74,36 @@
 
 /************/
 
+@keyframes warrior_m {
+  0% {
+    background-image: url('../img/uf_heroes/warrior_m_1.png');
+  }
+
+  25% {
+    background-image: url('../img/uf_heroes/warrior_m_2.png');
+  }
+
+  50% {
+    background-image: url('../img/uf_heroes/warrior_m_3.png');
+  }
+
+  75% {
+    background-image: url('../img/uf_heroes/warrior_m_4.png');
+  }
+
+  100% {
+    background-image: url('../img/uf_heroes/warrior_m_1.png');
+  }
+}
+
+.animated_warrior_m {
+  animation-name: warrior_m;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+/************/
+
 @keyframes goblin {
   0% {
     background-image: url('../img/uf_heroes/goblin_1.png');
