@@ -3,10 +3,10 @@
     {
       "id": "templar",
       "name": "Templar",
-      "weaponSkill": 40,
-      "weaponDamage": 8,
+      "weaponSkill": 35,
+      "weaponDamage": 7,
       "toughness": 30,
-      "armour": 3,
+      "armour": 4,
       "wounds": 20,
       "animationClass": "animated_templar",
       "character": "@",
