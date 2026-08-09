@@ -42,8 +42,6 @@ else
 {
 <div class="main_window">
     <div id="left_menu" class="left_menu">
-        <button type="button" id="mode_switch" class="toggle_button" @onclick="ToggleRenderMode">Switch mode</button>
-        <br />
         @if (confirmNewGame)
         {
             <button type="button" id="new_game_confirm" class="toggle_button" @onclick="StartNewGame">Discard game?</button>
@@ -249,6 +247,13 @@ else
                         <dl>
                             <dt>Use</dt>
                             <dd><tt>&lt;Shift&gt;+Move</tt> &mdash; doors, chests, etc.</dd>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3>View</h3>
+                        <dl>
+                            <dt>Toggle graphics</dt>
+                            <dd><tt>&lt;Ctrl&gt;+A</tt> &mdash; switch between ASCII and tileset</dd>
                         </dl>
                     </section>
                 </div>
@@ -482,13 +487,13 @@ else
     // than a Blazor @onkeyup on the map div - keys drive the game regardless of which element has
     // focus, so there's no click-to-focus step and no input dropped after e.g. a button click.
     [JSInvokable]
-    public async Task OnGlobalKeyUp(string key, string code, bool shiftKey)
+    public async Task OnGlobalKeyUp(string key, string code, bool shiftKey, bool ctrlKey)
     {
-        KeyUp(key, code, shiftKey);
+        await KeyUp(key, code, shiftKey, ctrlKey);
         await InvokeAsync(StateHasChanged);
     }
 
-    void KeyUp(string key, string code, bool shiftKey)
+    async Task KeyUp(string key, string code, bool shiftKey, bool ctrlKey)
     {
         if (session is null)
         {
@@ -513,6 +518,16 @@ else
         if (key == "?")
         {
             showHelp = true;
+            return;
+        }
+
+        // Matching the letter (not Code="KeyA") keeps this at "the key labelled A" on any
+        // keyboard layout. A view preference, not a game action, so it works even after game
+        // over - unlike everything below this point. The browser's native Ctrl+A (select all)
+        // is suppressed in the keydown handler - see registerKeyup in blazorrogue.js.
+        if (ctrlKey && key.Equals("a", StringComparison.OrdinalIgnoreCase))
+        {
+            await ToggleRenderMode();
             return;
         }
 
