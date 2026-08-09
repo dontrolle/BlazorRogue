@@ -21,6 +21,12 @@
   margin-left:5px;
 }
 
+.debuginfo {
+  color: black;
+  margin-top:15px;
+  margin-left:5px;
+}
+
 .map {
   display: grid;
   position: relative;
@@ -170,6 +176,44 @@
   text-shadow: 0 0 6px black, 2px 2px 3px black;
   background-color: rgba(0, 0, 0, 0.65);
   pointer-events: none;
+}
+
+/* ?-triggered help overlay: any keypress or a backdrop click dismisses it (see KeyUp/CloseHelp
+   in Indoor.razor). Sits above .game_over (z-index 10) and tooltips (z-index 5). */
+.help_backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help_modal {
+  background-color: #222;
+  color: white;
+  padding: 1.5em 2em;
+  border-radius: 6px;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.help_columns {
+  column-count: 2;
+  column-gap: 2em;
+}
+
+.help_columns section {
+  break-inside: avoid;
+  margin-bottom: 1em;
+}
+
+.help_dismiss_hint {
+  margin-top: 1em;
+  opacity: 0.7;
+  font-style: italic;
 }
 
   /* Tooltips */

@@ -54,19 +54,8 @@ else
             <button type="button" id="new_game" class="toggle_button @(game.Map.IsGameOver ? "highlighted" : "")" @onclick="RequestNewGame">New game</button>
         }
         <br />
-        <div class="instructions @(game.Map.IsGameOver ? "instructions_disabled" : "")">
-            <dl>
-                <dt>New game</dt>
-                <dd>Use the <b>New game</b> button</dd>
-                <dt>
-                    Move / Attack
-                </dt>
-                <dd>
-                    <tt>&lt;Numkey&gt;</tt> or <tt>qweasdzxc</tt>
-                </dd>
-                <dt>Use</dt>
-                <dd><tt>&lt;Shift&gt;+Move</tt></dd>
-            </dl>
+        <div class="instructions">
+            Press <tt>?</tt> for help
         </div>
         <div id="debuginfo">
             @foreach (var debugInfo in game.Map.DebugInfo)
@@ -220,6 +209,53 @@ else
             }
         </div>
     </span>
+
+    @if (showHelp)
+    {
+        <div class="help_backdrop" @onclick="CloseHelp">
+            <div class="help_modal" @onclick:stopPropagation="true">
+                <h1>Help</h1>
+                <div class="help_columns">
+                    <section>
+                        <h3>New Game</h3>
+                        <dl>
+                            <dt>New game</dt>
+                            <dd>Use the <b>New game</b> button</dd>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3>Movement</h3>
+                        <dl>
+                            <dt>Move</dt>
+                            <dd><tt>&lt;Numkey&gt;</tt> or <tt>qwe/ad/zxc</tt></dd>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3>Attack</h3>
+                        <dl>
+                            <dt>Attack</dt>
+                            <dd>Move into a monster</dd>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3>Rest</h3>
+                        <dl>
+                            <dt>Wait</dt>
+                            <dd><tt>5</tt> or <tt>s</tt> &mdash; skip a turn in place</dd>
+                        </dl>
+                    </section>
+                    <section>
+                        <h3>Use</h3>
+                        <dl>
+                            <dt>Use</dt>
+                            <dd><tt>&lt;Shift&gt;+Move</tt> &mdash; doors, chests, etc.</dd>
+                        </dl>
+                    </section>
+                </div>
+                <p class="help_dismiss_hint">Press any key to close</p>
+            </div>
+        </div>
+    }
 </div>
 }
 
@@ -383,6 +419,9 @@ else
     bool tikTok = false;
     bool tilesetAvailable;
     bool confirmNewGame;
+    bool showHelp;
+
+    void CloseHelp() => showHelp = false;
 
     GameSession? session;
     SoundManager? soundManager;
@@ -451,8 +490,34 @@ else
 
     void KeyUp(string key, string code, bool shiftKey)
     {
+        if (session is null)
+        {
+            return;
+        }
+
+        // The help overlay is pure UI state, independent of game-over - toggle it first and
+        // consume the keypress so it never also drives a game action (e.g. dismissing with
+        // 'd' must not also move the player).
+        if (showHelp)
+        {
+            // Opening the overlay requires Shift+/ on most layouts, which releases Shift a
+            // moment later as its own keyup - ignore bare modifier releases so that doesn't
+            // immediately close what it just opened.
+            if (key is "Shift" or "Control" or "Alt" or "Meta")
+            {
+                return;
+            }
+            showHelp = false;
+            return;
+        }
+        if (key == "?")
+        {
+            showHelp = true;
+            return;
+        }
+
         // A finished game accepts no further input; only the New game button remains live.
-        if (session is null || game.Map.IsGameOver)
+        if (game.Map.IsGameOver)
         {
             return;
         }
