@@ -6,8 +6,8 @@ namespace BlazorRogue;
 
 class Game
 {
-    const int Width = 38;
-    const int Height = 30;
+    const int Width = 60;
+    const int Height = 45;
 
     public DungeonGenerator DungeonGenerator { get; private set; }
     public Map Map { get; private set; }
@@ -17,7 +17,7 @@ class Game
     public EffectsSystem EffectsSystem { get; private set; }
 
     /// <summary>
-    /// Creates a game backed by its own freshly parsed <see cref="BlazorRogue.Entities.Configuration"/>.
+    /// Creates a game backed by its own freshly parsed <see cref="Entities.Configuration"/>.
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses
