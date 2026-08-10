@@ -35,6 +35,19 @@
   margin-left:10px;
 }
 
+/* Icon-based stat rows (see div[data-tool-tip] tooltip rules below for the hover explainer). */
+.stat-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  position: relative;
+}
+
+.stat-icon img {
+  width: 1.9em;
+  height: 1.9em;
+}
+
 .map {
   display: grid;
   position: relative;
