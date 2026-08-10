@@ -58,10 +58,19 @@ else
                 <p>@debugInfo</p>
             }
             <p><b>Hitpoints</b>&nbsp;@game.Map.Player.CombatComponent!.Wounds</p>
-            <p><b>Dam soak</b>&nbsp;@game.Map.Player.CombatComponent!.DamageSoak</p>
-            <p><b>Weap skill</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponSkill</p>
-            <p><b>Weap dam</b>&nbsp;@game.Map.Player.CombatComponent!.WeaponDamage</p>
             <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
+            <div class="stat-icon" data-tool-tip="Attack skill">
+                <img src="/img/ui/skills_attack.png" alt="Attack" />
+                <span>@game.Map.Player.CombatComponent!.WeaponSkill</span>
+            </div>
+            <div class="stat-icon" data-tool-tip="Damage">
+                <img src="/img/ui/skills_damage.png" alt="Damage" />
+                <span>@game.Map.Player.CombatComponent!.WeaponDamage</span>
+            </div>
+            <div class="stat-icon" data-tool-tip="Defense">
+                <img src="/img/ui/skill_defense.png" alt="Defense" />
+                <span>@game.Map.Player.CombatComponent!.DamageSoak</span>
+            </div>
         </div>
         <div class="instructions">
             Press <tt>?</tt> for help
