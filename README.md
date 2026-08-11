@@ -92,7 +92,8 @@ so the containerized game always runs in ASCII-renderer mode.
 | Move / attack (8-directional) | Numpad, or `qweasdzxc` |
 | Use (open door, chest, etc.) | `Shift` + move towards the object |
 | Start a new game | "New game" button (left panel) |
-| Switch tileset/ASCII rendering | "Switch mode" button (left panel) |
+| Switch tileset/ASCII rendering | CTRL-A |
+| Help overlay | ? |
 
 Movement keys work anywhere on the page (see Architecture).
 
