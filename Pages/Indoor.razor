@@ -58,33 +58,40 @@ else
                 <p>@debugInfo</p>
             }
             @{
-                var healthBar = ComputeHealthBarMetrics(
-                    game.Map.Player.CombatComponent!.Wounds,
-                    game.Map.Player.CombatComponent!.MaxWounds
-                );
+                var wounds = game.Map.Player.CombatComponent!.Wounds;
+                var maxWounds = game.Map.Player.CombatComponent!.MaxWounds;
+                var isDead = wounds <= 0;
+                var healthBar = ComputeHealthBarMetrics(wounds, maxWounds);
             }
             <div class="stat-icon" data-tool-tip="Health">
                 <div class="health-bar">
-                    <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
-                    @if (healthBar.ShowDrain)
+                    @if (isDead)
                     {
-                        <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
-                        @if (healthBar.GreyStripWidthPx > 0)
+                        <img class="health-bar-base" src="/img/ui/blood_meter_empty.png" alt="Health" />
+                    }
+                    else
+                    {
+                        <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
+                        @if (healthBar.ShowDrain)
                         {
-                            <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
-                        }
-                        @if (healthBar.ShowBoundaryMarker)
-                        {
-                            <img
-                                class="health-bar-marker"
-                                src="/img/ui/blood_meter_strip_full_right_end.png"
-                                alt=""
-                                style="right:@(healthBar.BoundaryMarkerRightPx)px;"
-                            />
+                            <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
+                            @if (healthBar.GreyStripWidthPx > 0)
+                            {
+                                <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
+                            }
+                            @if (healthBar.ShowBoundaryMarker)
+                            {
+                                <img
+                                    class="health-bar-marker"
+                                    src="/img/ui/blood_meter_strip_full_right_end.png"
+                                    alt=""
+                                    style="right:@(healthBar.BoundaryMarkerRightPx)px;"
+                                />
+                            }
                         }
                     }
                 </div>
-                <span>@game.Map.Player.CombatComponent!.Wounds/@game.Map.Player.CombatComponent!.MaxWounds</span>
+                <span>@wounds/@maxWounds</span>
             </div>
             <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
             <div class="stat-icon" data-tool-tip="Attack skill">
@@ -318,9 +325,10 @@ else
 
     // blood_meter_full.png is 48x16 with a 42px-wide fill area. blood_meter_empty_right_end.png (4px)
     // is shaped to replace the bar's rounded right corner, so it sits flush at the bar's rightmost
-    // position as soon as any wound is lost - that alone is the first visual sliver. Beyond that,
-    // empty strips tile in to its left, and a copy of blood_meter_strip_full_right_end.png sits at
-    // the far edge of that tiled run, bridging back into whatever plain fill remains.
+    // position - unconditionally, in its own fixed 4px zone - as soon as any wound is lost; that
+    // alone is the first visual sliver. Beyond that, empty strips tile in to its left, using up to
+    // the full 42px fill for marker + strips, and a copy of blood_meter_strip_full_right_end.png
+    // sits at the far edge of that tiled run, bridging back into whatever plain fill remains.
     private static HealthBarMetrics ComputeHealthBarMetrics(int wounds, int maxWounds)
     {
         const int FillWidthNative = 42;
@@ -333,13 +341,19 @@ else
             return new HealthBarMetrics(false, 0, false, 0);
         }
 
-        int lost = maxWounds - Math.Max(wounds, 0);
-        int drainedNative = (int)
-            Math.Round(lost / (double)maxWounds * FillWidthNative, MidpointRounding.AwayFromZero);
-        drainedNative = Math.Clamp(drainedNative, CapWidthNative, FillWidthNative);
+        // Anchored at Wounds=1, not 0 - 0 or below means dead, so spending the meter's full drain
+        // range on the invisible 1-to-0 transition would waste resolution that matters more while
+        // the player is still alive. This makes Wounds=1 use the entire 42px fill for the drain.
+        int effectiveWounds = Math.Max(wounds, 1);
+        int lost = maxWounds - effectiveWounds;
+        int scaleDenominator = Math.Max(maxWounds - 1, 1);
 
-        int greyNative = Math.Max(0, drainedNative - CapWidthNative - MarkerWidthNative);
-        bool showBoundaryMarker = drainedNative > CapWidthNative;
+        int drainedNative = (int)
+            Math.Round(lost / (double)scaleDenominator * FillWidthNative, MidpointRounding.AwayFromZero);
+        drainedNative = Math.Clamp(drainedNative, 0, FillWidthNative);
+
+        int greyNative = Math.Max(0, drainedNative - MarkerWidthNative);
+        bool showBoundaryMarker = drainedNative > 0;
         int boundaryRightNative = CapWidthNative + greyNative;
 
         return new HealthBarMetrics(

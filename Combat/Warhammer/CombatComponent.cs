@@ -27,10 +27,11 @@ class CombatComponent(
         get;
         private set
         {
-            // we use MaxWounds as an ultimate upper bound - no wounds value can go beyond that. 
-            // Means temporary higher max wounds must be reflected in the Maxwounds field.
+            // we use MaxWounds as an ultimate upper bound - no wounds value can go beyond that.
+            // Means temporary higher max wounds must be reflected in the Maxwounds field. Clamped
+            // to 0 at the bottom too - a dead Moveable sitting at, say, -8 wounds is meaningless.
             field =
-                Math.Min(value, MaxWounds);
+                Math.Clamp(value, 0, MaxWounds);
 
             if (Owner != null)
             {
