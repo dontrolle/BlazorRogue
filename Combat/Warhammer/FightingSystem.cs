@@ -3,11 +3,11 @@ using System.Diagnostics;
 
 namespace BlazorRogue.Combat.Warhammer;
 
-class FightingSystem(Game game)
+class FightingSystem(Game game) : IFightingSystem
 {
     public Game Game { get; } = game;
 
-    public static bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
+    public bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
     {
         ArgumentNullException.ThrowIfNull(attacker);
         ArgumentNullException.ThrowIfNull(defender);

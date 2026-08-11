@@ -38,7 +38,7 @@ public class FightingSystemTests
         var defender = CreateMoveable("defender", 30);
 
         _ = Assert.Throws<ArgumentNullException>(() =>
-            FightingSystem.CloseCombatAttack(null!, defender.CombatComponent!)
+            fightingSystem.CloseCombatAttack(null!, defender.CombatComponent!)
         );
     }
 
@@ -49,7 +49,7 @@ public class FightingSystemTests
         var attacker = CreateMoveable("attacker", 30);
 
         _ = Assert.Throws<ArgumentNullException>(() =>
-            FightingSystem.CloseCombatAttack(attacker.CombatComponent!, null!)
+            fightingSystem.CloseCombatAttack(attacker.CombatComponent!, null!)
         );
     }
 
@@ -58,7 +58,7 @@ public class FightingSystemTests
     {
         // High toughness/wounds so nobody actually dies mid-way through the sample, which would
         // otherwise stop generating attacks against that combatant (a fresh dummy is used per round instead).
-        _ = new FightingSystem(game: null!);
+        var fightingSystem = new FightingSystem(game: null!);
 
         const int rounds = 2000;
         int strongAttackerHits = 0;
@@ -69,7 +69,7 @@ public class FightingSystemTests
             var strongAttacker = CreateMoveable("strong", weaponSkill: 70);
             var weakDefender = CreateMoveable("weakDefender", weaponSkill: 20);
             if (
-                FightingSystem.CloseCombatAttack(
+                fightingSystem.CloseCombatAttack(
                     strongAttacker.CombatComponent!,
                     weakDefender.CombatComponent!
                 )
@@ -81,7 +81,7 @@ public class FightingSystemTests
             var weakAttacker = CreateMoveable("weak", weaponSkill: 20);
             var strongDefender = CreateMoveable("strongDefender", weaponSkill: 70);
             if (
-                FightingSystem.CloseCombatAttack(
+                fightingSystem.CloseCombatAttack(
                     weakAttacker.CombatComponent!,
                     strongDefender.CombatComponent!
                 )
