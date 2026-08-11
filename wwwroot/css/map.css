@@ -41,11 +41,12 @@
   align-items: center;
   gap: 0.3em;
   position: relative;
+  height: 53px;
 }
 
 .stat-icon > img {
-  width: 1.9em;
-  height: 1.9em;
+  width: 3.8em;
+  height: 3.8em;
   image-rendering: pixelated;
 }
 

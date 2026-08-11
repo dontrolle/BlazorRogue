@@ -93,7 +93,13 @@ else
                 </div>
                 <span>@wounds/@maxWounds</span>
             </div>
-            <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
+            @{
+                var gold = game.Map.Player.InventoryComponent!.Gold;
+            }
+            <div class="stat-icon" data-tool-tip="Gold">
+                <img src="/img/ui/gold_@(gold == 0 ? "empty" : "full").png" alt="Gold" />
+                <span>@gold</span>
+            </div>
             <div class="stat-icon" data-tool-tip="Attack skill">
                 <img src="/img/ui/skills_attack.png" alt="Attack" />
                 <span>@game.Map.Player.CombatComponent!.WeaponSkill</span>
