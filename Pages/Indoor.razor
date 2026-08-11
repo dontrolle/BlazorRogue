@@ -57,7 +57,35 @@ else
             {
                 <p>@debugInfo</p>
             }
-            <p><b>Hitpoints</b>&nbsp;@game.Map.Player.CombatComponent!.Wounds</p>
+            @{
+                var healthBar = ComputeHealthBarMetrics(
+                    game.Map.Player.CombatComponent!.Wounds,
+                    game.Map.Player.CombatComponent!.MaxWounds
+                );
+            }
+            <div class="stat-icon" data-tool-tip="Health">
+                <div class="health-bar">
+                    <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
+                    @if (healthBar.ShowDrain)
+                    {
+                        <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
+                        @if (healthBar.GreyStripWidthPx > 0)
+                        {
+                            <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
+                        }
+                        @if (healthBar.ShowBoundaryMarker)
+                        {
+                            <img
+                                class="health-bar-marker"
+                                src="/img/ui/blood_meter_strip_full_right_end.png"
+                                alt=""
+                                style="right:@(healthBar.BoundaryMarkerRightPx)px;"
+                            />
+                        }
+                    }
+                </div>
+                <span>@game.Map.Player.CombatComponent!.Wounds/@game.Map.Player.CombatComponent!.MaxWounds</span>
+            </div>
             <p><b>Gold</b>&nbsp;@game.Map.Player.InventoryComponent!.Gold</p>
             <div class="stat-icon" data-tool-tip="Attack skill">
                 <img src="/img/ui/skills_attack.png" alt="Attack" />
@@ -280,6 +308,47 @@ else
 @code {
     private DotNetObjectReference<Indoor>? _selfRef;
     private bool _resizeHandlingInProgress;
+
+    private sealed record HealthBarMetrics(
+        bool ShowDrain,
+        int GreyStripWidthPx,
+        bool ShowBoundaryMarker,
+        int BoundaryMarkerRightPx
+    );
+
+    // blood_meter_full.png is 48x16 with a 42px-wide fill area. blood_meter_empty_right_end.png (4px)
+    // is shaped to replace the bar's rounded right corner, so it sits flush at the bar's rightmost
+    // position as soon as any wound is lost - that alone is the first visual sliver. Beyond that,
+    // empty strips tile in to its left, and a copy of blood_meter_strip_full_right_end.png sits at
+    // the far edge of that tiled run, bridging back into whatever plain fill remains.
+    private static HealthBarMetrics ComputeHealthBarMetrics(int wounds, int maxWounds)
+    {
+        const int FillWidthNative = 42;
+        const int CapWidthNative = 4;
+        const int MarkerWidthNative = 1;
+        const int Scale = 2;
+
+        if (maxWounds <= 0 || wounds >= maxWounds)
+        {
+            return new HealthBarMetrics(false, 0, false, 0);
+        }
+
+        int lost = maxWounds - Math.Max(wounds, 0);
+        int drainedNative = (int)
+            Math.Round(lost / (double)maxWounds * FillWidthNative, MidpointRounding.AwayFromZero);
+        drainedNative = Math.Clamp(drainedNative, CapWidthNative, FillWidthNative);
+
+        int greyNative = Math.Max(0, drainedNative - CapWidthNative - MarkerWidthNative);
+        bool showBoundaryMarker = drainedNative > CapWidthNative;
+        int boundaryRightNative = CapWidthNative + greyNative;
+
+        return new HealthBarMetrics(
+            true,
+            greyNative * Scale,
+            showBoundaryMarker,
+            boundaryRightNative * Scale
+        );
+    }
 
     [JSInvokable]
     public async Task OnBrowserResized()
