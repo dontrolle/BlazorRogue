@@ -5,7 +5,7 @@
   left: 0px;
   height: 100%;
   background-color: black;
-  grid-template-columns: 130px auto;
+  grid-template-columns: 160px auto;
   grid-gap: 0;
 }
 
@@ -43,9 +43,65 @@
   position: relative;
 }
 
-.stat-icon img {
+.stat-icon > img {
   width: 1.9em;
   height: 1.9em;
+  image-rendering: pixelated;
+}
+
+/* Health bar: layered pixel-art blood meter built from wwwroot/img/ui/blood_meter_*.png.
+   Pieces are absolutely positioned, right-aligned, inside this fixed-size relative container so
+   the meter drains from right to left as Wounds falls below MaxWounds. Rendered at 2x the assets'
+   native size (48x16 -> 96x32) with pixelated image-rendering to keep the pixel art crisp. */
+.health-bar {
+  position: relative;
+  width: 96px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.health-bar img,
+.health-bar-strip {
+  image-rendering: pixelated;
+}
+
+.health-bar-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 96px;
+  height: 32px;
+}
+
+/* blood_meter_empty_right_end.png is shaped to replace the bar's rounded right corner, so it sits
+   flush at the bar's rightmost position as soon as any wound is lost - the first visual sliver. */
+.health-bar-cap {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 8px;
+  height: 32px;
+}
+
+/* blood_meter_strip_full_right_end.png bridges the seam between the tiled empty strips and
+   whatever plain fill remains, positioned inline per-render at the far edge of that tiled run. */
+.health-bar-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 32px;
+}
+
+/* Repeatable drained strip, tiled to a width set inline per-render from Wounds/MaxWounds. Sits
+   just left of the fixed cap. */
+.health-bar-strip {
+  position: absolute;
+  right: 8px;
+  top: 0;
+  height: 32px;
+  background-image: url(/img/ui/blood_meter_strip_empty.png);
+  background-repeat: repeat-x;
+  background-size: 2px 32px;
 }
 
 .map {
@@ -148,7 +204,7 @@
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
-  width: 120px;
+  width: 150px;
   margin-top: 5px;
   margin-left: 5px;
   margin-right: 5px;
