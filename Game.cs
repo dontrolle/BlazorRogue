@@ -9,10 +9,10 @@ class Game
     const int Width = 60;
     const int Height = 45;
 
-    public DungeonGenerator DungeonGenerator { get; private set; }
+    public IDungeonGenerator DungeonGenerator { get; private set; }
     public Map Map { get; private set; }
 
-    public FightingSystem FightingSystem { get; private set; }
+    public IFightingSystem FightingSystem { get; private set; }
     public Configuration Configuration { get; private set; }
     public EffectsSystem EffectsSystem { get; private set; }
 

@@ -8,7 +8,7 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
-class DungeonGenerator
+class DungeonGenerator : IDungeonGenerator
 {
     readonly Map map;
     readonly Configuration configuration;

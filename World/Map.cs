@@ -423,7 +423,7 @@ class Map
                 // what to do if it doesn't have a CombatComponent?
                 if (mo.CombatComponent != null)
                 {
-                    bool hit = Combat.Warhammer.FightingSystem.CloseCombatAttack(
+                    bool hit = Game.FightingSystem.CloseCombatAttack(
                         Player.CombatComponent!,
                         mo.CombatComponent
                     );
