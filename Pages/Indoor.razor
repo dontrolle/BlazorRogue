@@ -63,55 +63,66 @@ else
                 var isDead = wounds <= 0;
                 var healthBar = ComputeHealthBarMetrics(wounds, maxWounds);
             }
-            <div class="stat-icon" data-tool-tip="Health">
-                <div class="health-bar">
-                    @if (isDead)
-                    {
-                        <img class="health-bar-base" src="/img/ui/blood_meter_empty.png" alt="Health" />
-                    }
-                    else
-                    {
-                        <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
-                        @if (healthBar.ShowDrain)
-                        {
-                            <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
-                            @if (healthBar.GreyStripWidthPx > 0)
-                            {
-                                <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
-                            }
-                            @if (healthBar.ShowBoundaryMarker)
-                            {
-                                <img
-                                    class="health-bar-marker"
-                                    src="/img/ui/blood_meter_strip_full_right_end.png"
-                                    alt=""
-                                    style="right:@(healthBar.BoundaryMarkerRightPx)px;"
-                                />
-                            }
-                        }
-                    }
-                </div>
-                <span>@wounds/@maxWounds</span>
-            </div>
             @{
                 var gold = game.Map.Player.InventoryComponent!.Gold;
             }
-            <div class="stat-icon" data-tool-tip="Gold">
-                <img src="/img/ui/gold_@(gold == 0 ? "empty" : "full").png" alt="Gold" />
-                <span>@gold</span>
-            </div>
-            <div class="stat-icon" data-tool-tip="Attack skill">
-                <img src="/img/ui/skills_attack_gray.png" alt="Attack" />
-                <span>@game.Map.Player.CombatComponent!.WeaponSkill</span>
-            </div>
-            <div class="stat-icon" data-tool-tip="Damage">
-                <img src="/img/ui/skills_damage_gray.png" alt="Damage" />
-                <span>@game.Map.Player.CombatComponent!.WeaponDamage</span>
-            </div>
-            <div class="stat-icon" data-tool-tip="Defense">
-                <img src="/img/ui/skill_defense_gray.png" alt="Defense" />
-                <span>@game.Map.Player.CombatComponent!.DamageSoak</span>
-            </div>
+            @if (renderAscii)
+            {
+                <div class="stat-text"><span>Health</span><span>@wounds/@maxWounds</span></div>
+                <div class="stat-text"><span>Gold</span><span>@gold</span></div>
+                <div class="stat-text"><span>Attack</span><span>@game.Map.Player.CombatComponent!.WeaponSkill</span></div>
+                <div class="stat-text"><span>Damage</span><span>@game.Map.Player.CombatComponent!.WeaponDamage</span></div>
+                <div class="stat-text"><span>Defense</span><span>@game.Map.Player.CombatComponent!.DamageSoak</span></div>
+            }
+            else
+            {
+                <div class="stat-icon" data-tool-tip="Health">
+                    <div class="health-bar">
+                        @if (isDead)
+                        {
+                            <img class="health-bar-base" src="/img/ui/blood_meter_empty.png" alt="Health" />
+                        }
+                        else
+                        {
+                            <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
+                            @if (healthBar.ShowDrain)
+                            {
+                                <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
+                                @if (healthBar.GreyStripWidthPx > 0)
+                                {
+                                    <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
+                                }
+                                @if (healthBar.ShowBoundaryMarker)
+                                {
+                                    <img
+                                        class="health-bar-marker"
+                                        src="/img/ui/blood_meter_strip_full_right_end.png"
+                                        alt=""
+                                        style="right:@(healthBar.BoundaryMarkerRightPx)px;"
+                                    />
+                                }
+                            }
+                        }
+                    </div>
+                    <span>@wounds/@maxWounds</span>
+                </div>
+                <div class="stat-icon" data-tool-tip="Gold">
+                    <img src="/img/ui/gold_@(gold == 0 ? "empty" : "full").png" alt="Gold" />
+                    <span>@gold</span>
+                </div>
+                <div class="stat-icon" data-tool-tip="Attack skill">
+                    <img src="/img/ui/skills_attack_gray.png" alt="Attack" />
+                    <span>@game.Map.Player.CombatComponent!.WeaponSkill</span>
+                </div>
+                <div class="stat-icon" data-tool-tip="Damage">
+                    <img src="/img/ui/skills_damage_gray.png" alt="Damage" />
+                    <span>@game.Map.Player.CombatComponent!.WeaponDamage</span>
+                </div>
+                <div class="stat-icon" data-tool-tip="Defense">
+                    <img src="/img/ui/skill_defense_gray.png" alt="Defense" />
+                    <span>@game.Map.Player.CombatComponent!.DamageSoak</span>
+                </div>
+            }
         </div>
         <div class="instructions">
             Press <tt>?</tt> for help

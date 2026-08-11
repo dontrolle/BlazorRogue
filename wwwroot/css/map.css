@@ -50,6 +50,15 @@
   image-rendering: pixelated;
 }
 
+/* ASCII-mode counterpart to .stat-icon: plain text, no images, to match the ASCII renderer's look. */
+.stat-text {
+  display: flex;
+  justify-content: space-between;
+  width: 145px;
+  height: 1.5em;
+  color: white;
+}
+
 /* Health bar: layered pixel-art blood meter built from wwwroot/img/ui/blood_meter_*.png.
    Pieces are absolutely positioned, right-aligned, inside this fixed-size relative container so
    the meter drains from right to left as Wounds falls below MaxWounds. Rendered at 2x the assets'
