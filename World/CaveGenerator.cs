@@ -5,26 +5,40 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
-class CaveGenerator(int width, int height, Game game)
+class CaveGenerator(int width, int height, Game game, SettingsMap settings)
     : DungeonGeneratorBase(
         width,
         height,
         game,
-        DungeonGeneratorBase.SelectRandom(game.Configuration.CaveWallSets)
+        SelectRandom(game.Configuration.CaveWallSets),
+        settings
     )
 {
     public const string Id = "cave_generator";
+
+    // LayoutSettings() is static because field initializers can't reference another instance
+    // field/method of the same type being constructed - only static members and the primary
+    // constructor's own parameters (e.g. `settings`) are allowed at this point.
+    readonly double percentageChanceOfInitialWall = LayoutSettings(settings)
+        .GetDouble("percentage_chance_of_initial_wall", 0.4);
+    readonly int smoothingPassOneIterations = LayoutSettings(settings)
+        .GetInt("smoothing_pass_one_iterations", 4);
+    readonly int smoothingPassTwoIterations = LayoutSettings(settings)
+        .GetInt("smoothing_pass_two_iterations", 3);
+    readonly string floorTileSet = LayoutSettings(settings)
+        .GetString("floor_tile_set", "crusted_grey");
+
+    static SettingsMap LayoutSettings(SettingsMap settings) =>
+        settings.GetMap("layout", SettingsMap.Empty);
 
     protected override Tuple<int, int> CreateLayout() => CreateCave();
 
     Tuple<int, int> CreateCave()
     {
-        int initWallPercentageChance = 40;
-
         bool[,] genmap = new bool[map.Width, map.Height];
 
         void InitFill(int x, int y) =>
-            genmap[x, y] = random.Next(1, 101) < initWallPercentageChance;
+            genmap[x, y] = random.NextDouble() < percentageChanceOfInitialWall;
 
         map.ForEachTile(InitFill);
 
@@ -34,7 +48,7 @@ class CaveGenerator(int width, int height, Game game)
                 SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5
                 || SurroundingWallNumberWithinN(genmap, x, y, 2) <= 1;
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < smoothingPassOneIterations; i++)
         {
             newmap = new bool[map.Width, map.Height];
             map.ForEachTile(Generation1Fill);
@@ -44,7 +58,7 @@ class CaveGenerator(int width, int height, Game game)
         void Generation2Fill(int x, int y) =>
             newmap[x, y] = SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5;
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < smoothingPassTwoIterations; i++)
         {
             newmap = new bool[map.Width, map.Height];
             map.ForEachTile(Generation2Fill);
@@ -66,12 +80,10 @@ class CaveGenerator(int width, int height, Game game)
 
     Tuple<int, int> FinalizeCaveGen(bool[,] genmap)
     {
-        // TODO: UF
-        string caveGenTileSet = "crusted_grey";
         var floorset =
-            configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == caveGenTileSet)
+            configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == floorTileSet)
             ?? throw new InvalidOperationException(
-                "Missing tileset " + caveGenTileSet + " in read configuration."
+                "Missing tileset " + floorTileSet + " in read configuration."
             );
         int[] floorIndexes = [1, 2, 3, 4];
         FillMap(genmap, floorset);

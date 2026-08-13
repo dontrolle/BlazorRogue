@@ -13,7 +13,7 @@ public class MapGeneratorFactoryTests
             height: 10,
             width: 10,
             generatorId: generatorId,
-            generatorParameters: []
+            settingsMap: SettingsMap.Empty
         );
 
     [Theory]
@@ -48,7 +48,7 @@ public class MapGeneratorFactoryTests
 
         var generator = MapGeneratorFactory.Create(level, game);
 
-        Assert.IsType<BasicDungeonGenerator>(generator);
+        _ = Assert.IsType<BasicDungeonGenerator>(generator);
     }
 
     [Fact]
@@ -59,6 +59,6 @@ public class MapGeneratorFactoryTests
 
         var generator = MapGeneratorFactory.Create(level, game);
 
-        Assert.IsType<CaveGenerator>(generator);
+        _ = Assert.IsType<CaveGenerator>(generator);
     }
 }

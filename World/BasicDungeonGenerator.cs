@@ -1,28 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.Entities;
 
 namespace BlazorRogue.World;
 
-class BasicDungeonGenerator(int width, int height, Game game)
+class BasicDungeonGenerator(int width, int height, Game game, SettingsMap settings)
     : DungeonGeneratorBase(
         width,
         height,
         game,
-        DungeonGeneratorBase.SelectRandom(game.Configuration.DungeonWallSets)
+        SelectRandom(game.Configuration.DungeonWallSets),
+        settings
     )
 {
     public const string Id = "basic_dungeon_generator";
 
-    // width and height are including walls
-    const int MaxRooms = 10;
-    const int MinRoomHeight = 4;
-    const int MaxRoomHeight = 8;
-    const int MinRoomWidth = 4;
-    const int MaxRoomWidth = 10;
-    const int SpecialRoomHeight = 7;
-    const int SpecialRoomWidth = 8;
-    const double PercentageChanceOfSpecialRoom = 1.0;
+    // width and height are including walls. LayoutSettings() is static because field initializers
+    // can't reference another instance field/method of the same type being constructed - only
+    // static members and the primary constructor's own parameters (e.g. `settings`) are allowed.
+    readonly int maxRooms = LayoutSettings(settings).GetInt("max_rooms", 10);
+    readonly int minRoomHeight = LayoutSettings(settings).GetInt("min_room_height", 4);
+    readonly int maxRoomHeight = LayoutSettings(settings).GetInt("max_room_height", 8);
+    readonly int minRoomWidth = LayoutSettings(settings).GetInt("min_room_width", 4);
+    readonly int maxRoomWidth = LayoutSettings(settings).GetInt("max_room_width", 10);
+    readonly int specialRoomHeight = LayoutSettings(settings).GetInt("special_room_height", 7);
+    readonly int specialRoomWidth = LayoutSettings(settings).GetInt("special_room_width", 8);
+    readonly double percentageChanceOfSpecialRoom = LayoutSettings(settings)
+        .GetDouble("percentage_chance_of_special_room", 1.0);
+
+    static SettingsMap LayoutSettings(SettingsMap settings) =>
+        settings.GetMap("layout", SettingsMap.Empty);
 
     readonly List<Room> rooms = [];
 
@@ -82,10 +90,10 @@ class BasicDungeonGenerator(int width, int height, Game game)
     {
         var playerCoord = Tuple.Create(-1, -1);
         Room? lastRoom = null;
-        for (int i = 0; i < MaxRooms; i++)
+        for (int i = 0; i < maxRooms; i++)
         {
-            int w = random.Next(MinRoomWidth, MaxRoomWidth + 1);
-            int h = random.Next(MinRoomHeight, MaxRoomHeight + 1);
+            int w = random.Next(minRoomWidth, maxRoomWidth + 1);
+            int h = random.Next(minRoomHeight, maxRoomHeight + 1);
             int x = random.Next(1, map.Width - w - 1);
             int y = random.Next(1, map.Height - h - 1);
             var newRoom = new Room(x, y, w, h);
@@ -248,9 +256,9 @@ class BasicDungeonGenerator(int width, int height, Game game)
         var floorset = GetRandomElement(configuration.StandardFloorSets);
         //bool specialRoom = false;
         if (
-            width >= SpecialRoomWidth
-            && height >= SpecialRoomHeight
-            && random.NextDouble() < PercentageChanceOfSpecialRoom
+            width >= specialRoomWidth
+            && height >= specialRoomHeight
+            && random.NextDouble() < percentageChanceOfSpecialRoom
         )
         {
             //specialRoom = true;

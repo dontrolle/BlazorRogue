@@ -19,7 +19,26 @@
       "width": 60,
       "map_generator": {
         "generator_id": "basic_dungeon_generator",
-        "parameters": {}
+        "parameters": {
+          "common": {
+            "percentage_chance_of_bones": 0.05,
+            "percentage_chance_of_tables": 0.06,
+            "percentage_chance_of_altars": 0.04,
+            "percentage_chance_of_spider_web_in_corner": 0.25,
+            "percentage_chance_of_torch": 0.20,
+            "percentage_chance_of_chests": 0.02
+          },
+          "layout": {
+            "max_rooms": 10,
+            "min_room_height": 4,
+            "max_room_height": 8,
+            "min_room_width": 4,
+            "max_room_width": 10,
+            "special_room_height": 7,
+            "special_room_width": 8,
+            "percentage_chance_of_special_room": 1.0
+          }
+        }
       }
     },
     {
@@ -30,7 +49,22 @@
       "width": 60,
       "map_generator": {
         "generator_id": "cave_generator",
-        "parameters": {}
+        "parameters": {
+          "common": {
+            "percentage_chance_of_bones": 0.05,
+            "percentage_chance_of_tables": 0.01,
+            "percentage_chance_of_altars": 0.01,
+            "percentage_chance_of_spider_web_in_corner": 0.30,
+            "percentage_chance_of_torch": 0.15,
+            "percentage_chance_of_chests": 0.02
+          },
+          "layout": {
+            "percentage_chance_of_initial_wall": 0.4,
+            "smoothing_pass_one_iterations": 4,
+            "smoothing_pass_two_iterations": 3,
+            "floor_tile_set": "crusted_grey"
+          }
+        }
       }
     }
   ]

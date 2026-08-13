@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BlazorRogue.Entities;
 
 class LevelConfiguration(
@@ -9,7 +7,7 @@ class LevelConfiguration(
     int height,
     int width,
     string generatorId,
-    Dictionary<string, string> generatorParameters
+    SettingsMap settingsMap
 )
 {
     public int Number { get; } = number;
@@ -18,7 +16,5 @@ class LevelConfiguration(
     public int Height { get; } = height;
     public int Width { get; } = width;
     public string MapGeneratorId { get; } = generatorId;
-    readonly Dictionary<string, string> mapGeneratorParameters = generatorParameters;
-    public IReadOnlyDictionary<string, string> MapGeneratorParameters =>
-        mapGeneratorParameters.AsReadOnly();
+    public SettingsMap SettingsMap { get; } = settingsMap;
 }
