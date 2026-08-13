@@ -8,20 +8,38 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
-abstract class DungeonGeneratorBase(int width, int height, Game game, TileSet wallSet)
-    : IMapGenerator
+abstract class DungeonGeneratorBase(
+    int width,
+    int height,
+    Game game,
+    TileSet wallSet,
+    SettingsMap settings
+) : IMapGenerator
 {
     protected readonly Map map = new(width, height, wallSet, game);
     protected readonly Configuration configuration = game.Configuration;
     protected readonly Random random = new();
 
-    // Decorations
-    protected const double PercentageChanceOfBones = 0.05;
-    protected readonly double percentageChanceOfTables = 0.06;
-    protected readonly double percentageChanceOfAltars = 0.04;
-    protected readonly double percentageChanceOfSpiderWebInCorner = 0.25;
-    protected readonly double percentageChanceOfTorch = 0.25;
-    protected readonly double percentageChanceOfChests = 0.02;
+    // Decorations - shared by every DungeonGeneratorBase subclass, so levels.json groups these
+    // under "common" rather than mixing them in with a specific generator's own layout parameters.
+    // CommonSettings() is static because field initializers can't reference another instance
+    // field/method of the same type being constructed - only static members and the primary
+    // constructor's own parameters (e.g. `settings`) are allowed at this point.
+    protected readonly double percentageChanceOfBones = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_bones", 0.05);
+    protected readonly double percentageChanceOfTables = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_tables", 0.06);
+    protected readonly double percentageChanceOfAltars = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_altars", 0.04);
+    protected readonly double percentageChanceOfSpiderWebInCorner = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_spider_web_in_corner", 0.25);
+    protected readonly double percentageChanceOfTorch = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_torch", 0.25);
+    protected readonly double percentageChanceOfChests = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_chests", 0.02);
+
+    static SettingsMap CommonSettings(SettingsMap settings) =>
+        settings.GetMap("common", SettingsMap.Empty);
 
     // TODO: UF
     protected readonly string[] doorTypes = ["metal", "stone", "wood", "ruin"];
@@ -166,7 +184,7 @@ abstract class DungeonGeneratorBase(int width, int height, Game game, TileSet wa
         if (map.Tiles[x, y].TileType == TileType.Floor)
         {
             if (
-                random.NextDouble() < PercentageChanceOfBones
+                random.NextDouble() < percentageChanceOfBones
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
             )

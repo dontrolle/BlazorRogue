@@ -144,7 +144,7 @@ class Configuration
         string id,
             name,
             mapGeneratorId;
-        Dictionary<string, string> mapGeneratorParameters;
+        SettingsMap settingsMap;
 
         number = GetRequiredInt(element, "no");
         height = GetRequiredInt(element, "height");
@@ -153,9 +153,7 @@ class Configuration
         name = GetRequiredString(element, "name");
         var mapGeneratorElement = element.GetProperty("map_generator");
         mapGeneratorId = GetRequiredString(mapGeneratorElement, "generator_id");
-
-        // TODO: Placeholder
-        mapGeneratorParameters = [];
+        settingsMap = ParseSettingsMap(mapGeneratorElement.GetProperty("parameters"));
 
         var levelConfig = new LevelConfiguration(
             number,
@@ -164,7 +162,7 @@ class Configuration
             height,
             width,
             mapGeneratorId,
-            mapGeneratorParameters
+            settingsMap
         );
 
         if (!levels.TryAdd(number, levelConfig))
@@ -173,6 +171,31 @@ class Configuration
                 $"Found another level numbered : {number}. Level numbers should be assigned uniquely."
             );
         }
+    }
+
+    /// <summary>
+    /// Recursively parses a JSON object into a <see cref="SettingsMap"/>. A whole-number JSON
+    /// value becomes an int, any other number a double, and a nested object recurses into a
+    /// nested SettingsMap - arrays and booleans aren't supported, since map-generator parameters
+    /// have no use for them yet.
+    /// </summary>
+    static SettingsMap ParseSettingsMap(JsonElement element)
+    {
+        var values = new Dictionary<string, object>();
+        foreach (var property in element.EnumerateObject())
+        {
+            values[property.Name] = property.Value.ValueKind switch
+            {
+                JsonValueKind.Number when property.Value.TryGetInt32(out int i) => i,
+                JsonValueKind.Number => property.Value.GetDouble(),
+                JsonValueKind.String => RequireNonNullString(property.Value, property.Name),
+                JsonValueKind.Object => ParseSettingsMap(property.Value),
+                var kind => throw new InvalidOperationException(
+                    $"Setting '{property.Name}' has unsupported JSON kind '{kind}' - only numbers, strings and nested objects are allowed."
+                ),
+            };
+        }
+        return new SettingsMap(values);
     }
 
     void ParseFloorSetType(JsonElement element)
