@@ -1,4 +1,5 @@
 ﻿using BlazorRogue.Entities;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 
@@ -22,17 +23,26 @@ public class ConfigurationTests
     }
 
     [Fact]
-    public void ParseMonsterStatsMatchDataFile()
+    public void ParseLoadsMonsterStatsWithSaneValues()
     {
+        // Deliberately doesn't assert exact combat stat values from monsters.json - those get
+        // rebalanced often and shouldn't make this test brittle. Instead this checks Configuration
+        // maps every stat field into a sensible range for every monster.
         var configuration = ParseConfiguration();
 
-        var ogre = configuration.MonsterTypes["ogre"];
-        Assert.Equal("Ogre", ogre.Name);
-        Assert.Equal(30, ogre.WeaponSkill);
-        Assert.Equal(10, ogre.WeaponDamage);
-        Assert.Equal(45, ogre.Toughness);
-        Assert.Equal(2, ogre.Armour);
-        Assert.Equal(17, ogre.Wounds);
+        Assert.NotEmpty(configuration.MonsterTypes);
+        Assert.All(
+            configuration.MonsterTypes.Values,
+            monster =>
+            {
+                Assert.False(string.IsNullOrWhiteSpace(monster.Name));
+                Assert.True(monster.WeaponSkill > 0);
+                Assert.True(monster.WeaponDamage > 0);
+                Assert.True(monster.Toughness > 0);
+                Assert.True(monster.Armour >= 0);
+                Assert.True(monster.Wounds > 0);
+            }
+        );
     }
 
     [Fact]
@@ -73,5 +83,57 @@ public class ConfigurationTests
             .Concat(configuration.SpecialFloorSets.Select(t => t.Id));
 
         Assert.Equal(ids.Count(), ids.Distinct().Count());
+    }
+
+    [Fact]
+    public void ParseLoadsLevelsWithSaneData()
+    {
+        // Deliberately doesn't assert exact id/name/width/height values from levels.json - those
+        // get tuned often and shouldn't make this test brittle. Instead this locks in the *shape*
+        // of the data: every level's Number matches the dictionary key it's stored under, and its
+        // id/name/dimensions are non-trivial.
+        var configuration = ParseConfiguration();
+
+        Assert.NotEmpty(configuration.Levels);
+        Assert.All(
+            configuration.Levels,
+            pair =>
+            {
+                var (number, level) = pair;
+                Assert.Equal(number, level.Number);
+                Assert.False(string.IsNullOrWhiteSpace(level.Id));
+                Assert.False(string.IsNullOrWhiteSpace(level.Name));
+                Assert.True(level.Width > 0);
+                Assert.True(level.Height > 0);
+            }
+        );
+    }
+
+    [Fact]
+    public void ParseLoadedLevelIdsAreUnique()
+    {
+        // Level *numbers* are already guarded directly (Configuration.levels.TryAdd throws on a
+        // repeat), but level *ids* (the string) aren't - mirrors ParseLoadedFloorSetIdsAreUnique
+        // by covering that indirectly against the real data instead.
+        var configuration = ParseConfiguration();
+        var ids = configuration.Levels.Values.Select(l => l.Id);
+
+        Assert.Equal(ids.Count(), ids.Distinct().Count());
+    }
+
+    [Fact]
+    public void ParseValidatesEveryLevelsGeneratorIdIsKnown()
+    {
+        // Configuration.Parse() checks every level's generator id against MapGeneratorFactory
+        // immediately after loading levels.json - an unknown id would have thrown inside
+        // ParseConfiguration() above, before this line ever runs. This exercises that same check
+        // again directly so the guarantee has a named, discoverable test rather than only being an
+        // implicit side effect of every other test in this file succeeding.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.Levels.Values,
+            level => Assert.True(MapGeneratorFactory.IsKnown(level.MapGeneratorId))
+        );
     }
 }
