@@ -49,7 +49,7 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`,
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `MapGenerator`,
   `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`,
   **not** by the Blazor component (see *Sessions* below). Prefer `new Game(configuration)` with the
   shared, already-parsed configuration; the parameterless `new Game()` parses its own and exists for
@@ -78,17 +78,20 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   handler, so no other circuit can interleave. **Do not read `References.*` during render**, which
   happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
-  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
-  strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). File paths
-  are resolved relative to `AppContext.BaseDirectory` (not the process's current working directory),
-  so `Data/*.json` is a `CopyToOutputDirectory` content item in `BlazorRogue.csproj` — it ships next
-  to the built assembly in both `dotnet build`/`dotnet publish` output. Nearly all
-  visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded — new
-  monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#. New
-  JSON-configurable data goes in the matching file under `Data/`, parsed via a `Parse*Type` method
-  in `Entities/Configuration.cs` following the existing pattern (and the `GetRequiredString`/
-  `RequireNonNullString` helpers for required fields). `Configuration` is immutable once parsed and
-  is registered as a **DI singleton** shared by every `Game` — don't re-parse it per game.
+  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`,
+  `levels.json`) into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`,
+  `TileSet`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
+  (not the process's current working directory), so `Data/*.json` is a `CopyToOutputDirectory`
+  content item in `BlazorRogue.csproj` — it ships next to the built assembly in both `dotnet
+  build`/`dotnet publish` output. Nearly all visual/audio/combat-stat tuning is data-driven through
+  these files rather than hardcoded — new monsters, heroes, floor/wall sets, and decorations can
+  usually be added without touching C#. New JSON-configurable data goes in the matching file under
+  `Data/`, parsed via a `Parse*Type` method in `Entities/Configuration.cs` following the existing
+  pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields).
+  `Configuration` is immutable once parsed and is registered as a **DI singleton** shared by every
+  `Game` — don't re-parse it per game. `Parse()` also fail-fast validates every level's
+  `generator_id` against `MapGeneratorFactory` right after loading `levels.json` (see *Map
+  generation* below), so an unknown id breaks at app startup rather than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
@@ -96,8 +99,8 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   two live in `Components/` alongside the base class) attached at construction — a `Component` always
   knows its `Owner` via `SetOwner`. AI variants live under `AI/` (`SimpleAIComponent`,
   `RandomWalkAIComponent`).
-- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; `World/DungeonGenerator.cs`
-  procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `TileSetInfo.cs`,
+- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; a map generator (see *Map generation*
+  below) procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `TileSetInfo.cs`,
   `Decoration.cs` and `Orientation.cs`.
   `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm, `AdamMilVisibility`).
   Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
@@ -128,6 +131,40 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   its sprite frozen via `Decoration.AnimationPaused`. Note a paused animation class is used rather
   than dropping it — a decoration with neither an animation class nor an image name renders nothing
   at all. `HandlePlayerAction` refuses input once the game is over, backing up the UI's own guards.
+- **Map generation**: each level in `Data/levels.json` (parsed into `LevelConfiguration`, see
+  `Entities/LevelConfiguration.cs`) names its map generator by a string id (`map_generator
+  .generator_id`, e.g. `"basic_dungeon_generator"`) rather than the game hardcoding one.
+  `World/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator`
+  (`World/IMapGenerator.cs`) via a small `Dictionary<string, Func<...>>` registry — each generator
+  exposes its own id as a `public const string Id` (e.g. `BasicDungeonGenerator.Id`), so the id and
+  the class stay in sync without a separate lookup table to maintain by hand.
+  `Game`'s constructor resolves the generator via `MapGeneratorFactory.Create(level, this)` and
+  exposes it as `Game.MapGenerator` (`IMapGenerator`), not a hardcoded concrete type.
+  `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
+  generators (rendering/decoration helpers, door placement, `GenerateMap()`'s overall flow);
+  `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs` (cellular
+  automaton) are its two concrete subclasses, each implementing `CreateLayout()`.
+- **Map-generator parameters**: each level's `map_generator.parameters` JSON is parsed into a
+  `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree restricted to int,
+  double, string, and nested maps of the same. This keeps `System.Text.Json`/`JsonElement` confined
+  to `Configuration.cs` (via the recursive `ParseSettingsMap` helper); generators never reference
+  the JSON library, they just call typed getters (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each
+  with a required form (throws a clear error naming the missing/mistyped key) and a
+  `(key, defaultValue)` form. Settings shared by every `DungeonGeneratorBase` subclass (the
+  decoration percentage-chance fields) are grouped under a `"common"` key in `parameters`; a
+  generator's own settings (e.g. `BasicDungeonGenerator`'s room-size bounds, `CaveGenerator`'s
+  smoothing-pass iteration counts) live under `"layout"` — see `Data/levels.json` for the shape.
+  Because every `SettingsMap` lookup used by the generators is the `(key, default)` form, an omitted
+  `parameters` block (or an omitted `"common"`/`"layout"` group) silently falls back to sensible
+  defaults rather than breaking; the trade-off is that `Configuration` can't validate individual
+  parameter keys at startup the way it validates `generator_id`, since it has no way to know what
+  keys a given generator expects — a typo only surfaces when that level is actually generated.
+  **Gotcha:** primary-constructor field initializers can't reference another instance field/method
+  of the same type being constructed (`CS0236`) — only static members and the primary constructor's
+  own parameters are visible at that point. That's why each generator that reads `SettingsMap`
+  values in a field initializer (e.g. `BasicDungeonGenerator.LayoutSettings`,
+  `DungeonGeneratorBase.CommonSettings`) does so via a `private static` helper method rather than an
+  intermediate instance field.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/`
   (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
   parsed from the same `Configuration` JSON files.
@@ -160,6 +197,17 @@ manually verified the change (screenshot or in-browser testing) in the PR descri
 is fine for geometry helpers but **not** for anything that kills a `Moveable`: death drops a blood
 puddle (needs `Game.Configuration`) and re-renders (needs a post-gen map). Use `new Game()` for
 those — it generates a real dungeon in a few ms, as `GameTests` already does.
+
+`ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
+dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and
+locking in a specific number (e.g. an ogre's exact wounds) makes an unrelated balance change break an
+unrelated test. Instead it asserts *shape*: every monster's stats are in a sane range
+(`ParseLoadsMonsterStatsWithSaneValues`), every level's `Number` matches its dictionary key and its
+id/name/dimensions are non-trivial (`ParseLoadsLevelsWithSaneData`), etc. Follow this pattern for new
+data-driven assertions here rather than asserting exact values from the JSON. `MapGeneratorFactoryTests`
+covers the generator-id → `IMapGenerator` dispatch contract (`MapGeneratorFactory.Create`/`IsKnown`)
+in isolation from `Configuration`, by constructing `LevelConfiguration` directly rather than parsing
+JSON — keeping it independent of how `SettingsMap`/parsing evolves.
 
 ## Verifying in the browser
 

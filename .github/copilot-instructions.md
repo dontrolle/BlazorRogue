@@ -19,6 +19,13 @@ since `Configuration.Parse()` reads them via relative paths. There is no separat
 `.editorconfig` conventions and compiler warnings — nullable reference types are enabled, so watch
 for new nullability warnings).
 
+`ConfigurationTests` deliberately avoids hardcoding tunable data values (monster stats, level
+dimensions, etc.) pulled from the real `Data/*.json` files — those get retuned often, so it asserts
+*shape* (sane ranges, non-empty fields, a level's `Number` matching its dictionary key) rather than
+exact values. Follow that pattern for new data-driven assertions. `MapGeneratorFactoryTests` covers
+the generator-id → `IMapGenerator` dispatch contract in isolation from `Configuration`, by
+constructing `LevelConfiguration` directly rather than parsing JSON.
+
 CI runs `dotnet build` then `dotnet test` on every push/PR to `master` via GitHub Actions
 (`.github/workflows/CI.yml`).
 
@@ -29,7 +36,7 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`,
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `MapGenerator`,
   `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`,
   not by the Blazor component. Prefer `new Game(configuration)` with the shared, already-parsed
   configuration; the parameterless `new Game()` parses its own and is for tests/standalone use.
@@ -48,20 +55,42 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   `session.Activate(soundManager)` first, or one player's input mutates another's map. Safe only
   because the game loop is synchronous. Don't read `References.*` during render.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
-  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`) into
-  strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all
-  visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
+  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`,
+  `levels.json`) into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`,
+  `TileSet`, `LevelConfiguration`). Nearly all visual/audio/combat-stat tuning is data-driven
+  through these files rather than hardcoded. `Parse()` fail-fast validates every level's
+  `generator_id` against `MapGeneratorFactory` right after loading `levels.json`, so an unknown id
+  breaks at app startup rather than mid-game (see *Map generation* below).
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
   subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at
   construction — a `Component` always knows its `Owner` via `SetOwner`. AI variants live under
   `AI/` (`SimpleAIComponent`, `RandomWalkAIComponent`).
-- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; `World/DungeonGenerator.cs` procedurally builds it.
-  `Vision/` implements field-of-view (`AdamMilVisibility` algorithm). Rendering is split between a
-  tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and
-  `Pages/Indoor.razor` is the Blazor page that render the grid, switching
+- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; a map generator procedurally builds it
+  (see *Map generation* below). `Vision/` implements field-of-view (`AdamMilVisibility` algorithm).
+  Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
+  per-object hook, and `Pages/Indoor.razor` is the Blazor page that render the grid, switching
   between tileset and ASCII based on the `renderAscii` flag.
+- **Map generation**: each level in `Data/levels.json` (parsed into `LevelConfiguration`) names its
+  map generator by a string id (e.g. `"basic_dungeon_generator"`) instead of the game hardcoding
+  one. `World/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator` via a small
+  `Dictionary<string, Func<...>>` registry — each generator exposes its own id as a
+  `public const string Id` (e.g. `BasicDungeonGenerator.Id`), so id and class can't drift apart.
+  `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
+  generators; `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs`
+  (cellular automaton) are its two concrete subclasses.
+- **Map-generator parameters**: a level's `map_generator.parameters` JSON is parsed into a
+  `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree of int/double/string/
+  nested-map, read via typed getters (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each with a
+  required form and a `(key, defaultValue)` form. This keeps `System.Text.Json` confined to
+  `Configuration.cs` — generators never reference it. Settings shared by every
+  `DungeonGeneratorBase` subclass live under a `"common"` key; a generator's own settings live
+  under `"layout"`. **Gotcha:** primary-constructor field initializers can't reference another
+  instance field/method of the same type (`CS0236`) — only static members and the primary
+  constructor's own parameters are visible, so reading `SettingsMap` values in a field initializer
+  goes through a `private static` helper (e.g. `BasicDungeonGenerator.LayoutSettings`) rather than
+  an intermediate instance field.
 - **Input**: keys drive the game via a `document`-level `keyup` listener registered from JS
   (`blazorroguefuncs.registerKeyup`), not a Blazor `@onkeyup` on the map div — so movement works
   regardless of what element has focus, with no click-to-focus step. It calls back into
@@ -85,4 +114,5 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   proper null-handling over suppressing warnings when touching nearby code.
 - New JSON-configurable game data (monster/hero stats, tilesets, decorations) belongs in the
   matching file under `Data/`, parsed via `Configuration.ParseDataFile` following the existing
-  per-type `Parse*Type` method pattern.
+  per-type `Parse*Type` method pattern. Map-generator parameters are the exception — those go
+  through `SettingsMap` instead (see *Map-generator parameters* above), not a typed `Parse*Type`.
