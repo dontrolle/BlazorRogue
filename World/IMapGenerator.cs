@@ -1,6 +1,6 @@
 namespace BlazorRogue.World;
 
-interface IDungeonGenerator
+interface IMapGenerator
 {
     Map GenerateMap();
 }
