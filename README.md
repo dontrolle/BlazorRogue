@@ -116,23 +116,27 @@ Components/                       Component base class, InventoryComponent, Usea
 Combat/                           Combat system, incl. the Warhammer-inspired ruleset (Combat/Warhammer/)
 AI/                               Monster AI components
 Vision/                           Field-of-view implementation
-World/                            Map, Tile, DungeonGenerator, Decoration and related types
-Entities/                         Type definitions parsed from configuration (MoveableType, etc.),
-                                   plus Configuration.cs which parses Data/*.json into them
+World/                            Map, Tile, Decoration, map generators (IMapGenerator and
+                                   implementors) and related types
+Entities/                         Type definitions parsed from configuration (MoveableType,
+                                   LevelConfiguration, SettingsMap, etc.), plus Configuration.cs
+                                   which parses Data/*.json into them
 Sessions/                         Per-browser session state that survives page reloads
-Data/                             JSON game data: monsters, heroes, floorsets, wallsets, decorations
+Data/                             JSON game data: monsters, heroes, floorsets, wallsets,
+                                   decorations, levels
 Game.cs / References.cs           Core game state (see Architecture below)
 wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
 ```
 
 ## Architecture
 
-- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `DungeonGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`, not by the Blazor page.
+- **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `MapGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`, not by the Blazor page.
 - **Sessions** (`Sessions/GameSession.cs`, `Sessions/GameSessionStore.cs`) keep a game alive across page reloads. A reload starts a new Blazor circuit, so the game can't live in the component; instead `GameSessionStore` (a DI singleton) holds it against an id the browser keeps in `localStorage`. Sessions are in-memory only — they don't survive a server restart — and are evicted once idle. Starting over is an explicit **New game** button rather than a page refresh.
 - **`References`** (`References.cs`) is a static service-locator-style holder for the current `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`. Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than receiving them via DI/constructor injection. Since several sessions can be alive in one process, `GameSession.Activate()` re-points them at the active game before any game logic runs.
-- **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/` into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`). Nearly all visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
+- **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/` into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`, `LevelConfiguration`). Nearly all visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`, `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`) subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at construction — a `Component` always knows its `Owner` via `SetOwner`.
-- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; `World/DungeonGenerator.cs` procedurally builds it. `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm). Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching between tileset and ASCII based on the `renderAscii` flag.
+- **Map & rendering**: `World/Map.cs` holds the `Tile` grid; a map generator procedurally builds it. `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm). Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching between tileset and ASCII based on the `renderAscii` flag.
+- **Map generation**: each level in `Data/levels.json` names its map generator by a string id (e.g. `"basic_dungeon_generator"`), resolved to a concrete `IMapGenerator` (`World/IMapGenerator.cs`) by `World/MapGeneratorFactory.cs`. `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style generators; `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs` (cellular automaton) are its two concrete subclasses. Per-level generator tuning (room-size bounds, decoration chances, etc.) lives in each level's `map_generator.parameters` in `levels.json`, parsed into a `SettingsMap` (`Entities/SettingsMap.cs`) — see [Game data / configuration](#game-data--configuration).
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/` (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are parsed from the same `Configuration` JSON files.
 - **Hosting**: `Program.cs` uses the minimal hosting API plus the unified Blazor Components model (`AddRazorComponents().AddInteractiveServerComponents()` / `MapRazorComponents<App>().AddInteractiveServerRenderMode()`). `App.razor` is the root HTML shell (`<HeadOutlet>` + `<Routes>`), and `Routes.razor` holds the `<Router>`.
 
@@ -145,8 +149,11 @@ Most game content is data, not code — new monsters, heroes, floor/wall sets, a
 - `Data/monsters.json`, `Data/heroes.json` — combat stats, AI behavior, sprites/animations.
 - `Data/floorsets.json`, `Data/wallsets.json` — tileset mappings and map-generation weights.
 - `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
+- `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
 
 These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind — follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.
+
+A level's `map_generator.parameters` in `levels.json` is different from the rest: rather than a strongly-typed dictionary, it's parsed into a `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree of int/double/string/nested-map, read back via typed getters (`GetInt`, `GetDouble`, `GetString`, `GetMap`), each with a required form and a `(key, defaultValue)` form. This keeps the JSON-parsing library out of the map generators entirely — see the `Map generation` and `Map-generator parameters` entries in [`CLAUDE.md`](CLAUDE.md) for the full design.
 
 ## Contributing
 
