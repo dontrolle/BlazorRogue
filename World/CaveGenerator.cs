@@ -6,12 +6,7 @@ using BlazorRogue.GameObjects;
 namespace BlazorRogue.World;
 
 class CaveGenerator(int width, int height, Game game)
-    : DungeonGeneratorBase(
-        width,
-        height,
-        game,
-        DungeonGeneratorBase.SelectRandom(game.Configuration.CaveWallSets)
-    )
+    : DungeonGeneratorBase(width, height, game, SelectRandom(game.Configuration.CaveWallSets))
 {
     public const string Id = "cave_generator";
 

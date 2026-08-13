@@ -5,12 +5,7 @@ using System.Linq;
 namespace BlazorRogue.World;
 
 class BasicDungeonGenerator(int width, int height, Game game)
-    : DungeonGeneratorBase(
-        width,
-        height,
-        game,
-        DungeonGeneratorBase.SelectRandom(game.Configuration.DungeonWallSets)
-    )
+    : DungeonGeneratorBase(width, height, game, SelectRandom(game.Configuration.DungeonWallSets))
 {
     public const string Id = "basic_dungeon_generator";
 
