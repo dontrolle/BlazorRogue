@@ -5,8 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project overview
 
 BlazorRogue is a procedurally-generated rogue-like built on C#/.NET 10, Blazor Server (unified
-Blazor Components hosting model). No database or external services — a fresh dungeon is generated
-on every page load. Nearly all game content (monster/hero stats, floor/wall sets, decorations, map
+Blazor Components hosting model). No database or external services. Nearly all game content (monster/hero stats, floor/wall sets, decorations, map
 generation weights) is data-driven from JSON under `Data/` rather than hardcoded.
 
 ```
