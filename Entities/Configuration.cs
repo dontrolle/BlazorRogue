@@ -44,6 +44,11 @@ class Configuration
         "Data",
         "decorations.json"
     );
+    static readonly string LevelsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "levels.json"
+    );
 
     readonly Dictionary<string, MoveableType> monsterTypes = [];
     public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
@@ -71,6 +76,9 @@ class Configuration
     readonly List<TileSet> caveWallSets = [];
     public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
+    readonly Dictionary<int, LevelConfiguration> levels = [];
+    public IReadOnlyDictionary<int, LevelConfiguration> Levels => levels.AsReadOnly();
+
     const string DefaultStaticDecorationImgFolder = "uf_terrain";
 
     public void Parse() // Task async
@@ -92,6 +100,16 @@ class Configuration
             "static_decorations",
             ParseStaticDecorativeType
         );
+        ParseDataFile(options, LevelsFileName, "levels", ParseLevelConfiguration);
+        foreach (var level in levels)
+        {
+            if (!MapGeneratorFactory.IsKnown(level.Value.MapGeneratorId))
+            {
+                throw new InvalidOperationException(
+                    $"Level '{level.Value.Id}' references unknown map generator id '{level.Value.MapGeneratorId}'."
+                );
+            }
+        }
     }
 
     /// <summary>
@@ -115,6 +133,45 @@ class Configuration
         foreach (var element in root.EnumerateArray())
         {
             parseElement(element);
+        }
+    }
+
+    void ParseLevelConfiguration(JsonElement element)
+    {
+        int number,
+            height,
+            width;
+        string id,
+            name,
+            mapGeneratorId;
+        Dictionary<string, string> mapGeneratorParameters;
+
+        number = GetRequiredInt(element, "no");
+        height = GetRequiredInt(element, "height");
+        width = GetRequiredInt(element, "width");
+        id = GetRequiredString(element, "id");
+        name = GetRequiredString(element, "name");
+        var mapGeneratorElement = element.GetProperty("map_generator");
+        mapGeneratorId = GetRequiredString(mapGeneratorElement, "generator_id");
+
+        // TODO: Placeholder
+        mapGeneratorParameters = [];
+
+        var levelConfig = new LevelConfiguration(
+            number,
+            id,
+            name,
+            height,
+            width,
+            mapGeneratorId,
+            mapGeneratorParameters
+        );
+
+        if (!levels.TryAdd(number, levelConfig))
+        {
+            throw new InvalidOperationException(
+                $"Found another level numbered : {number}. Level numbers should be assigned uniquely."
+            );
         }
     }
 
@@ -247,6 +304,23 @@ class Configuration
         ?? throw new InvalidOperationException(
             $"Property '{propertyNameForError}' was expected to have a non-null string value."
         );
+
+    static int GetRequiredInt(JsonElement element, string property) =>
+        RequireNonNullInt(element.GetProperty(property), property);
+
+    static int RequireNonNullInt(JsonElement intElement, string propertyNameForError)
+    {
+        try
+        {
+            return intElement.GetInt32();
+        }
+        catch
+        {
+            throw new InvalidOperationException(
+                $"Property '{propertyNameForError}' was expected to have a non-null int value."
+            );
+        }
+    }
 
     static void ParseIndexAndWeights(
         JsonElement element,

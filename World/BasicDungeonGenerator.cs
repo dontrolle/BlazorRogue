@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BlazorRogue.World;
 
-class DungeonGenerator(int width, int height, Game game)
+class BasicDungeonGenerator(int width, int height, Game game)
     : DungeonGeneratorBase(
         width,
         height,
@@ -12,6 +12,8 @@ class DungeonGenerator(int width, int height, Game game)
         DungeonGeneratorBase.SelectRandom(game.Configuration.DungeonWallSets)
     )
 {
+    public const string Id = "basic_dungeon_generator";
+
     // width and height are including walls
     const int MaxRooms = 10;
     const int MinRoomHeight = 4;

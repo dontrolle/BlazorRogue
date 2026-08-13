@@ -9,7 +9,7 @@ using BlazorRogue.GameObjects;
 namespace BlazorRogue.World;
 
 abstract class DungeonGeneratorBase(int width, int height, Game game, TileSet wallSet)
-    : IDungeonGenerator
+    : IMapGenerator
 {
     protected readonly Map map = new(width, height, wallSet, game);
     protected readonly Configuration configuration = game.Configuration;

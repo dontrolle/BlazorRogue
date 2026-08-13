@@ -1,0 +1,37 @@
+{
+  "levels": [
+    {
+      "no": 0,
+      "id": "level0",
+      "name": "The Town",
+      "height": 45,
+      "width": 60,
+      "map_generator": {
+        "generator_id": "basic_dungeon_generator",
+        "parameters": {}
+      }
+    },
+    {
+      "no": 1,
+      "id": "level1",
+      "name": "The Dungeon",
+      "height": 45,
+      "width": 60,
+      "map_generator": {
+        "generator_id": "basic_dungeon_generator",
+        "parameters": {}
+      }
+    },
+    {
+      "no": 2,
+      "id": "level2",
+      "name": "The Cave",
+      "height": 45,
+      "width": 60,
+      "map_generator": {
+        "generator_id": "cave_generator",
+        "parameters": {}
+      }
+    }
+  ]
+}

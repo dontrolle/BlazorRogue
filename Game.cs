@@ -6,10 +6,7 @@ namespace BlazorRogue;
 
 class Game
 {
-    const int Width = 60;
-    const int Height = 45;
-
-    public IDungeonGenerator DungeonGenerator { get; private set; }
+    public IMapGenerator MapGenerator { get; private set; }
     public Map Map { get; private set; }
 
     public IFightingSystem FightingSystem { get; private set; }
@@ -35,10 +32,12 @@ class Game
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        DungeonGenerator = new DungeonGenerator(Width, Height, this);
+        var level = configuration.Levels[1];
+        MapGenerator = MapGeneratorFactory.Create(level, this);
+
         FightingSystem = new FightingSystem(this);
 
-        Map = DungeonGenerator.GenerateMap();
+        Map = MapGenerator.GenerateMap();
         References.Map = Map;
 
         EffectsSystem = new EffectsSystem();

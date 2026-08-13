@@ -13,6 +13,8 @@ class CaveGenerator(int width, int height, Game game)
         DungeonGeneratorBase.SelectRandom(game.Configuration.CaveWallSets)
     )
 {
+    public const string Id = "cave_generator";
+
     protected override Tuple<int, int> CreateLayout() => CreateCave();
 
     Tuple<int, int> CreateCave()
