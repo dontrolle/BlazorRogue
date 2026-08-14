@@ -63,7 +63,7 @@ dotnet build
 dotnet run
 ```
 
-By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) — open either URL in a browser to play. There's no database or seed step; a fresh dungeon is generated on every page load.
+By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) — open either URL in a browser to play.
 
 `BlazorRogue.Tests` is an xUnit test project covering core, UI-independent game logic (dice/combat math, `Configuration` JSON parsing, `Map` geometry helpers, and end-to-end dungeon generation smoke tests). Run it with:
 
@@ -95,11 +95,9 @@ so the containerized game always runs in ASCII-renderer mode.
 | Switch tileset/ASCII rendering | CTRL-A |
 | Help overlay | ? |
 
-Movement keys work anywhere on the page (see Architecture).
-
 ## Tileset
 
-This project employs the excellent [Ultimate Fantasy Tileset](https://www.oryxdesignlab.com/ultimatefantasy). The author owns the tileset under a commercial license, but the tileset graphics used by this project have been removed from this repo (and are excluded via `.gitignore`), since the license agreement requires them to be protected from copying.
+This project employs the excellent [Ultimate Fantasy Tileset](https://www.oryxdesignlab.com/ultimatefantasy).
 
 If you own the UF Tileset, put the subfolders of the `uf_split` folder from the tileset into the `wwwroot/img/` folder, and BlazorRogue will use it automatically. Without it, the game automatically falls back to the built-in ASCII renderer — no setup needed to get playing.
 
@@ -131,7 +129,7 @@ wwwroot/                          Static assets: CSS, JS interop, sounds, tilese
 ## Architecture
 
 - **`Game`** (`Game.cs`) is the root object for one playthrough. It owns the `MapGenerator`, `Map`, `FightingSystem`, `Configuration`, and `EffectsSystem`. It is created by `GameSession`, not by the Blazor page.
-- **Sessions** (`Sessions/GameSession.cs`, `Sessions/GameSessionStore.cs`) keep a game alive across page reloads. A reload starts a new Blazor circuit, so the game can't live in the component; instead `GameSessionStore` (a DI singleton) holds it against an id the browser keeps in `localStorage`. Sessions are in-memory only — they don't survive a server restart — and are evicted once idle. Starting over is an explicit **New game** button rather than a page refresh.
+- **Sessions** (`Sessions/GameSession.cs`, `Sessions/GameSessionStore.cs`) keep a game alive across page reloads. A reload starts a new Blazor circuit, so the game can't live in the component; instead `GameSessionStore` (a DI singleton) holds it against an id the browser keeps in `localStorage`. Sessions are in-memory only — they don't survive a server restart — and are evicted once idle. Starting over requires pressing an explicit **New game** button rather than a page refresh.
 - **`References`** (`References.cs`) is a static service-locator-style holder for the current `Map`, `Configuration`, `SoundManager`, and `EffectsSystem`. Code throughout the engine (e.g. `GameObject.Kill()`) reaches these statics directly rather than receiving them via DI/constructor injection. Since several sessions can be alive in one process, `GameSession.Activate()` re-points them at the active game before any game logic runs.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/` into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`, `TileSet`, `LevelConfiguration`). Nearly all visual/audio/combat-stat tuning is data-driven through these files rather than hardcoded.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`, `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`) subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at construction — a `Component` always knows its `Owner` via `SetOwner`.
@@ -157,11 +155,11 @@ A level's `map_generator.parameters` in `levels.json` is different from the rest
 
 ## Contributing
 
-- `master` is protected: everyone (including the maintainer) needs to go through a pull request; CI (`dotnet build` + `dotnet test`) must pass before merging.
+- `master` is protected: every change needs to go through a pull request; CI (`dotnet build` + `dotnet test`) must pass before merging.
 - Please keep the build warning-free — nullable reference types are enabled project-wide.
 - Add or update tests in `BlazorRogue.Tests` for changes to game logic (combat, configuration parsing, map/dungeon generation, etc.); for changes that are hard to unit test (rendering, Blazor components, JS interop), please describe how you manually verified the change (e.g. a screenshot or a description of in-browser testing) in your PR description.
 - Small, focused PRs are preferred over large ones, especially for anything touching rendering or the hosting model — those are the areas most likely to have subtle runtime-only breakage that `dotnet build` won't catch.
 
 ## License
 
-This project's code is licensed under the [MIT License](LICENSE). The Ultimate Fantasy Tileset assets referenced in [Tileset](#tileset) are © Oryx Design Lab and are **not** covered by this license — they are proprietary, excluded from this repo, and require their own separate license to use.
+This project's code is licensed under the [MIT License](LICENSE). The Ultimate Fantasy Tileset assets referenced in [Tileset](#tileset) are © Oryx Design Lab and are **not** covered by this license.
