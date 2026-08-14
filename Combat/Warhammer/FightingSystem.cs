@@ -63,9 +63,5 @@ class FightingSystem(Game game) : IFightingSystem
 
         Debug.WriteLine($"----------------------------");
         return hit;
-
-        // TODO: If accrued no advantage this round, or end the round outnumbered, loose 1 adv
-
-        // TODO: Handle criticals and fumbles
     }
 }

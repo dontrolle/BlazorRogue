@@ -70,7 +70,6 @@ class Map
         BlocksLightMap = new bool[width, height];
         BlocksMovementMap = new bool[width, height];
 
-        // TODO: UF
         // A field, if necessary?
         var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
 
@@ -492,7 +491,6 @@ class Map
 
     void RecomputeVisibility()
     {
-        // TODO: Can I optimize this clearing? Or, fold it into the Compute()?
         ForEachTile((x, y) => IsVisibleMap[x, y] = false);
 
         visibilityAlgorithm.Compute(

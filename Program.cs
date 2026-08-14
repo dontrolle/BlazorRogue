@@ -10,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-// Parsed once and shared by every game: Configuration is immutable once parsed, and reads five
-// JSON files off disk that would otherwise be re-read on every page load.
+// Parsed once and shared by every game: Configuration is immutable once parsed, and reads JSON
+// files off disk that would otherwise be re-read on every page load.
 builder.Services.AddSingleton(_ =>
 {
     var configuration = new Configuration();
