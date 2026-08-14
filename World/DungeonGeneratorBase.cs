@@ -41,7 +41,6 @@ abstract class DungeonGeneratorBase(
     static SettingsMap CommonSettings(SettingsMap settings) =>
         settings.GetMap("common", SettingsMap.Empty);
 
-    // TODO: UF
     protected readonly string[] doorTypes = ["metal", "stone", "wood", "ruin"];
 
     protected readonly List<Tuple<int, int>> candidateDoors = [];
