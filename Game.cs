@@ -48,7 +48,6 @@ class Game
     {
         var configuration = new Configuration();
 
-        // TODO: pass as async
         configuration.Parse();
         return configuration;
     }
