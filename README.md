@@ -63,7 +63,7 @@ dotnet build
 dotnet run
 ```
 
-By default the app listens on `https://localhost:5001` and `http://localhost:5000` (see `Properties/launchSettings.json`) — open either URL in a browser to play. There's no database or seed step; a fresh dungeon is generated on every page load.
+By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) — open either URL in a browser to play. There's no database or seed step; a fresh dungeon is generated on every page load.
 
 `BlazorRogue.Tests` is an xUnit test project covering core, UI-independent game logic (dice/combat math, `Configuration` JSON parsing, `Map` geometry helpers, and end-to-end dungeon generation smoke tests). Run it with:
 
