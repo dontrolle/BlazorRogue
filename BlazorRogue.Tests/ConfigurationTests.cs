@@ -90,6 +90,21 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsHeroesAndMonstersWithAnAnimatedPrefixedAnimationClass()
+    {
+        // AnimationCssGenerator (see Rendering/AnimationCssGenerator.cs) silently drops any
+        // AnimationClass that doesn't start with "animated_" instead of failing - a typo there
+        // doesn't break the build or throw, it just quietly leaves that hero/monster with no sprite
+        // animation in-game. This locks in the prefix convention so a typo fails a test instead.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values),
+            moveable => Assert.StartsWith("animated_", moveable.AnimationClass)
+        );
+    }
+
+    [Fact]
     public void ParseLoadsFloorAndWallSets()
     {
         var configuration = ParseConfiguration();

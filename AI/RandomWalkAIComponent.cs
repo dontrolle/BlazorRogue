@@ -13,7 +13,6 @@ class RandomWalkAIComponent(Map map) : AIComponent(map)
     {
         if (!Awake)
         {
-            map.DebugInfo.Add("Monster wasn't awake, so skipping.");
             return;
         }
 

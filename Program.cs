@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
 using BlazorRogue;
 using BlazorRogue.Entities;
+using BlazorRogue.Rendering;
 using BlazorRogue.Sessions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -55,5 +58,20 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
+// Generated once from the (immutable, already-parsed) Configuration singleton and cached for the
+// life of the process, rather than hand-duplicating one @keyframes block per hero/monster in
+// wwwroot/css/animations.css.
+var generatedAnimationsCss = new Lazy<string>(() =>
+{
+    var configuration = app.Services.GetRequiredService<Configuration>();
+    return AnimationCssGenerator.Generate(
+        configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values)
+    );
+});
+app.MapGet(
+    "/css/generated-animations.css",
+    () => Results.Text(generatedAnimationsCss.Value, "text/css")
+);
 
 app.Run();
