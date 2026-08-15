@@ -4,8 +4,9 @@ using System.Collections.Generic;
 namespace BlazorRogue.Entities;
 
 /// <summary>
-/// A JSON-like value tree restricted to int, double, string, and nested maps of the same - exactly
-/// what map-generator parameters in levels.json are allowed to be.
+/// A JSON-like value tree restricted to int, double, string, nested maps of the same, and weighted
+/// id lists ([&lt;string id&gt;,&lt;weight&gt;] tuples) - exactly what map-generator parameters in
+/// levels.json are allowed to be.
 /// </summary>
 /// <remarks>
 /// Doesn't reference System.Text.Json - only <see cref="Configuration"/>, which builds these from
@@ -28,6 +29,11 @@ class SettingsMap(IReadOnlyDictionary<string, object> values)
 
     public SettingsMap GetMap(string key, SettingsMap defaultValue) =>
         GetOrDefault(key, defaultValue);
+
+    public IReadOnlyList<(string Id, double Weight)> GetWeightedIds(
+        string key,
+        IReadOnlyList<(string Id, double Weight)> defaultValue
+    ) => GetOrDefault(key, defaultValue);
 
     // int is a valid double (1 == 1.0), so this widens; GetInt() intentionally does not accept a
     // double back, since that could silently truncate a fractional value.

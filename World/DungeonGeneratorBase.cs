@@ -47,11 +47,39 @@ abstract class DungeonGeneratorBase(
 
     // Picks a random element ahead of the base constructor running, e.g. for choosing a subclass's
     // wall set from a constructor initializer - at that point the instance `random` field (and any
-    // other instance state) hasn't been initialized yet, so it can't be used.
+    // other instance state) hasn't been initialized yet, so it can't be used. Uses Random.Shared
+    // rather than a seedable source for the same reason.
 #pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
     protected static T SelectRandom<T>(IEnumerable<T> elements) =>
         elements.ElementAt(Random.Shared.Next(elements.Count()));
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
+
+    protected static T SelectRandomWeighted<T>(T[] elements, double[] weights) =>
+        WeightedPick(elements, weights, Random.Shared);
+
+    /// <summary>
+    /// Resolves the wall <see cref="TileSet"/> for a level: weighted-picks among the ids listed in
+    /// the level's <c>common.wall_tile_set</c> setting, or - when that's unspecified, e.g. for
+    /// levels with no "common" parameters at all - falls back to a uniform pick over
+    /// <paramref name="defaultPool"/> (the generator's whole level-type pool), preserving the
+    /// previous behaviour.
+    /// </summary>
+    protected static TileSet SelectWallSet(
+        Configuration configuration,
+        SettingsMap settings,
+        IEnumerable<TileSet> defaultPool
+    )
+    {
+        var weighted = CommonSettings(settings).GetWeightedIds("wall_tile_set", []);
+        if (weighted.Count == 0)
+        {
+            return SelectRandom(defaultPool);
+        }
+
+        TileSet[] wallSets = [.. weighted.Select(w => configuration.WallSetById(w.Id))];
+        double[] weights = [.. weighted.Select(w => w.Weight)];
+        return SelectRandomWeighted(wallSets, weights);
+    }
 
     public Map GenerateMap()
     {
@@ -414,13 +442,19 @@ abstract class DungeonGeneratorBase(
         elements.ElementAt(random.Next(0, elements.Count()));
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
 
-    protected T GetRandomElementWeighted<T>(T[] elements, double[] weights)
+    protected T GetRandomElementWeighted<T>(T[] elements, double[] weights) =>
+        WeightedPick(elements, weights, random);
+
+    // Shared core for GetRandomElementWeighted (instance, seedable via `random`) and
+    // SelectRandomWeighted (static, for use ahead of the base constructor running - see
+    // SelectRandom above) so the weighting logic isn't duplicated between them.
+    static T WeightedPick<T>(T[] elements, double[] weights, Random rng)
     {
         if (elements.Length != weights.Length)
             throw new ArgumentException("elements and weigths should be of same length.");
 
         int i;
-        double r = random.NextDouble() * weights.Sum();
+        double r = rng.NextDouble() * weights.Sum();
         for (i = 0; i < weights.Length; i++)
         {
             if (r < weights[i])

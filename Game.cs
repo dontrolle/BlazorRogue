@@ -32,7 +32,7 @@ class Game
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        var level = configuration.Levels[2];
+        var level = configuration.Levels[1];
         MapGenerator = MapGeneratorFactory.Create(level, this);
 
         FightingSystem = new FightingSystem(this);

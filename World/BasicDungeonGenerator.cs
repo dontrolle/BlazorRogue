@@ -10,7 +10,7 @@ class BasicDungeonGenerator(int width, int height, Game game, SettingsMap settin
         width,
         height,
         game,
-        SelectRandom(game.Configuration.DungeonWallSets),
+        SelectWallSet(game.Configuration, settings, game.Configuration.DungeonWallSets),
         settings
     )
 {
