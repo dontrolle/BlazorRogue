@@ -47,7 +47,9 @@ how to test changes in these areas.
   `Configuration` is immutable once parsed and is registered as a **DI singleton** shared by every
   `Game` — don't re-parse it per game. `Parse()` also fail-fast validates every level's
   `generator_id` against `MapGeneratorFactory` right after loading `levels.json` (see *Map
-  generation* below), so an unknown id breaks at app startup rather than mid-game.
+  generation* below) and every monster's `ai_component.id` against `AIComponentFactory` right after
+  loading `monsters.json` (see *AI components* below), so an unknown id breaks at app startup rather
+  than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
@@ -100,27 +102,43 @@ how to test changes in these areas.
   generators (rendering/decoration helpers, door placement, `GenerateMap()`'s overall flow);
   `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs` (cellular
   automaton) are its two concrete subclasses, each implementing `CreateLayout()`.
-- **Map-generator parameters**: each level's `map_generator.parameters` JSON is parsed into a
-  `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree restricted to int,
-  double, string, and nested maps of the same. This keeps `System.Text.Json`/`JsonElement` confined
-  to `Configuration.cs` (via the recursive `ParseSettingsMap` helper); generators never reference
-  the JSON library, they just call typed getters (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each
-  with a required form (throws a clear error naming the missing/mistyped key) and a
-  `(key, defaultValue)` form. Settings shared by every `DungeonGeneratorBase` subclass (the
-  decoration percentage-chance fields) are grouped under a `"common"` key in `parameters`; a
-  generator's own settings (e.g. `BasicDungeonGenerator`'s room-size bounds, `CaveGenerator`'s
-  smoothing-pass iteration counts) live under `"layout"` — see `Data/levels.json` for the shape.
-  Because every `SettingsMap` lookup used by the generators is the `(key, default)` form, an omitted
-  `parameters` block (or an omitted `"common"`/`"layout"` group) silently falls back to sensible
-  defaults rather than breaking; the trade-off is that `Configuration` can't validate individual
-  parameter keys at startup the way it validates `generator_id`, since it has no way to know what
-  keys a given generator expects — a typo only surfaces when that level is actually generated.
+- **`SettingsMap` / component parameters**: `SettingsMap` (`Entities/SettingsMap.cs`) is the general
+  mechanism for a data-driven component's free-form `parameters` JSON — a small recursive value tree
+  restricted to int, double, string, and nested maps of the same. It's not specific to map
+  generators: a level's `map_generator.parameters` parses into one (see *Map generation* above), and
+  so does a monster's `ai_component.parameters` (see *AI components* below); any future
+  data-driven-by-id mechanism can reuse it the same way. This keeps `System.Text.Json`/`JsonElement`
+  confined to `Configuration.cs` (via the recursive `ParseSettingsMap` helper); consumers never
+  reference the JSON library, they just call typed getters (`GetInt`/`GetDouble`/`GetString`/
+  `GetMap`), each with a required form (throws a clear error naming the missing/mistyped key) and a
+  `(key, defaultValue)` form. For map generators specifically: settings shared by every
+  `DungeonGeneratorBase` subclass (the decoration percentage-chance fields) are grouped under a
+  `"common"` key in `parameters`; a generator's own settings (e.g. `BasicDungeonGenerator`'s
+  room-size bounds, `CaveGenerator`'s smoothing-pass iteration counts) live under `"layout"` — see
+  `Data/levels.json` for the shape. Because every `SettingsMap` lookup used by the generators is the
+  `(key, default)` form, an omitted `parameters` block (or an omitted `"common"`/`"layout"` group)
+  silently falls back to sensible defaults rather than breaking; the trade-off is that
+  `Configuration` can't validate individual parameter keys at startup the way it validates
+  `generator_id`, since it has no way to know what keys a given generator expects — a typo only
+  surfaces when that level is actually generated.
   **Gotcha:** primary-constructor field initializers can't reference another instance field/method
   of the same type being constructed (`CS0236`) — only static members and the primary constructor's
   own parameters are visible at that point. That's why each generator that reads `SettingsMap`
   values in a field initializer (e.g. `BasicDungeonGenerator.LayoutSettings`,
   `DungeonGeneratorBase.CommonSettings`) does so via a `private static` helper method rather than an
   intermediate instance field.
+- **AI components**: a monster's AI is chosen the same way map generators are — `monsters.json` (and
+  `heroes.json`, though it's unused there since the player's `AIComponent` is always `null`) names it
+  by an optional `ai_component.id` string, parsed into `MoveableType.AIComponentId` /
+  `AIComponentSettings` (`Entities/MoveableType.cs`). Omitting `ai_component` defaults to
+  `AIComponentFactory.DefaultId` (`SimpleAIComponent.ComponentId`). `AI/AIComponentFactory.cs` maps
+  the id to a concrete `AIComponent` via a small `Dictionary<string, Func<...>>` registry, just like
+  `MapGeneratorFactory` — each component exposes its own id as `public const string ComponentId`
+  (e.g. `RandomWalkAIComponent.ComponentId`). `Configuration.Parse()` validates every monster's id
+  against `AIComponentFactory.IsKnown` right after loading `monsters.json`, the same fail-fast
+  pattern used for `generator_id`. `World/DungeonGeneratorBase.cs` builds each monster's
+  `AIComponent` via `AIComponentFactory.Create(monsterType.AIComponentId, map,
+  monsterType.AIComponentSettings)` rather than hardcoding a component type.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/`
   (`FightingSystem`, `Dice`) — combat stats (weapon skill, damage, toughness, armour, wounds) are
   parsed from the same `Configuration` JSON files.

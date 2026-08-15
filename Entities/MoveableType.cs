@@ -10,7 +10,9 @@ class MoveableType(
     int weaponDamage,
     int toughness,
     int armour,
-    int wounds
+    int wounds,
+    string aiComponentId,
+    SettingsMap aiComponentSettings
 )
 {
     public string AnimationClass { get; } = animationClass;
@@ -23,4 +25,6 @@ class MoveableType(
     public int Toughness { get; } = toughness;
     public int Armour { get; } = armour;
     public int Wounds { get; } = wounds;
+    public string AIComponentId { get; } = aiComponentId;
+    public SettingsMap AIComponentSettings { get; } = aiComponentSettings;
 }

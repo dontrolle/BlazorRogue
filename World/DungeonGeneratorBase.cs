@@ -101,15 +101,28 @@ abstract class DungeonGeneratorBase(
         {
             var pos = GetRandomUnblockedMapTile();
             var monsterType = GetRandomElement(configuration.MonsterTypes).Value;
-            var monster = new Moveable(pos, new SimpleAIComponent(map), monsterType);
+            var monster = new Moveable(
+                pos,
+                AIComponentFactory.Create(
+                    monsterType.AIComponentId,
+                    map,
+                    monsterType.AIComponentSettings
+                ),
+                monsterType
+            );
             map.AddMonster(monster);
         }
 
         var extraPos = GetRandomUnblockedMapTile();
+        var goblinType = configuration.MonsterTypes["goblin"];
         var extraGoblin = new Moveable(
             extraPos,
-            new SimpleAIComponent(map),
-            configuration.MonsterTypes["goblin"]
+            AIComponentFactory.Create(
+                goblinType.AIComponentId,
+                map,
+                goblinType.AIComponentSettings
+            ),
+            goblinType
         );
         map.AddMonster(extraGoblin);
 

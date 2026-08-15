@@ -1,4 +1,5 @@
-﻿using BlazorRogue.Entities;
+﻿using BlazorRogue.AI;
+using BlazorRogue.Entities;
 using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
@@ -42,6 +43,40 @@ public class ConfigurationTests
                 Assert.True(monster.Armour >= 0);
                 Assert.True(monster.Wounds > 0);
             }
+        );
+    }
+
+    [Fact]
+    public void ParseDefaultsAIComponentIdWhenMonsterHasNoAiComponent()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.Equal(AIComponentFactory.DefaultId, configuration.MonsterTypes["rat"].AIComponentId);
+    }
+
+    [Fact]
+    public void ParseReadsExplicitAIComponentIdWhenMonsterHasOne()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.Equal(
+            RandomWalkAIComponent.ComponentId,
+            configuration.MonsterTypes["flies"].AIComponentId
+        );
+    }
+
+    [Fact]
+    public void ParseValidatesEveryMonstersAIComponentIdIsKnown()
+    {
+        // Configuration.Parse() checks every monster's ai_component id against AIComponentFactory
+        // immediately after loading monsters.json - an unknown id would have thrown inside
+        // ParseConfiguration() above, before this line ever runs. Mirrors
+        // ParseValidatesEveryLevelsGeneratorIdIsKnown for the map-generator-id guarantee.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.MonsterTypes.Values,
+            monster => Assert.True(AIComponentFactory.IsKnown(monster.AIComponentId))
         );
     }
 

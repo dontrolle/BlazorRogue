@@ -5,7 +5,7 @@ namespace BlazorRogue.AI;
 
 class SimpleAIComponent(Map map) : AIComponent(map)
 {
-    public const string ComponentId = "SimpleAIComponent";
+    public const string ComponentId = "simple_ai";
 
     public override void TakeTurn()
     {

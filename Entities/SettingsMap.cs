@@ -5,13 +5,14 @@ namespace BlazorRogue.Entities;
 
 /// <summary>
 /// A JSON-like value tree restricted to int, double, string, nested maps of the same, and weighted
-/// id lists ([&lt;string id&gt;,&lt;weight&gt;] tuples) - exactly what map-generator parameters in
-/// levels.json are allowed to be.
+/// id lists ([&lt;string id&gt;,&lt;weight&gt;] tuples) - exactly what a data-driven component's
+/// "parameters" JSON (e.g. a level's <c>map_generator.parameters</c>, a monster's
+/// <c>ai_component.parameters</c>) is allowed to be.
 /// </summary>
 /// <remarks>
 /// Doesn't reference System.Text.Json - only <see cref="Configuration"/>, which builds these from
-/// JsonElement, needs to know JSON exists. Consumers (e.g. map generators) read through the typed
-/// getters below instead.
+/// JsonElement, needs to know JSON exists. Consumers (e.g. map generators, AI components) read
+/// through the typed getters below instead.
 /// </remarks>
 class SettingsMap(IReadOnlyDictionary<string, object> values)
 {

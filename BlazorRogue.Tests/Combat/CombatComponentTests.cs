@@ -1,4 +1,5 @@
-﻿using BlazorRogue.Entities;
+﻿using BlazorRogue.AI;
+using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.Tests.Combat;
@@ -23,7 +24,9 @@ public class CombatComponentTests
             weaponDamage: weaponDamage,
             toughness: toughness,
             armour: armour,
-            wounds: wounds
+            wounds: wounds,
+            aiComponentId: AIComponentFactory.DefaultId,
+            aiComponentSettings: SettingsMap.Empty
         );
 
         return new Moveable(0, 0, aIComponent: null, type);
