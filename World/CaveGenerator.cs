@@ -10,7 +10,7 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
         width,
         height,
         game,
-        SelectRandom(game.Configuration.CaveWallSets),
+        SelectWallSet(game.Configuration, settings, game.Configuration.CaveWallSets),
         settings
     )
 {

@@ -76,6 +76,18 @@ class Configuration
     readonly List<TileSet> caveWallSets = [];
     public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
+    readonly Dictionary<string, TileSet> wallSetsById = [];
+
+    /// <summary>
+    /// Looks up a wall-set by id, for resolving the ids referenced by a level's
+    /// <c>common.wall_tile_set</c> weights. Every id is validated to exist by <see cref="Parse"/>,
+    /// so callers operating on already-parsed levels can rely on this never throwing.
+    /// </summary>
+    public TileSet WallSetById(string id) =>
+        wallSetsById.TryGetValue(id, out var wallSet)
+            ? wallSet
+            : throw new InvalidOperationException($"Unknown wall-tile-set id: {id}.");
+
     readonly Dictionary<int, LevelConfiguration> levels = [];
     public IReadOnlyDictionary<int, LevelConfiguration> Levels => levels.AsReadOnly();
 
@@ -108,6 +120,19 @@ class Configuration
                 throw new InvalidOperationException(
                     $"Level '{level.Value.Id}' references unknown map generator id '{level.Value.MapGeneratorId}'."
                 );
+            }
+
+            var wallTileSetWeights = level
+                .Value.SettingsMap.GetMap("common", SettingsMap.Empty)
+                .GetWeightedIds("wall_tile_set", []);
+            foreach (var (wallSetId, _) in wallTileSetWeights)
+            {
+                if (!wallSetIds.Contains(wallSetId))
+                {
+                    throw new InvalidOperationException(
+                        $"Level '{level.Value.Id}' references unknown wall-tile-set id '{wallSetId}' in wall_tile_set."
+                    );
+                }
             }
         }
     }
@@ -175,9 +200,10 @@ class Configuration
 
     /// <summary>
     /// Recursively parses a JSON object into a <see cref="SettingsMap"/>. A whole-number JSON
-    /// value becomes an int, any other number a double, and a nested object recurses into a
-    /// nested SettingsMap - arrays and booleans aren't supported, since map-generator parameters
-    /// have no use for them yet.
+    /// value becomes an int, any other number a double, a nested object recurses into a nested
+    /// SettingsMap, and an array is parsed as a weighted id list ([&lt;string id&gt;,&lt;weight&gt;]
+    /// tuples, e.g. <c>wall_tile_set</c>) - booleans aren't supported, since map-generator
+    /// parameters have no use for them yet.
     /// </summary>
     static SettingsMap ParseSettingsMap(JsonElement element)
     {
@@ -190,12 +216,30 @@ class Configuration
                 JsonValueKind.Number => property.Value.GetDouble(),
                 JsonValueKind.String => RequireNonNullString(property.Value, property.Name),
                 JsonValueKind.Object => ParseSettingsMap(property.Value),
+                JsonValueKind.Array => ParseWeightedIds(property.Value, property.Name),
                 var kind => throw new InvalidOperationException(
-                    $"Setting '{property.Name}' has unsupported JSON kind '{kind}' - only numbers, strings and nested objects are allowed."
+                    $"Setting '{property.Name}' has unsupported JSON kind '{kind}' - only numbers, strings, nested objects and weighted id lists are allowed."
                 ),
             };
         }
         return new SettingsMap(values);
+    }
+
+    static List<(string Id, double Weight)> ParseWeightedIds(
+        JsonElement arrayElement,
+        string propertyName
+    )
+    {
+        var ids = new List<string>();
+        var weights = new List<double>();
+        ParseIndexAndWeights(
+            arrayElement,
+            ids,
+            weights,
+            e => RequireNonNullString(e, propertyName),
+            propertyName
+        );
+        return [.. ids.Zip(weights, (id, weight) => (id, weight))];
     }
 
     void ParseFloorSetType(JsonElement element)
@@ -257,12 +301,19 @@ class Configuration
         levelType = GetRequiredString(element, "level_type");
         imgPrefix = GetRequiredString(element, "img_prefix");
 
-        ParseIndexAndWeights(element, "img_base", imgBaseIndexes, imgBaseWeights);
         ParseIndexAndWeights(
-            element,
-            "img_base_edge_south",
+            element.GetProperty("img_base"),
+            imgBaseIndexes,
+            imgBaseWeights,
+            e => e.GetInt32(),
+            "img_base"
+        );
+        ParseIndexAndWeights(
+            element.GetProperty("img_base_edge_south"),
             imgBaseEdgeSouthIndexes,
-            imgBaseEdgeSouthWeights
+            imgBaseEdgeSouthWeights,
+            e => e.GetInt32(),
+            "img_base_edge_south"
         );
         GetIntArray(element.GetProperty("img_edge_north"), "simple", imgSimpleEdgeNorthIndexes);
         GetIntArray(
@@ -292,6 +343,7 @@ class Configuration
         {
             throw new InvalidOperationException($"Found another wall-set with id: {id}.");
         }
+        wallSetsById.Add(id, t);
 
         if (levelType == "dungeon")
         {
@@ -345,25 +397,30 @@ class Configuration
         }
     }
 
-    static void ParseIndexAndWeights(
-        JsonElement element,
-        string imgName,
-        List<int> imgArray,
-        List<double> imgWeightArray
+    /// <summary>
+    /// Parses a JSON array of [&lt;key&gt;,&lt;weight&gt;] tuples into parallel key/weight lists.
+    /// Generic over the key type so it serves both int-indexed tilesets (<see cref="ParseWallSetType"/>)
+    /// and string-id weighted lists (e.g. <c>wall_tile_set</c> settings, see <see cref="ParseSettingsMap"/>).
+    /// </summary>
+    static void ParseIndexAndWeights<TKey>(
+        JsonElement arrayElement,
+        List<TKey> keyArray,
+        List<double> weightArray,
+        Func<JsonElement, TKey> parseKey,
+        string errorContext
     )
     {
-        var indexAndWeights = element.GetProperty(imgName);
-        foreach (var indexAndWeight in indexAndWeights.EnumerateArray())
+        foreach (var indexAndWeight in arrayElement.EnumerateArray())
         {
             if (indexAndWeight.GetArrayLength() != 2)
             {
                 throw new InvalidOperationException(
-                    $"All elements of {imgName} must be tuples of [<index>,<weight>], i.e., JSON arrays of length 2."
+                    $"All elements of {errorContext} must be tuples of [<key>,<weight>], i.e., JSON arrays of length 2."
                 );
             }
 
-            imgArray.Add(indexAndWeight[0].GetInt32());
-            imgWeightArray.Add(indexAndWeight[1].GetDouble());
+            keyArray.Add(parseKey(indexAndWeight[0]));
+            weightArray.Add(indexAndWeight[1].GetDouble());
         }
     }
 

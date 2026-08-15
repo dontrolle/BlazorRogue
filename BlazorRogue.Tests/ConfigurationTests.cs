@@ -136,4 +136,26 @@ public class ConfigurationTests
             level => Assert.True(MapGeneratorFactory.IsKnown(level.MapGeneratorId))
         );
     }
+
+    [Fact]
+    public void ParseValidatesEveryLevelsWallTileSetIdsAreKnown()
+    {
+        // Configuration.Parse() also checks every id referenced by a level's
+        // "common.wall_tile_set" weights against the parsed wall-sets - an unknown id would have
+        // thrown inside ParseConfiguration() above, before this line ever runs. This exercises
+        // WallSetById() directly against every id currently in use, the same way
+        // ParseValidatesEveryLevelsGeneratorIdIsKnown does for generator ids.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.Levels.Values,
+            level =>
+            {
+                var weights = level
+                    .SettingsMap.GetMap("common", SettingsMap.Empty)
+                    .GetWeightedIds("wall_tile_set", []);
+                Assert.All(weights, w => Assert.NotNull(configuration.WallSetById(w.Id)));
+            }
+        );
+    }
 }

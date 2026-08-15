@@ -21,6 +21,11 @@
         "generator_id": "basic_dungeon_generator",
         "parameters": {
           "common": {
+            "wall_tile_set": [
+              [ "crypt" , 1 ],
+              [ "dungeon", 1 ],
+              [ "ruins", 1 ]
+            ],
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.06,
             "percentage_chance_of_altars": 0.04,
@@ -51,6 +56,9 @@
         "generator_id": "cave_generator",
         "parameters": {
           "common": {
+            "wall_tile_set": [
+              [ "cave" , 1 ]
+            ],            
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.01,
             "percentage_chance_of_altars": 0.01,
