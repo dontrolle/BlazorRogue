@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using BlazorRogue.AI;
 using BlazorRogue.World;
 
 namespace BlazorRogue.Entities;
@@ -113,6 +114,15 @@ class Configuration
             ParseStaticDecorativeType
         );
         ParseDataFile(options, LevelsFileName, "levels", ParseLevelConfiguration);
+        foreach (var monster in monsterTypes.Values)
+        {
+            if (!AIComponentFactory.IsKnown(monster.AIComponentId))
+            {
+                throw new InvalidOperationException(
+                    $"Monster '{monster.Id}' references unknown ai_component id '{monster.AIComponentId}'."
+                );
+            }
+        }
         foreach (var level in levels)
         {
             if (!MapGeneratorFactory.IsKnown(level.Value.MapGeneratorId))
@@ -202,8 +212,8 @@ class Configuration
     /// Recursively parses a JSON object into a <see cref="SettingsMap"/>. A whole-number JSON
     /// value becomes an int, any other number a double, a nested object recurses into a nested
     /// SettingsMap, and an array is parsed as a weighted id list ([&lt;string id&gt;,&lt;weight&gt;]
-    /// tuples, e.g. <c>wall_tile_set</c>) - booleans aren't supported, since map-generator
-    /// parameters have no use for them yet.
+    /// tuples, e.g. <c>wall_tile_set</c>) - booleans aren't supported, since no settings consumer
+    /// (map generators, AI components) has a use for them yet.
     /// </summary>
     static SettingsMap ParseSettingsMap(JsonElement element)
     {
@@ -442,6 +452,7 @@ class Configuration
             out string character,
             out string characterColor
         );
+        var (aiComponentId, aiComponentSettings) = ParseAIComponent(element);
 
         var m = new MoveableType(
             id,
@@ -453,9 +464,30 @@ class Configuration
             weaponDamage,
             toughness,
             armour,
-            wounds
+            wounds,
+            aiComponentId,
+            aiComponentSettings
         );
         moveableDictionary.Add(id, m);
+    }
+
+    /// <summary>
+    /// Parses a moveable's optional <c>ai_component</c> object (<c>{"id": ..., "parameters": {...}}</c>)
+    /// into an AI component id and its settings, falling back to <see cref="AIComponentFactory.DefaultId"/>
+    /// with no settings when the property is absent - mirrors how a level's map generator is chosen.
+    /// </summary>
+    static (string Id, SettingsMap Settings) ParseAIComponent(JsonElement element)
+    {
+        if (!element.TryGetProperty("ai_component", out var aiComponentElement))
+        {
+            return (AIComponentFactory.DefaultId, SettingsMap.Empty);
+        }
+
+        string id = GetRequiredString(aiComponentElement, "id");
+        var settings = aiComponentElement.TryGetProperty("parameters", out var parametersElement)
+            ? ParseSettingsMap(parametersElement)
+            : SettingsMap.Empty;
+        return (id, settings);
     }
 
     static void ParseMoveable(

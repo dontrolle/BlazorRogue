@@ -5,6 +5,8 @@ namespace BlazorRogue.AI;
 
 class RandomWalkAIComponent(Map map) : AIComponent(map)
 {
+    public const string ComponentId = "random_walk_ai";
+
     readonly Random random = new();
 
     public override void TakeTurn()

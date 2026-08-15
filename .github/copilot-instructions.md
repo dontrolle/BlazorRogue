@@ -59,8 +59,10 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   `levels.json`) into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`,
   `TileSet`, `LevelConfiguration`). Nearly all visual/audio/combat-stat tuning is data-driven
   through these files rather than hardcoded. `Parse()` fail-fast validates every level's
-  `generator_id` against `MapGeneratorFactory` right after loading `levels.json`, so an unknown id
-  breaks at app startup rather than mid-game (see *Map generation* below).
+  `generator_id` against `MapGeneratorFactory` right after loading `levels.json` (see *Map
+  generation* below) and every monster's `ai_component.id` against `AIComponentFactory` right after
+  loading `monsters.json` (see *AI components* below), so an unknown id breaks at app startup rather
+  than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
@@ -80,17 +82,26 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
   generators; `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs`
   (cellular automaton) are its two concrete subclasses.
-- **Map-generator parameters**: a level's `map_generator.parameters` JSON is parsed into a
-  `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree of int/double/string/
-  nested-map, read via typed getters (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each with a
-  required form and a `(key, defaultValue)` form. This keeps `System.Text.Json` confined to
-  `Configuration.cs` — generators never reference it. Settings shared by every
-  `DungeonGeneratorBase` subclass live under a `"common"` key; a generator's own settings live
-  under `"layout"`. **Gotcha:** primary-constructor field initializers can't reference another
+- **`SettingsMap` / component parameters**: `SettingsMap` (`Entities/SettingsMap.cs`) is the general
+  mechanism for a data-driven component's free-form `parameters` JSON, not something specific to map
+  generators — a small recursive value tree of int/double/string/nested-map, read via typed getters
+  (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each with a required form and a `(key, defaultValue)`
+  form. This keeps `System.Text.Json` confined to `Configuration.cs` — consumers never reference it
+  directly. A level's `map_generator.parameters` parses into one (settings shared by every
+  `DungeonGeneratorBase` subclass live under a `"common"` key; a generator's own settings live under
+  `"layout"`); a monster's `ai_component.parameters` parses into one the same way (see *AI
+  components* below). **Gotcha:** primary-constructor field initializers can't reference another
   instance field/method of the same type (`CS0236`) — only static members and the primary
   constructor's own parameters are visible, so reading `SettingsMap` values in a field initializer
   goes through a `private static` helper (e.g. `BasicDungeonGenerator.LayoutSettings`) rather than
   an intermediate instance field.
+- **AI components**: a monster's AI is chosen the same way map generators are — `monsters.json`
+  names it by an optional `ai_component.id` string (`Entities/MoveableType.cs`'s `AIComponentId`/
+  `AIComponentSettings`), defaulting to `AIComponentFactory.DefaultId` when omitted.
+  `AI/AIComponentFactory.cs` maps the id to a concrete `AIComponent` via the same
+  `Dictionary<string, Func<...>>`-registry pattern as `MapGeneratorFactory`, each component exposing
+  its id as `public const string ComponentId`. `Configuration.Parse()` validates every monster's id
+  the same fail-fast way it validates `generator_id`.
 - **Input**: keys drive the game via a `document`-level `keyup` listener registered from JS
   (`blazorroguefuncs.registerKeyup`), not a Blazor `@onkeyup` on the map div — so movement works
   regardless of what element has focus, with no click-to-focus step. It calls back into
@@ -114,5 +125,6 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   proper null-handling over suppressing warnings when touching nearby code.
 - New JSON-configurable game data (monster/hero stats, tilesets, decorations) belongs in the
   matching file under `Data/`, parsed via `Configuration.ParseDataFile` following the existing
-  per-type `Parse*Type` method pattern. Map-generator parameters are the exception — those go
-  through `SettingsMap` instead (see *Map-generator parameters* above), not a typed `Parse*Type`.
+  per-type `Parse*Type` method pattern. Free-form, id-keyed parameters (map-generator parameters,
+  AI-component parameters) are the exception — those go through `SettingsMap` instead (see
+  *`SettingsMap` / component parameters* above), not a typed `Parse*Type`.

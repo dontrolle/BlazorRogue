@@ -10,7 +10,11 @@
       "wounds": 5,
       "animationClass": "animated_flies",
       "character": "F",
-      "character_color": "#c3c3c3"
+      "character_color": "#c3c3c3",
+      "ai_component": {
+        "id": "random_walk_ai",
+        "parameters": {}
+      }
     },
     {
       "id": "rat",
@@ -82,7 +86,11 @@
       "wounds": 10,
       "animationClass": "animated_spider_brown_giant",
       "character": "S",
-      "character_color": "#bf8040"
+      "character_color": "#bf8040",
+      "ai_component": {
+        "id": "simple_ai",
+        "parameters": {}
+      }
     },
     {
       "id": "ogre",
@@ -94,7 +102,11 @@
       "wounds": 17,
       "animationClass": "animated_ogre",
       "character": "o",
-      "character_color": "green"
+      "character_color": "green",
+      "ai_component": {
+        "id": "simple_ai",
+        "parameters": {}
+      }
     }
   ]
 }

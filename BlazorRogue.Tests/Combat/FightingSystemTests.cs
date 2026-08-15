@@ -1,4 +1,5 @@
-﻿using BlazorRogue.Combat.Warhammer;
+﻿using BlazorRogue.AI;
+using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
@@ -25,7 +26,9 @@ public class FightingSystemTests
             weaponDamage: weaponDamage,
             toughness: toughness,
             armour: armour,
-            wounds: wounds
+            wounds: wounds,
+            aiComponentId: AIComponentFactory.DefaultId,
+            aiComponentSettings: SettingsMap.Empty
         );
 
         return new Moveable(0, 0, aIComponent: null, type);
