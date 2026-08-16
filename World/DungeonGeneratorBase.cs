@@ -91,11 +91,22 @@ abstract class DungeonGeneratorBase(
         // Add Player
         var heroType = GetRandomElement(configuration.HeroTypes).Value;
         var player = new Moveable(playerPos, null, heroType, new InventoryComponent());
-
         map.AddPlayer(player);
 
-        // Add monsters
-        int noOfRandomMonsters = 8;
+        AddMonsters();
+
+        // initialize various maps and so on in Map (it there a better place to do this?)
+        map.PostGenInitalize();
+
+        return map;
+    }
+
+    /// <summary>
+    /// Basic simple method for placing some random monsters in a generated map.
+    /// </summary>
+    protected virtual void AddMonsters()
+    {
+        int noOfRandomMonsters = 10;
 
         for (int i = 0; i < noOfRandomMonsters; i++)
         {
@@ -112,24 +123,6 @@ abstract class DungeonGeneratorBase(
             );
             map.AddMonster(monster);
         }
-
-        var extraPos = GetRandomUnblockedMapTile();
-        var goblinType = configuration.MonsterTypes["goblin"];
-        var extraGoblin = new Moveable(
-            extraPos,
-            AIComponentFactory.Create(
-                goblinType.AIComponentId,
-                map,
-                goblinType.AIComponentSettings
-            ),
-            goblinType
-        );
-        map.AddMonster(extraGoblin);
-
-        // initialize various maps and so on in Map (it there a better place to do this?)
-        map.PostGenInitalize();
-
-        return map;
     }
 
     protected abstract Tuple<int, int> CreateLayout();
@@ -416,7 +409,6 @@ abstract class DungeonGeneratorBase(
                 map.Tiles[x, y].TileIndex = index;
 
                 // check for adding torch
-                // TODO: UF
                 if (
                     !mapTileBelowHasDoor
                     && map.Tiles[x, y + 1].TileType == TileType.Floor
