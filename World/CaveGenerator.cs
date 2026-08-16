@@ -5,8 +5,15 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
+/// <summary>
+/// Cave generator, using cellular automate.
+/// </summary>
+/// <param name="width">Map width</param>
+/// <param name="height">Map height</param>
+/// <param name="game">Game instance</param>
+/// <param name="settings">Map settings</param>
 class CaveGenerator(int width, int height, Game game, SettingsMap settings)
-    : DungeonGeneratorBase(
+    : MapGeneratorBase(
         width,
         height,
         game,
