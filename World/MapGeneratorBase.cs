@@ -8,7 +8,7 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
-abstract class DungeonGeneratorBase(
+abstract class MapGeneratorBase(
     int width,
     int height,
     Game game,
@@ -86,12 +86,9 @@ abstract class DungeonGeneratorBase(
         var playerPos = CreateLayout();
 
         AddDoors();
-        AddPostGenerationDecorations();
+        AddPostMapGenerationDecorations();
 
-        // Add Player
-        var heroType = GetRandomElement(configuration.HeroTypes).Value;
-        var player = new Moveable(playerPos, null, heroType, new InventoryComponent());
-        map.AddPlayer(player);
+        AddPlayer(playerPos);
 
         AddMonsters();
 
@@ -99,6 +96,13 @@ abstract class DungeonGeneratorBase(
         map.PostGenInitalize();
 
         return map;
+    }
+
+    protected virtual void AddPlayer(Tuple<int, int> playerPos)
+    {
+        var heroType = GetRandomElement(configuration.HeroTypes).Value;
+        var player = new Moveable(playerPos, null, heroType, new InventoryComponent());
+        map.AddPlayer(player);
     }
 
     /// <summary>
@@ -199,7 +203,10 @@ abstract class DungeonGeneratorBase(
         );
     }
 
-    protected void AddPostGenerationDecorations()
+    /// <summary>
+    /// Adds decorations on walls and floors.
+    /// </summary>
+    protected void AddPostMapGenerationDecorations()
     {
         for (int x = 0; x < map.Width; x++)
         {
@@ -437,6 +444,9 @@ abstract class DungeonGeneratorBase(
 
     protected virtual void OnWallTileVisited(int x, int y) { }
 
+    /// <summary>
+    /// Does the map contain a door at (x,y)?
+    /// </summary>
     protected bool MapTileContainsDoor(int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
 
@@ -474,6 +484,9 @@ abstract class DungeonGeneratorBase(
 
     protected bool GetRandomBool() => random.Next(0, 2) == 0;
 
+    /// <summary>
+    /// Update the map to have a wall tile at (x,y).
+    /// </summary>
     protected void PlaceWall(int x, int y)
     {
         // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
@@ -485,6 +498,9 @@ abstract class DungeonGeneratorBase(
         map.Tiles[x, y].Blocking = true;
     }
 
+    /// <summary>
+    /// Update the map to have a floor tile at (x,y).
+    /// </summary>
     protected void PlaceFloor(int x, int y, TileSet floorSet)
     {
         // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.

@@ -5,8 +5,15 @@ using BlazorRogue.Entities;
 
 namespace BlazorRogue.World;
 
+/// <summary>
+/// Basic dungeon generator, following the basic principles laid out in the excellent tutorials on RogueBasin, https://www.roguebasin.com/index.php/Tutorials.
+/// </summary>
+/// <param name="width">Dungeon width</param>
+/// <param name="height">Dungeon height</param>
+/// <param name="game">Game instance</param>
+/// <param name="settings">Map settings</param>
 class BasicDungeonGenerator(int width, int height, Game game, SettingsMap settings)
-    : DungeonGeneratorBase(
+    : MapGeneratorBase(
         width,
         height,
         game,
