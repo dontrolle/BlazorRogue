@@ -32,8 +32,8 @@ public class DungeonGeneratorBaseTests
             number: 0,
             id: "test-level",
             name: "Test Level",
-            height: 20,
-            width: 20,
+            height: 40,
+            width: 40,
             generatorId: generatorId,
             settingsMap: settingsMap
         );
