@@ -426,7 +426,7 @@ abstract class MapGeneratorBase(
 
                 map.AddGameObject(new HalfWall(x, y, GetRandomElement(halfwallIndexes)));
 
-                OnNorthHalfWallPlaced(x, y);
+                ExtraDecorationOnNorthHalfWall(x, y);
             }
         }
 
@@ -464,23 +464,23 @@ abstract class MapGeneratorBase(
                     //map.DebugInfo.Add($"Added torch at ({x},{y}).");
                 }
 
-                OnSouthWallFrontPlaced(x, y);
+                ExtraDecorationOnSouthWallFront(x, y);
             }
         }
 
         if (map.Tiles[x, y].TileType == TileType.Wall)
         {
-            OnWallTileVisited(x, y);
+            ExtraDecorationOnFreeStandingWall(x, y);
         }
     }
 
     // Hooks for subclass-specific extra wall decorations (e.g. cave edges), called from
     // AddPostGenWallDecorations above. No-op by default.
-    protected virtual void OnNorthHalfWallPlaced(int x, int y) { }
+    protected virtual void ExtraDecorationOnNorthHalfWall(int x, int y) { }
 
-    protected virtual void OnSouthWallFrontPlaced(int x, int y) { }
+    protected virtual void ExtraDecorationOnSouthWallFront(int x, int y) { }
 
-    protected virtual void OnWallTileVisited(int x, int y) { }
+    protected virtual void ExtraDecorationOnFreeStandingWall(int x, int y) { }
 
     /// <summary>
     /// Does the map contain a door at (x,y)?

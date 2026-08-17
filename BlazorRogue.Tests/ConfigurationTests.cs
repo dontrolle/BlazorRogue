@@ -114,6 +114,39 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsWallSetEdgeIndexesWhenPresent()
+    {
+        // "cave" and "hedge" both define a top-level "edges" object in wallsets.json (used by
+        // CaveGenerator's WallEdge decorations); wall-sets that don't define one (e.g. "crypt",
+        // used by the dungeon generator, which never reads these) should parse as null rather
+        // than throwing.
+        var configuration = ParseConfiguration();
+
+        var cave = configuration.WallSetById("cave");
+        Assert.Equal((1, 2), cave.EdgeNorthIndexes);
+        Assert.Equal((5, 6), cave.EdgeSouthIndexes);
+        Assert.Equal((3, 4), cave.EdgeFreeIndexes);
+
+        var hedge = configuration.WallSetById("hedge");
+        Assert.Equal((1, 2), hedge.EdgeNorthIndexes);
+        Assert.Equal((5, 6), hedge.EdgeSouthIndexes);
+        Assert.Equal((3, 4), hedge.EdgeFreeIndexes);
+
+        var crypt = configuration.WallSetById("crypt");
+        Assert.Null(crypt.EdgeNorthIndexes);
+        Assert.Null(crypt.EdgeSouthIndexes);
+        Assert.Null(crypt.EdgeFreeIndexes);
+    }
+
+    [Fact]
+    public void ParseLoadsOutdoorWallSets()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.Contains(configuration.OutdoorWallSets, t => t.Id == "hedge");
+    }
+
+    [Fact]
     public void ParseLoadsStaticDecorativeObjectTypes()
     {
         var configuration = ParseConfiguration();

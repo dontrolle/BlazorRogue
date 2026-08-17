@@ -77,6 +77,9 @@ class Configuration
     readonly List<TileSet> caveWallSets = [];
     public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
 
+    readonly List<TileSet> outdoorWallSets = [];
+    public IEnumerable<TileSet> OutdoorWallSets => outdoorWallSets.AsReadOnly();
+
     readonly Dictionary<string, TileSet> wallSetsById = [];
 
     /// <summary>
@@ -335,6 +338,16 @@ class Configuration
         character = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
+        (int, int)? edgeNorthIndexes = null;
+        (int, int)? edgeSouthIndexes = null;
+        (int, int)? edgeFreeIndexes = null;
+        if (element.TryGetProperty("edges", out var edgesElement))
+        {
+            edgeNorthIndexes = GetEdgePair(edgesElement, "north", id);
+            edgeSouthIndexes = GetEdgePair(edgesElement, "south", id);
+            edgeFreeIndexes = GetEdgePair(edgesElement, "free", id);
+        }
+
         var t = new TileSet(
             id,
             TileType.Wall,
@@ -345,6 +358,9 @@ class Configuration
             [.. imgBaseEdgeSouthWeights],
             [.. imgSimpleEdgeNorthIndexes],
             [.. imgDecoratedEdgeNorthIndexes],
+            edgeNorthIndexes,
+            edgeSouthIndexes,
+            edgeFreeIndexes,
             character: character,
             characterColor: charColor
         );
@@ -363,12 +379,32 @@ class Configuration
         {
             caveWallSets.Add(t);
         }
+        else if (levelType == "outdoor")
+        {
+            outdoorWallSets.Add(t);
+        }
         else
         {
             throw new InvalidOperationException(
                 $"Unknown level_type '{levelType}' in wall-set with id: {id}."
             );
         }
+    }
+
+    /// <summary>
+    /// Parses a required <c>"edges"</c> sub-property, e.g. <c>"north": [1, 2]</c>, into a
+    /// (Left, Right) index pair - see <see cref="TileSet.EdgeNorthIndexes"/>.
+    /// </summary>
+    static (int, int) GetEdgePair(JsonElement edgesElement, string property, string wallSetId)
+    {
+        var array = edgesElement.GetProperty(property);
+        if (array.GetArrayLength() != 2)
+        {
+            throw new InvalidOperationException(
+                $"'edges.{property}' for wall-set '{wallSetId}' must have exactly 2 entries (left, right)."
+            );
+        }
+        return (array[0].GetInt32(), array[1].GetInt32());
     }
 
     static void GetIntArray(JsonElement element, string property, List<int> listToFill)

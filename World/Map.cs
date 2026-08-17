@@ -71,7 +71,14 @@ class Map
         BlocksMovementMap = new bool[width, height];
 
         // A field, if necessary?
-        var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
+        var blackTileSet = new TileSet(
+            "black",
+            TileType.Black,
+            "floor_extra",
+            [11],
+            null,
+            character: ""
+        );
 
         for (int i = 0; i < width; i++)
         {

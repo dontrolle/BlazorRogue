@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BlazorRogue.Entities;
 using BlazorRogue.World;
@@ -71,14 +72,44 @@ public class DungeonGeneratorBaseTests
     [Fact]
     public void GeneratedMapFallsBackToDefaultPoolWhenWallTileSetIsUnspecified()
     {
-        // Mirrors levels.json's level0, whose "parameters" is entirely empty - SettingsMap.Empty
-        // must still resolve to some valid wall-set from the generator's whole level-type pool
-        // rather than throwing.
+        // SettingsMap.Empty must still resolve to some valid wall-set from the generator's whole
+        // level-type pool rather than throwing.
         var game = new Game();
         var level = LevelWith(BasicDungeonGenerator.Id, SettingsMap.Empty);
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
 
         Assert.Contains(map.DungeonWallSet, game.Configuration.DungeonWallSets);
+    }
+
+    [Fact]
+    public void CaveGeneratorGeneratesMapWithOutdoorHedgeWallSet()
+    {
+        // Mirrors levels.json's level0: cave_generator with the "hedge" wall-set, whose
+        // level_type is "outdoor" rather than "cave" - and which relies on wallsets.json's data-
+        // driven "edges" entry (rather than CaveGenerator hardcoding cave-specific indexes) to
+        // decorate wall tiles via WallEdge. This exercises that whole path end-to-end without
+        // throwing.
+        var game = new Game();
+        var level = LevelWith(CaveGenerator.Id, SettingsWithWallTileSet(("hedge", 1.0)));
+
+        var map = MapGeneratorFactory.Create(level, game).GenerateMap();
+
+        Assert.Equal("hedge", map.DungeonWallSet.Id);
+    }
+
+    [Fact]
+    public void CaveGeneratorThrowsWhenWallSetHasNoEdgeIndexes()
+    {
+        // "crypt" never defines an "edges" entry in wallsets.json (only the dungeon generator
+        // uses it, which never reads edge data) - CaveGenerator should fail clearly rather than
+        // throwing a raw NullReferenceException if it's ever pointed at such a wall-set.
+        var game = new Game();
+        var level = LevelWith(CaveGenerator.Id, SettingsWithWallTileSet(("crypt", 1.0)));
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            MapGeneratorFactory.Create(level, game).GenerateMap()
+        );
+        Assert.Contains("crypt", ex.Message);
     }
 }

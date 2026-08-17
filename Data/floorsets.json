@@ -1,9 +1,48 @@
 {
   "uf_floor_sets": [
     {
+      "id": "ground_grass",
+      "special": true,
+      "img_prefix": "ground_grass",
+      "img_floor": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "character": ".",
+      "character_color": "green"
+    },
+    {
+      "id": "ground_dirt_brown",
+      "special": true,
+      "img_prefix": "ground_dirt_brown",
+      "img_floor": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "character": ".",
+      "character_color": "brown"
+    },    
+    {
+      "id": "ground_crusted",
+      "special": true,
+      "img_prefix": "ground_crusted",
+      "img_floor": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "character": ".",
+      "character_color": "brown"
+    },    
+    {
       "id": "blue",
       "special": false,
-      "img_prefix": "set_blue",
+      "img_prefix": "floor_set_blue",
       "img_floor": [
         1,
         2,
@@ -17,7 +56,7 @@
     {
       "id": "dark",
       "special": false,
-      "img_prefix": "set_dark",
+      "img_prefix": "floor_set_dark",
       "img_floor": [
         1,
         2,
@@ -31,7 +70,7 @@
     {
       "id": "grey",
       "special": false,
-      "img_prefix": "set_grey",
+      "img_prefix": "floor_set_grey",
       "img_floor": [
         1,
         2,
@@ -45,7 +84,7 @@
     {
       "id": "diagonal_blue",
       "special": true,
-      "img_prefix": "diagonal_blue",
+      "img_prefix": "floor_diagonal_blue",
       "img_floor": [
         1,
         2,
@@ -58,7 +97,7 @@
     {
       "id": "diagonal_red",
       "special": true,
-      "img_prefix": "diagonal_red",
+      "img_prefix": "floor_diagonal_red",
       "img_floor": [
         1,
         2,
@@ -71,7 +110,7 @@
     {
       "id": "crusted_grey",
       "special": true,
-      "img_prefix": "crusted_grey",
+      "img_prefix": "floor_crusted_grey",
       "img_floor": [
         1,
         2,
@@ -84,7 +123,7 @@
     {
       "id": "extra_1",
       "special": true,
-      "img_prefix": "extra",
+      "img_prefix": "floor_extra",
       "img_floor": [
         1
       ],
@@ -94,7 +133,7 @@
     {
       "id": "extra_2",
       "special": true,
-      "img_prefix": "extra",
+      "img_prefix": "floor_extra",
       "img_floor": [
         2
       ],

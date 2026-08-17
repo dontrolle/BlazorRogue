@@ -3,7 +3,7 @@
     {
       "id": "crypt",
       "level_type": "dungeon",
-      "img_prefix": "crypt",
+      "img_prefix": "wall_crypt",
       "img_base": [
         [
           7,
@@ -74,7 +74,7 @@
     {
       "id": "dungeon",
       "level_type": "dungeon",
-      "img_prefix": "dungeon",
+      "img_prefix": "wall_dungeon",
       "img_base": [
         [
           7,
@@ -145,7 +145,7 @@
     {
       "id": "ruins",
       "level_type": "dungeon",
-      "img_prefix": "ruins",
+      "img_prefix": "wall_ruins",
       "img_base": [
         [
           7,
@@ -216,7 +216,7 @@
     {
       "id": "cave",
       "level_type": "cave",
-      "img_prefix": "cave",
+      "img_prefix": "wall_cave",
       "img_base": [
         [
           7,
@@ -280,8 +280,88 @@
         ],
         "decorated": []
       },
+      "edges": {
+        "north": [1, 2],
+        "south": [5, 6],
+        "free": [3, 4]
+      },
       "character": "#",
       "character_color": "#DB8C44"
+    },
+    {
+      "id": "hedge",
+      "level_type": "outdoor",
+      "img_prefix": "wall_hedge",
+      "img_base": [
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          0.1
+        ],
+        [
+          10,
+          0.1
+        ],
+        [
+          11,
+          0.2
+        ],
+        [
+          12,
+          0.1
+        ],
+        [
+          13,
+          0.05
+        ]
+      ],
+      "img_base_edge_south": [
+        [
+          15,
+          1
+        ],
+        [
+          16,
+          0.1
+        ],
+        [
+          17,
+          0.1
+        ],
+        [
+          18,
+          0.1
+        ],
+        [
+          19,
+          0.1
+        ],
+        [
+          20,
+          0.05
+        ]        
+      ],
+      "img_edge_north": {
+        "simple": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "decorated": []
+      },
+      "edges": {
+        "north": [1, 2],
+        "south": [5, 6],
+        "free": [3, 4]
+      },
+      "character": "#",
+      "character_color": "#86af2c"
     }
   ]
 }

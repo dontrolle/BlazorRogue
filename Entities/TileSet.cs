@@ -31,6 +31,13 @@ class TileSet
     public int[] ImageEdgeNorthIndexes =>
         [.. ImageSimpleEdgeNorthIndexes, .. ImageDecoratedEdgeNorthIndexes];
 
+    // Cave-generator-style wall edge filler art (see WallEdge): (Left, Right) index pairs, used
+    // when the neighboring tile to the west/east respectively is floor/black. Null when this
+    // wall-set doesn't define edge art (e.g. the dungeon-generator wall-sets never need it).
+    public (int Left, int Right)? EdgeNorthIndexes { get; }
+    public (int Left, int Right)? EdgeSouthIndexes { get; }
+    public (int Left, int Right)? EdgeFreeIndexes { get; }
+
     public string Character { get; }
     public string CharacterColor { get; }
 
@@ -44,6 +51,9 @@ class TileSet
         double[]? imgSouthEdgeWeights = null,
         int[]? imgSimpleEdgeNorthIndexes = null,
         int[]? imgDecoratedEdgeNorthIndexes = null,
+        (int Left, int Right)? edgeNorthIndexes = null,
+        (int Left, int Right)? edgeSouthIndexes = null,
+        (int Left, int Right)? edgeFreeIndexes = null,
         string character = "¤",
         string characterColor = "fuchsia"
     )
@@ -61,6 +71,10 @@ class TileSet
         ImageSimpleEdgeNorthIndexes = imgSimpleEdgeNorthIndexes ?? [];
         ImageDecoratedEdgeNorthIndexes = imgDecoratedEdgeNorthIndexes ?? [];
 
+        EdgeNorthIndexes = edgeNorthIndexes;
+        EdgeSouthIndexes = edgeSouthIndexes;
+        EdgeFreeIndexes = edgeFreeIndexes;
+
         Character = character;
         CharacterColor = characterColor;
     }
@@ -75,6 +89,11 @@ class TileSet
                 : imgWeights
             : [.. Enumerable.Repeat(1.0d, imgIndexes.Length)];
 
-    public virtual string ImageName(int index) =>
-        TileType.ToTileSetPrefix() + "_" + ImgPrefix + "_" + index;
+    // ImgPrefix is expected to be the literal image filename prefix (e.g. "floor_crusted_grey",
+    // "wall_crypt", or "ground_grass" for assets that don't follow the floor_/wall_ convention) -
+    // not derived from TileType, since not every asset in the source tileset follows that
+    // convention (see wallsets.json/floorsets.json).
+    public virtual string ImageName(int index) => ImgPrefix + "_" + index;
+
+    public string EdgeImageName(int index) => ImgPrefix + "_edge_" + index;
 }
