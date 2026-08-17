@@ -7,6 +7,43 @@ namespace BlazorRogue.Tests;
 public class StairTests
 {
     [Fact]
+    public void RenderUsesTheStairsOwnFloorSetImageWhenItDefinesStairImages()
+    {
+        var game = new Game();
+        var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
+        game.Map.Tiles[x, y].TileSet = game.Configuration.FloorSetById("blue");
+        game.Map.Decorations[x, y].Clear();
+
+        var stair = new Stair(x, y, StairDirection.Down);
+        stair.Render(game.Map);
+
+        var decoration = Assert.Single(game.Map.Decorations[x, y]);
+        Assert.Equal("floor_set_blue_9", decoration.ImageName);
+    }
+
+    [Fact]
+    public void RenderFallsBackToDefaultStairsFloorSetWhenTheTilesFloorSetHasNoStairImages()
+    {
+        var game = new Game();
+        var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
+        var groundGrass = game.Configuration.FloorSetById("ground_grass");
+        Assert.Null(groundGrass.StairImageIndexes); // guards the premise of this test
+        game.Map.Tiles[x, y].TileSet = groundGrass;
+        game.Map.Decorations[x, y].Clear();
+
+        var stair = new Stair(x, y, StairDirection.Up);
+        stair.Render(game.Map);
+
+        var decoration = Assert.Single(game.Map.Decorations[x, y]);
+        Assert.Equal(
+            game.Configuration.DefaultStairsFloorSet.ImageName(
+                game.Configuration.DefaultStairsFloorSet.StairImageIndexes!.Value.Up
+            ),
+            decoration.ImageName
+        );
+    }
+
+    [Fact]
     public void UseDescendingIncrementsLevelNumberAndRegeneratesMapWhilePreservingThePlayer()
     {
         var game = new Game();

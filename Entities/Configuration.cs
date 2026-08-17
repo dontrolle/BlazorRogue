@@ -69,6 +69,25 @@ class Configuration
     readonly List<TileSet> specialFloorSets = [];
     public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
 
+    readonly Dictionary<string, TileSet> floorSetsById = [];
+
+    /// <summary>
+    /// Looks up a floor-set by id. Every id added by <see cref="ParseFloorSetType"/> is unique
+    /// (enforced via <see cref="floorSetIds"/>), so callers operating on already-parsed floorsets
+    /// can rely on this never throwing for a valid id.
+    /// </summary>
+    public TileSet FloorSetById(string id) =>
+        floorSetsById.TryGetValue(id, out var floorSet)
+            ? floorSet
+            : throw new InvalidOperationException($"Unknown floor-set id: {id}.");
+
+    const string DefaultStairsFloorSetId = "grey";
+
+    // Set by Parse() once all floorsets are loaded and validated; used as the stair image source
+    // for any floorset that doesn't define its own "img_stairs" (see Stair.Render). null! avoids
+    // forcing nullable-checks on every consumer, since Parse() always runs first.
+    public TileSet DefaultStairsFloorSet { get; private set; } = null!;
+
     readonly HashSet<string> wallSetIds = [];
 
     readonly List<TileSet> dungeonWallSets = [];
@@ -147,6 +166,15 @@ class Configuration
                     );
                 }
             }
+        }
+
+        DefaultStairsFloorSet = FloorSetById(DefaultStairsFloorSetId);
+        if (DefaultStairsFloorSet.StairImageIndexes is null)
+        {
+            throw new InvalidOperationException(
+                $"Floor-set '{DefaultStairsFloorSetId}' is the fallback stair-image source for floor-sets "
+                    + "that don't define their own \"img_stairs\", so it must define \"img_stairs\" itself."
+            );
         }
     }
 
@@ -271,12 +299,21 @@ class Configuration
         charFloor = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
+        (int, int)? stairImageIndexes = null;
+        if (element.TryGetProperty("img_stairs", out var stairsElement))
+        {
+            stairImageIndexes = (
+                stairsElement.GetProperty("up").GetInt32(),
+                stairsElement.GetProperty("down").GetInt32()
+            );
+        }
+
         var t = new TileSet(
             id,
             TileType.Floor,
             imgPrefix,
             [.. imgFloorList],
-            null,
+            stairImageIndexes: stairImageIndexes,
             character: charFloor,
             characterColor: charColor
         );
@@ -285,6 +322,7 @@ class Configuration
         {
             throw new InvalidOperationException($"Found another floor-set with id: {id}.");
         }
+        floorSetsById.Add(id, t);
 
         if (special)
         {

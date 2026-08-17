@@ -11,22 +11,27 @@ enum StairDirection
 }
 
 class Stair(int x, int y, StairDirection direction)
-    : GameObject(
-        x,
-        y,
-        References.Configuration.StaticDecorativeObjectTypes[IdFor(direction)].Name,
-        useableComponent: new UseableComponent(Use)
-    )
+    : GameObject(x, y, NameFor(direction), useableComponent: new UseableComponent(Use))
 {
     public StairDirection Direction { get; } = direction;
 
-    static string IdFor(StairDirection direction) =>
+    static string NameFor(StairDirection direction) =>
         direction switch
         {
-            StairDirection.Down => "stairs_down",
-            StairDirection.Up => "stairs_up",
+            StairDirection.Down => "Stairs down",
+            StairDirection.Up => "Stairs up",
             _ => throw new InvalidOperationException($"Unknown StairDirection: {direction}"),
         };
+
+    static string CharacterFor(StairDirection direction) =>
+        direction switch
+        {
+            StairDirection.Down => ">",
+            StairDirection.Up => "<",
+            _ => throw new InvalidOperationException($"Unknown StairDirection: {direction}"),
+        };
+
+    const string CharacterColor = "White";
 
     internal static void Use(GameObject go)
     {
@@ -44,16 +49,20 @@ class Stair(int x, int y, StairDirection direction)
 
     public override void Render(Map map)
     {
-        var sdot = References.Configuration.StaticDecorativeObjectTypes[IdFor(Direction)];
+        var tileSet = map.Tiles[X, Y].TileSet;
+        var stairsSource = tileSet.StairImageIndexes is not null
+            ? tileSet
+            : References.Configuration.DefaultStairsFloorSet;
+        var (up, down) = stairsSource.StairImageIndexes!.Value;
+        int index = Direction == StairDirection.Down ? down : up;
 
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, sdot.ImageVariants[""], sdot.ImgFolder)
+                new Decoration(this, stairsSource.ImageName(index))
                 {
-                    Character = sdot.Character,
-                    CharacterColor = sdot.CharacterColor,
+                    Character = CharacterFor(Direction),
+                    CharacterColor = CharacterColor,
                     OnUse = UseableComponent!.Use,
-                    MakeCoveringOffsetDecsTransparent = sdot.MakeCoveringOffsetDecsTransparent,
                 }
             );
     }

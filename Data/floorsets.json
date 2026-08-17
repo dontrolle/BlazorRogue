@@ -50,6 +50,10 @@
         4,
         5
       ],
+      "img_stairs": {
+        "up": 8,
+        "down": 9
+      },
       "character": ".",
       "character_color": "blue"
     },
@@ -64,6 +68,10 @@
         4,
         5
       ],
+      "img_stairs": {
+        "up": 8,
+        "down": 9
+      },
       "character": ".",
       "character_color": "#5E5D5D"
     },
@@ -78,6 +86,10 @@
         4,
         5
       ],
+      "img_stairs": {
+        "up": 8,
+        "down": 9
+      },
       "character": ".",
       "character_color": "gray"
     },

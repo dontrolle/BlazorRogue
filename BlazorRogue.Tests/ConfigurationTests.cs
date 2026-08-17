@@ -155,12 +155,41 @@ public class ConfigurationTests
     }
 
     [Fact]
-    public void ParseLoadsStairsDownAndUp()
+    public void ParseLoadsFloorSetStairImagesWhenPresent()
     {
         var configuration = ParseConfiguration();
 
-        Assert.True(configuration.StaticDecorativeObjectTypes.ContainsKey("stairs_down"));
-        Assert.True(configuration.StaticDecorativeObjectTypes.ContainsKey("stairs_up"));
+        var grey = configuration.FloorSetById("grey");
+        Assert.Equal((8, 9), grey.StairImageIndexes);
+
+        var blue = configuration.FloorSetById("blue");
+        Assert.Equal((8, 9), blue.StairImageIndexes);
+
+        var dark = configuration.FloorSetById("dark");
+        Assert.Equal((8, 9), dark.StairImageIndexes);
+    }
+
+    [Fact]
+    public void ParseLoadsFloorSetsWithoutStairImagesAsNull()
+    {
+        // Special floorsets don't currently ship dedicated stair art; Stair.Render is expected to
+        // fall back to Configuration.DefaultStairsFloorSet for these.
+        var configuration = ParseConfiguration();
+
+        var groundGrass = configuration.FloorSetById("ground_grass");
+        Assert.Null(groundGrass.StairImageIndexes);
+    }
+
+    [Fact]
+    public void ParseSetsDefaultStairsFloorSetToGrey()
+    {
+        // Configuration.Parse() throws if "grey" (the hardcoded fallback stair-image source)
+        // doesn't itself define img_stairs, so this test also indirectly covers that guard - a
+        // missing fallback would have made Parse() throw before we ever got here.
+        var configuration = ParseConfiguration();
+
+        Assert.Equal("grey", configuration.DefaultStairsFloorSet.Id);
+        Assert.NotNull(configuration.DefaultStairsFloorSet.StairImageIndexes);
     }
 
     [Fact]

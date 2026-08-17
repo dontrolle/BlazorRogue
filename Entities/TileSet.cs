@@ -38,6 +38,11 @@ class TileSet
     public (int Left, int Right)? EdgeSouthIndexes { get; }
     public (int Left, int Right)? EdgeFreeIndexes { get; }
 
+    // Per-floorset stair art (see Data/floorsets.json's optional "img_stairs" object). Null when
+    // this floorset doesn't define its own stair art, in which case callers fall back to
+    // Configuration.DefaultStairsFloorSet.
+    public (int Up, int Down)? StairImageIndexes { get; }
+
     public string Character { get; }
     public string CharacterColor { get; }
 
@@ -54,6 +59,7 @@ class TileSet
         (int Left, int Right)? edgeNorthIndexes = null,
         (int Left, int Right)? edgeSouthIndexes = null,
         (int Left, int Right)? edgeFreeIndexes = null,
+        (int Up, int Down)? stairImageIndexes = null,
         string character = "¤",
         string characterColor = "fuchsia"
     )
@@ -74,6 +80,8 @@ class TileSet
         EdgeNorthIndexes = edgeNorthIndexes;
         EdgeSouthIndexes = edgeSouthIndexes;
         EdgeFreeIndexes = edgeFreeIndexes;
+
+        StairImageIndexes = stairImageIndexes;
 
         Character = character;
         CharacterColor = characterColor;
