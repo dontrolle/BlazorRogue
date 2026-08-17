@@ -94,7 +94,7 @@
       "character": "&",
       "character_color": "gold",
       "img_folder": "uf_items",
-      "makeCoveringOffsetDecsTransparent": true      
+      "makeCoveringOffsetDecsTransparent": true
     },
     {
       "id": "chest_silver",
@@ -109,7 +109,7 @@
       "character": "&",
       "character_color": "silver",
       "img_folder": "uf_items",
-      "makeCoveringOffsetDecsTransparent": true      
+      "makeCoveringOffsetDecsTransparent": true
     }
   ]
 }

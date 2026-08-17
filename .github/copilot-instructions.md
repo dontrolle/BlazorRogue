@@ -64,7 +64,7 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   loading `monsters.json` (see *AI components* below), so an unknown id breaks at app startup rather
   than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
-  everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
+  everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `WallEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
   subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`) attached at
   construction — a `Component` always knows its `Owner` via `SetOwner`. AI variants live under

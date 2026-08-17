@@ -51,15 +51,15 @@ how to test changes in these areas.
   loading `monsters.json` (see *AI components* below), so an unknown id breaks at app startup rather
   than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
-  everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `CaveEdge`,
+  everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `WallEdge`,
   `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
   subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`; the latter
   two live in `Components/` alongside the base class) attached at construction — a `Component` always
   knows its `Owner` via `SetOwner`. AI variants live under `AI/` (`SimpleAIComponent`,
   `RandomWalkAIComponent`).
 - **Map & rendering**: `World/Map.cs` holds the `Tile` grid; a map generator (see *Map generation*
-  below) procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `TileSetInfo.cs`,
-  `Decoration.cs` and `Orientation.cs`.
+  below) procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `Decoration.cs`
+  and `Orientation.cs`.
   `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm, `AdamMilVisibility`).
   Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
   per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching

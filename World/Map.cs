@@ -71,7 +71,14 @@ class Map
         BlocksMovementMap = new bool[width, height];
 
         // A field, if necessary?
-        var blackTileSet = new TileSet("black", TileType.Black, "extra", [11], null, character: "");
+        var blackTileSet = new TileSet(
+            "black",
+            TileType.Black,
+            "floor_extra",
+            [11],
+            null,
+            character: ""
+        );
 
         for (int i = 0; i < width; i++)
         {
@@ -219,6 +226,13 @@ class Map
         player.GameObjectKilled += PlayerKilled;
         Player = player;
     }
+
+    /// <summary>
+    /// Unsubscribes this map's PlayerKilled handler from the player before it's placed onto a new
+    /// map (e.g. via stairs) - otherwise the player's GameObjectKilled event keeps a reference to
+    /// this (now discarded) map, and a later death would double-fire PlayerKilled.
+    /// </summary>
+    public void DetachPlayer() => Player.GameObjectKilled -= PlayerKilled;
 
     /// <summary>
     /// True once the player has died. The game is then finished: no further turns are accepted and

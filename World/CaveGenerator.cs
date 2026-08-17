@@ -10,12 +10,14 @@ namespace BlazorRogue.World;
 /// </summary>
 /// <param name="width">Map width</param>
 /// <param name="height">Map height</param>
+/// <param name="levelNumber">The level's "no" in levels.json, used e.g. to decide which stairs exist</param>
 /// <param name="game">Game instance</param>
 /// <param name="settings">Map settings</param>
-class CaveGenerator(int width, int height, Game game, SettingsMap settings)
+class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsMap settings)
     : MapGeneratorBase(
         width,
         height,
+        levelNumber,
         game,
         SelectWallSet(game.Configuration, settings, game.Configuration.CaveWallSets),
         settings
@@ -133,9 +135,12 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
         return noOfWalls;
     }
 
-    protected override void OnNorthHalfWallPlaced(int x, int y)
+    protected override void ExtraDecorationOnNorthHalfWall(int x, int y)
     {
-        // add cave_edge_1 and 2 to halfwall-tiles offset to the left and right respectively
+        var (left, right) = EdgeIndexes("north", map.DungeonWallSet.EdgeNorthIndexes);
+
+        // add left and right wall-edge art to halfwall-tiles, offset to the left and right
+        // respectively
         if (
             x > 0
             && (
@@ -144,7 +149,7 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 1, -1, -1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, left, -1, -1));
         }
 
         if (
@@ -155,13 +160,16 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 2, -1, 1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, right, -1, 1));
         }
     }
 
-    protected override void OnSouthWallFrontPlaced(int x, int y)
+    protected override void ExtraDecorationOnSouthWallFront(int x, int y)
     {
-        // add cave_edge_5 and 6 to wall tiles with front offset to the left and right respectively
+        var (left, right) = EdgeIndexes("south", map.DungeonWallSet.EdgeSouthIndexes);
+
+        // add left and right wall-edge art to wall tiles with front, offset to the left and
+        // right respectively
         if (
             x > 0
             && (
@@ -170,7 +178,7 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 5, 0, -1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, left, 0, -1));
         }
 
         if (
@@ -181,13 +189,16 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 6, 0, 1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, right, 0, 1));
         }
     }
 
-    protected override void OnWallTileVisited(int x, int y)
+    protected override void ExtraDecorationOnFreeStandingWall(int x, int y)
     {
-        // add cave_edge_3 and 4 to normal wall tiles offset to the left and right respectively
+        var (left, right) = EdgeIndexes("free", map.DungeonWallSet.EdgeFreeIndexes);
+
+        // add left and right wall-edge art to normal wall tiles, offset to the left and right
+        // respectively
         if (
             x > 0
             && (
@@ -196,7 +207,7 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 3, 0, -1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, left, 0, -1));
         }
 
         if (
@@ -207,7 +218,13 @@ class CaveGenerator(int width, int height, Game game, SettingsMap settings)
             )
         )
         {
-            map.AddGameObject(new CaveEdge(x, y, 4, 0, 1));
+            map.AddGameObject(new WallEdge(x, y, map.DungeonWallSet, right, 0, 1));
         }
     }
+
+    (int Left, int Right) EdgeIndexes(string category, (int Left, int Right)? indexes) =>
+        indexes
+        ?? throw new InvalidOperationException(
+            $"Wall-set '{map.DungeonWallSet.Id}' has no '{category}' edge indexes configured, required by {Id}."
+        );
 }

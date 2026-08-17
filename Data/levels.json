@@ -3,12 +3,30 @@
     {
       "no": 0,
       "id": "level0",
-      "name": "The Town",
+      "name": "The Wilds",
       "height": 45,
       "width": 60,
       "map_generator": {
-        "generator_id": "basic_dungeon_generator",
-        "parameters": {}
+        "generator_id": "cave_generator",
+        "parameters": {
+          "common": {
+            "wall_tile_set": [
+              [ "hedge" , 1 ]
+            ],
+            "percentage_chance_of_bones": 0.05,
+            "percentage_chance_of_tables": 0,
+            "percentage_chance_of_altars": 0,
+            "percentage_chance_of_spider_web_in_corner": 0,
+            "percentage_chance_of_torch": 0,
+            "percentage_chance_of_chests": 0
+          },
+          "layout": {
+            "percentage_chance_of_initial_wall": 0.3,
+            "smoothing_pass_one_iterations": 3,
+            "smoothing_pass_two_iterations": 2,
+            "floor_tile_set": "ground_grass"
+          }
+        }
       }
     },
     {

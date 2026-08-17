@@ -69,6 +69,25 @@ class Configuration
     readonly List<TileSet> specialFloorSets = [];
     public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
 
+    readonly Dictionary<string, TileSet> floorSetsById = [];
+
+    /// <summary>
+    /// Looks up a floor-set by id. Every id added by <see cref="ParseFloorSetType"/> is unique
+    /// (enforced via <see cref="floorSetIds"/>), so callers operating on already-parsed floorsets
+    /// can rely on this never throwing for a valid id.
+    /// </summary>
+    public TileSet FloorSetById(string id) =>
+        floorSetsById.TryGetValue(id, out var floorSet)
+            ? floorSet
+            : throw new InvalidOperationException($"Unknown floor-set id: {id}.");
+
+    const string DefaultStairsFloorSetId = "grey";
+
+    // Set by Parse() once all floorsets are loaded and validated; used as the stair image source
+    // for any floorset that doesn't define its own "img_stairs" (see Stair.Render). null! avoids
+    // forcing nullable-checks on every consumer, since Parse() always runs first.
+    public TileSet DefaultStairsFloorSet { get; private set; } = null!;
+
     readonly HashSet<string> wallSetIds = [];
 
     readonly List<TileSet> dungeonWallSets = [];
@@ -76,6 +95,9 @@ class Configuration
 
     readonly List<TileSet> caveWallSets = [];
     public IEnumerable<TileSet> CaveWallSets => caveWallSets.AsReadOnly();
+
+    readonly List<TileSet> outdoorWallSets = [];
+    public IEnumerable<TileSet> OutdoorWallSets => outdoorWallSets.AsReadOnly();
 
     readonly Dictionary<string, TileSet> wallSetsById = [];
 
@@ -144,6 +166,15 @@ class Configuration
                     );
                 }
             }
+        }
+
+        DefaultStairsFloorSet = FloorSetById(DefaultStairsFloorSetId);
+        if (DefaultStairsFloorSet.StairImageIndexes is null)
+        {
+            throw new InvalidOperationException(
+                $"Floor-set '{DefaultStairsFloorSetId}' is the fallback stair-image source for floor-sets "
+                    + "that don't define their own \"img_stairs\", so it must define \"img_stairs\" itself."
+            );
         }
     }
 
@@ -268,12 +299,21 @@ class Configuration
         charFloor = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
+        (int, int)? stairImageIndexes = null;
+        if (element.TryGetProperty("img_stairs", out var stairsElement))
+        {
+            stairImageIndexes = (
+                stairsElement.GetProperty("up").GetInt32(),
+                stairsElement.GetProperty("down").GetInt32()
+            );
+        }
+
         var t = new TileSet(
             id,
             TileType.Floor,
             imgPrefix,
             [.. imgFloorList],
-            null,
+            stairImageIndexes: stairImageIndexes,
             character: charFloor,
             characterColor: charColor
         );
@@ -282,6 +322,7 @@ class Configuration
         {
             throw new InvalidOperationException($"Found another floor-set with id: {id}.");
         }
+        floorSetsById.Add(id, t);
 
         if (special)
         {
@@ -335,6 +376,16 @@ class Configuration
         character = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
+        (int, int)? edgeNorthIndexes = null;
+        (int, int)? edgeSouthIndexes = null;
+        (int, int)? edgeFreeIndexes = null;
+        if (element.TryGetProperty("edges", out var edgesElement))
+        {
+            edgeNorthIndexes = GetEdgePair(edgesElement, "north", id);
+            edgeSouthIndexes = GetEdgePair(edgesElement, "south", id);
+            edgeFreeIndexes = GetEdgePair(edgesElement, "free", id);
+        }
+
         var t = new TileSet(
             id,
             TileType.Wall,
@@ -345,6 +396,9 @@ class Configuration
             [.. imgBaseEdgeSouthWeights],
             [.. imgSimpleEdgeNorthIndexes],
             [.. imgDecoratedEdgeNorthIndexes],
+            edgeNorthIndexes,
+            edgeSouthIndexes,
+            edgeFreeIndexes,
             character: character,
             characterColor: charColor
         );
@@ -363,12 +417,32 @@ class Configuration
         {
             caveWallSets.Add(t);
         }
+        else if (levelType == "outdoor")
+        {
+            outdoorWallSets.Add(t);
+        }
         else
         {
             throw new InvalidOperationException(
                 $"Unknown level_type '{levelType}' in wall-set with id: {id}."
             );
         }
+    }
+
+    /// <summary>
+    /// Parses a required <c>"edges"</c> sub-property, e.g. <c>"north": [1, 2]</c>, into a
+    /// (Left, Right) index pair - see <see cref="TileSet.EdgeNorthIndexes"/>.
+    /// </summary>
+    static (int, int) GetEdgePair(JsonElement edgesElement, string property, string wallSetId)
+    {
+        var array = edgesElement.GetProperty(property);
+        if (array.GetArrayLength() != 2)
+        {
+            throw new InvalidOperationException(
+                $"'edges.{property}' for wall-set '{wallSetId}' must have exactly 2 entries (left, right)."
+            );
+        }
+        return (array[0].GetInt32(), array[1].GetInt32());
     }
 
     static void GetIntArray(JsonElement element, string property, List<int> listToFill)
