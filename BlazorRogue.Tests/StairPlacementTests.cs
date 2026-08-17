@@ -22,6 +22,7 @@ public class StairPlacementTests
             height: 40,
             width: 40,
             generatorId: BasicDungeonGenerator.Id,
+            backgroundSoundtrack: "test.mp3",
             settingsMap: SettingsMap.Empty
         );
 

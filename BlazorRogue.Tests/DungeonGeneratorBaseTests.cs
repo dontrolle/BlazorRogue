@@ -36,6 +36,7 @@ public class DungeonGeneratorBaseTests
             height: 40,
             width: 40,
             generatorId: generatorId,
+            backgroundSoundtrack: "test.mp3",
             settingsMap: settingsMap
         );
 

@@ -209,7 +209,8 @@ class Configuration
             width;
         string id,
             name,
-            mapGeneratorId;
+            mapGeneratorId,
+            backgroundSoundtrack;
         SettingsMap settingsMap;
 
         number = GetRequiredInt(element, "no");
@@ -217,6 +218,7 @@ class Configuration
         width = GetRequiredInt(element, "width");
         id = GetRequiredString(element, "id");
         name = GetRequiredString(element, "name");
+        backgroundSoundtrack = GetRequiredString(element, "background_soundtrack");
         var mapGeneratorElement = element.GetProperty("map_generator");
         mapGeneratorId = GetRequiredString(mapGeneratorElement, "generator_id");
         settingsMap = ParseSettingsMap(mapGeneratorElement.GetProperty("parameters"));
@@ -228,6 +230,7 @@ class Configuration
             height,
             width,
             mapGeneratorId,
+            backgroundSoundtrack,
             settingsMap
         );
 

@@ -5,6 +5,19 @@ window.blazorroguefuncs = {
         audio.play();
     },
 
+    // Drives the persistent looping #bgsound element (rather than firing a one-shot Audio like
+    // playSound above) so level transitions can restart a level-specific ambient track.
+    playBackgroundMusic: function (soundname) {
+        var audio = document.getElementById("bgsound");
+        if (!audio) {
+            return;
+        }
+        var source = audio.querySelector("source");
+        source.src = soundname;
+        audio.load();
+        audio.play().catch(() => {});
+    },
+
     showById: function (id) {
         document.getElementById(id).style.display = "block";
         return true;

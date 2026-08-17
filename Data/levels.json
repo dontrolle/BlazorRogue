@@ -4,8 +4,9 @@
       "no": 0,
       "id": "level0",
       "name": "The Wilds",
-      "height": 45,
-      "width": 60,
+      "height": 30,
+      "width": 45,
+      "background_soundtrack": "rico_casazza__divoka-sarka-forest-quiet-ambiance.mp3",
       "map_generator": {
         "generator_id": "cave_generator",
         "parameters": {
@@ -35,6 +36,7 @@
       "name": "The Dungeon",
       "height": 45,
       "width": 60,
+      "background_soundtrack": "szegvari__fantasy-temple.mp3",
       "map_generator": {
         "generator_id": "basic_dungeon_generator",
         "parameters": {
@@ -70,6 +72,7 @@
       "name": "The Cave",
       "height": 45,
       "width": 60,
+      "background_soundtrack": "Ambience_Cave_00.mp3",
       "map_generator": {
         "generator_id": "cave_generator",
         "parameters": {

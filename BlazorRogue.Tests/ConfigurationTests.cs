@@ -224,6 +224,7 @@ public class ConfigurationTests
                 Assert.Equal(number, level.Number);
                 Assert.False(string.IsNullOrWhiteSpace(level.Id));
                 Assert.False(string.IsNullOrWhiteSpace(level.Name));
+                Assert.False(string.IsNullOrWhiteSpace(level.BackgroundSoundtrack));
                 Assert.True(level.Width > 0);
                 Assert.True(level.Height > 0);
             }

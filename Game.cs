@@ -40,7 +40,7 @@ class Game
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        CurrentLevelNumber = 0;
+        CurrentLevelNumber = 1;
         var level = configuration.Levels[CurrentLevelNumber];
         MapGenerator = MapGeneratorFactory.Create(level, this);
 
@@ -71,6 +71,7 @@ class Game
         Map = MapGenerator.GenerateMap(player);
         References.Map = Map;
         CurrentLevelNumber = targetLevelNumber;
+        References.SoundManager.PlayBackgroundMusic(levelConfig.BackgroundSoundtrack);
 
         string verb = direction == StairDirection.Down ? "descend to" : "ascend to";
         AddMessage($"You {verb} {levelConfig.Name}.");

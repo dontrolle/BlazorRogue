@@ -13,6 +13,7 @@ public class MapGeneratorFactoryTests
             height: 10,
             width: 10,
             generatorId: generatorId,
+            backgroundSoundtrack: "test.mp3",
             settingsMap: SettingsMap.Empty
         );
 
