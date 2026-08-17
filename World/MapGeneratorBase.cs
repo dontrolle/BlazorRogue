@@ -11,6 +11,7 @@ namespace BlazorRogue.World;
 abstract class MapGeneratorBase(
     int width,
     int height,
+    int levelNumber,
     Game game,
     TileSet wallSet,
     SettingsMap settings
@@ -18,6 +19,7 @@ abstract class MapGeneratorBase(
 {
     protected readonly Map map = new(width, height, wallSet, game);
     protected readonly Configuration configuration = game.Configuration;
+    protected readonly int levelNumber = levelNumber;
     protected readonly Random random = new();
 
     // Decorations - shared by every DungeonGeneratorBase subclass, so levels.json groups these
@@ -81,14 +83,15 @@ abstract class MapGeneratorBase(
         return SelectRandomWeighted(wallSets, weights);
     }
 
-    public Map GenerateMap()
+    public Map GenerateMap(Moveable? existingPlayer = null)
     {
         var playerPos = CreateLayout();
 
         AddDoors();
         AddPostMapGenerationDecorations();
+        AddStairs();
 
-        AddPlayer(playerPos);
+        AddPlayer(playerPos, existingPlayer);
 
         AddMonsters();
 
@@ -98,11 +101,46 @@ abstract class MapGeneratorBase(
         return map;
     }
 
-    protected virtual void AddPlayer(Tuple<int, int> playerPos)
+    protected virtual void AddPlayer(Tuple<int, int> playerPos, Moveable? existingPlayer)
     {
-        var heroType = GetRandomElement(configuration.HeroTypes).Value;
-        var player = new Moveable(playerPos, null, heroType, new InventoryComponent());
-        map.AddPlayer(player);
+        if (existingPlayer is null)
+        {
+            var heroType = GetRandomElement(configuration.HeroTypes).Value;
+            existingPlayer = new Moveable(playerPos, null, heroType, new InventoryComponent());
+        }
+        else
+        {
+            existingPlayer.PlaceAt(playerPos.Item1, playerPos.Item2);
+        }
+        map.AddPlayer(existingPlayer);
+    }
+
+    /// <summary>
+    /// Guarantees a down-stair (to levelNumber + 1) and/or an up-stair (to levelNumber - 1) exist,
+    /// whenever those levels are defined in levels.json - unlike the percentage-chance decorations
+    /// above, missing stairs would make part of the dungeon unreachable.
+    /// </summary>
+    protected virtual void AddStairs()
+    {
+        Tuple<int, int>? downPos = null;
+        if (configuration.Levels.ContainsKey(levelNumber + 1))
+        {
+            downPos = GetRandomUnblockedMapTile();
+            map.AddGameObject(new Stair(downPos.Item1, downPos.Item2, StairDirection.Down));
+        }
+
+        if (configuration.Levels.ContainsKey(levelNumber - 1))
+        {
+            Tuple<int, int> upPos;
+            do
+            {
+                upPos = GetRandomUnblockedMapTile();
+            } while (
+                downPos is not null && upPos.Item1 == downPos.Item1 && upPos.Item2 == downPos.Item2
+            );
+
+            map.AddGameObject(new Stair(upPos.Item1, upPos.Item2, StairDirection.Up));
+        }
     }
 
     /// <summary>

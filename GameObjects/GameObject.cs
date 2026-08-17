@@ -64,6 +64,17 @@ abstract class GameObject
         Y += yDelta;
     }
 
+    /// <summary>
+    /// Teleports the object to an absolute position, e.g. when placing an existing player on a
+    /// freshly generated map. Unlike <see cref="Move"/>, this isn't a movement action - it has no
+    /// side effects (no walk sound, etc).
+    /// </summary>
+    internal void PlaceAt(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+
     protected virtual void OnGameObjectKilled(EventArgs e) => GameObjectKilled?.Invoke(this, e);
 
     internal void Kill()

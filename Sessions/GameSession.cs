@@ -74,6 +74,7 @@ sealed class GameSession
     {
         LastAccessed = timeProvider.GetUtcNow();
 
+        References.Game = Game;
         References.Configuration = Game.Configuration;
         References.Map = Game.Map;
         References.EffectsSystem = Game.EffectsSystem;

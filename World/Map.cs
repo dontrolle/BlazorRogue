@@ -221,6 +221,13 @@ class Map
     }
 
     /// <summary>
+    /// Unsubscribes this map's PlayerKilled handler from the player before it's placed onto a new
+    /// map (e.g. via stairs) - otherwise the player's GameObjectKilled event keeps a reference to
+    /// this (now discarded) map, and a later death would double-fire PlayerKilled.
+    /// </summary>
+    public void DetachPlayer() => Player.GameObjectKilled -= PlayerKilled;
+
+    /// <summary>
     /// True once the player has died. The game is then finished: no further turns are accepted and
     /// the only way on is to start a new game.
     /// </summary>

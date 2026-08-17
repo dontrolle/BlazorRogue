@@ -94,7 +94,7 @@
       "character": "&",
       "character_color": "gold",
       "img_folder": "uf_items",
-      "makeCoveringOffsetDecsTransparent": true      
+      "makeCoveringOffsetDecsTransparent": true
     },
     {
       "id": "chest_silver",
@@ -109,7 +109,25 @@
       "character": "&",
       "character_color": "silver",
       "img_folder": "uf_items",
-      "makeCoveringOffsetDecsTransparent": true      
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "stairs_down",
+      "name": "Stairs down",
+      "image": "floor_set_grey_9",
+      "info_text": "Stairs leading further down",
+      "vertical_offset": 0,
+      "character": ">",
+      "character_color": "White"
+    },
+    {
+      "id": "stairs_up",
+      "name": "Stairs up",
+      "image": "floor_set_grey_8",
+      "info_text": "Stairs leading back up",
+      "vertical_offset": 0,
+      "character": "<",
+      "character_color": "White"
     }
   ]
 }

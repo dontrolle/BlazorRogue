@@ -8,6 +8,14 @@
 public class GameTests
 {
     [Fact]
+    public void NewGameStartsOnLevelZero()
+    {
+        var game = new Game();
+
+        Assert.Equal(0, game.CurrentLevelNumber);
+    }
+
+    [Fact]
     public void NewGameGeneratesAPlayableMapWithAPlacedPlayer()
     {
         var game = new Game();

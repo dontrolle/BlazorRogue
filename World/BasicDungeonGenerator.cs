@@ -10,12 +10,14 @@ namespace BlazorRogue.World;
 /// </summary>
 /// <param name="width">Dungeon width</param>
 /// <param name="height">Dungeon height</param>
+/// <param name="levelNumber">The level's "no" in levels.json, used e.g. to decide which stairs exist</param>
 /// <param name="game">Game instance</param>
 /// <param name="settings">Map settings</param>
-class BasicDungeonGenerator(int width, int height, Game game, SettingsMap settings)
+class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, SettingsMap settings)
     : MapGeneratorBase(
         width,
         height,
+        levelNumber,
         game,
         SelectWallSet(game.Configuration, settings, game.Configuration.DungeonWallSets),
         settings

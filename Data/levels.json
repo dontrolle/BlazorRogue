@@ -3,7 +3,7 @@
     {
       "no": 0,
       "id": "level0",
-      "name": "The Town",
+      "name": "The Upper Dungeon",
       "height": 45,
       "width": 60,
       "map_generator": {
@@ -14,7 +14,7 @@
     {
       "no": 1,
       "id": "level1",
-      "name": "The Dungeon",
+      "name": "The Lower Dungeon",
       "height": 45,
       "width": 60,
       "map_generator": {

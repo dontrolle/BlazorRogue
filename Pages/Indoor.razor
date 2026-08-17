@@ -269,6 +269,13 @@ else
         </div>
     </span>
 
+    <div class="message_log">
+        @foreach (var message in game.Messages)
+        {
+            <div class="message_log_entry">@message</div>
+        }
+    </div>
+
     @if (showHelp)
     {
         <div class="help_backdrop" @onclick="CloseHelp">
@@ -651,6 +658,8 @@ else
         // in use, so an actively played game is never evicted as idle.
         session.Activate(soundManager!);
 
+        var mapBeforeAction = game.Map;
+
         if (OnKeyPress(key, code, shiftKey))
         {
             game.Map.PlayerTookTurn();
@@ -660,31 +669,42 @@ else
             // half-finished snapshot from before the monsters moved.
             game.Map.RenderMoveables();
 
-            // adjust window
-            // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
-          if (game.Map.Player.X - windowXOffset < windowMoveBufferX)
+            if (game.Map != mapBeforeAction)
             {
-                windowXOffset--;
+                // Stairs replaced the whole map (and thus the player's coordinates) outright -
+                // the incremental nudge below assumes step-by-step movement between neighbouring
+                // tiles on the *same* map, so it can't be used here. Re-fit instead, in case the
+                // new level's dimensions differ too.
+                await FitMapToViewportAsync();
             }
-
-            if (windowXOffset + windowWidth - game.Map.Player.X < windowMoveBufferX)
+            else
             {
-                windowXOffset++;
+                // adjust window
+                // NOTE: Assumes step-by-step movement between neighbouring tiles, and optimizes for this (so does not handle, say teleportation)
+                if (game.Map.Player.X - windowXOffset < windowMoveBufferX)
+                {
+                    windowXOffset--;
+                }
+
+                if (windowXOffset + windowWidth - game.Map.Player.X < windowMoveBufferX)
+                {
+                    windowXOffset++;
+                }
+
+                windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
+
+                if (game.Map.Player.Y - windowYOffset < windowMoveBufferY)
+                {
+                    windowYOffset--;
+                }
+
+                if (windowYOffset + windowHeight - game.Map.Player.Y < windowMoveBufferY)
+                {
+                    windowYOffset++;
+                }
+
+                windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
             }
-
-            windowXOffset = Math.Clamp(windowXOffset, 0, game.Map.Width - windowWidth);
-
-            if (game.Map.Player.Y - windowYOffset < windowMoveBufferY)
-            {
-                windowYOffset--;
-            }
-
-            if (windowYOffset + windowHeight - game.Map.Player.Y < windowMoveBufferY)
-            {
-                windowYOffset++;
-            }
-
-            windowYOffset = Math.Clamp(windowYOffset, 0, game.Map.Height - windowHeight);
         }
     }
 

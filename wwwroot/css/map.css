@@ -35,6 +35,34 @@
   margin-left:10px;
 }
 
+/* Bottom bar under the map, showing the last few Game.Messages entries (e.g. stair transitions).
+   Fixed to the viewport rather than flowing after the map grid - the grid's height depends on
+   window size/tile size (ASCII vs graphics), so a normal in-flow position can end up pushed below
+   the fold. pointer-events: none so it never blocks clicks on the map underneath. */
+.message_log {
+  position: fixed;
+  left: 160px;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 4px 10px;
+  color: white;
+  opacity: 0.85;
+  font-size: 0.9em;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+  z-index: 10;
+}
+
+.message_log_entry {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Icon-based stat rows (see div[data-tool-tip] tooltip rules below for the hover explainer). */
 .stat-icon {
   display: flex;

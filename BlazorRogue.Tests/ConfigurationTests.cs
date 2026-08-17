@@ -122,6 +122,15 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsStairsDownAndUp()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.True(configuration.StaticDecorativeObjectTypes.ContainsKey("stairs_down"));
+        Assert.True(configuration.StaticDecorativeObjectTypes.ContainsKey("stairs_up"));
+    }
+
+    [Fact]
     public void ParseLoadedFloorSetIdsAreUnique()
     {
         // Configuration.Parse() reads from the real Data files, so we cover the duplicate-id guard
