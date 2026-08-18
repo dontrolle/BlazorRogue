@@ -63,7 +63,7 @@ class Stair(int x, int y, StairDirection direction)
                     Character = CharacterFor(Direction),
                     CharacterColor = CharacterColor,
                     OnUse = UseableComponent!.Use,
-                    MakeCoveringOffsetDecsTransparent = true
+                    MakeCoveringOffsetDecsTransparent = true,
                 }
             );
     }
