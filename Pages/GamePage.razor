@@ -4,6 +4,7 @@
 @using System.Linq
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.JSInterop
+@using BlazorRogue.Effects
 @using BlazorRogue.Sessions
 @using BlazorRogue.World
 @implements IAsyncDisposable
@@ -337,7 +338,7 @@ else
 </audio>
 
 @code {
-    private DotNetObjectReference<Indoor>? _selfRef;
+    private DotNetObjectReference<GamePage>? _selfRef;
     private bool _resizeHandlingInProgress;
 
     private sealed record HealthBarMetrics(

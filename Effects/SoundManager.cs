@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
-namespace BlazorRogue;
+namespace BlazorRogue.Effects;
 
 class SoundManager(IJSRuntime jsRuntime)
 {

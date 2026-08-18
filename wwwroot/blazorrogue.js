@@ -59,7 +59,7 @@ window.blazorroguefuncs = {
     registerKeyup: function (dotNetRef) {
         window.blazorroguefuncs.unregisterKeyup();
 
-        // Ctrl+A doubles as the ASCII/tileset toggle (see KeyUp in Indoor.razor). Without this,
+        // Ctrl+A doubles as the ASCII/tileset toggle (see KeyUp in GamePage.razor). Without this,
         // the browser's native "select all" fires on keydown before our keyup handler ever runs,
         // highlighting the whole page every time the game is toggled.
         const keydownHandler = (e) => {

@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.Tests;
+﻿using BlazorRogue.Utility;
+
+namespace BlazorRogue.Tests;
 
 public class UtilityMethodsTests
 {
