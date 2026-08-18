@@ -47,17 +47,21 @@ class FightingSystem(Game game) : IFightingSystem
             attacker.ResetAdvantage();
         }
 
-        string description = hit ? "hits" : "misses";
-        string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
-        Game.AddMessage(
-            $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"
-        );
-
-        if (Game.DebugMode)
+        // if we're not in a test, then add messages
+        if (Game != null)
         {
+            string description = hit ? "hits" : "misses";
+            string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
             Game.AddMessage(
-                $"({attacker.Owner!.Name} rolls {toHitRoll} => SL {attackerSL}) ({defender.Owner!.Name} rolls {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
+                $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"
             );
+
+            if (Game.DebugMode)
+            {
+                Game.AddMessage(
+                    $"({attacker.Owner!.Name} rolls {toHitRoll} => SL {attackerSL}) ({defender.Owner!.Name} rolls {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
+                );
+            }
         }
 
         return hit;
