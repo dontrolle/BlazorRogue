@@ -1,3 +1,4 @@
+using BlazorRogue.Effects;
 using BlazorRogue.Entities;
 using BlazorRogue.Sessions;
 using BlazorRogue.Tests.TestSupport;

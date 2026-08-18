@@ -1,4 +1,5 @@
 using System;
+using BlazorRogue.Effects;
 using BlazorRogue.Entities;
 
 namespace BlazorRogue.Sessions;

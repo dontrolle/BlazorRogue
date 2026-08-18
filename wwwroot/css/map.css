@@ -294,7 +294,7 @@
 }
 
 /* ?-triggered help overlay: any keypress or a backdrop click dismisses it (see KeyUp/CloseHelp
-   in Indoor.razor). Sits above .game_over (z-index 10) and tooltips (z-index 5). */
+   in GamePage.razor). Sits above .game_over (z-index 10) and tooltips (z-index 5). */
 .help_backdrop {
   position: fixed;
   inset: 0;

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using BlazorRogue.Effects;
 using Microsoft.JSInterop;
 
 namespace BlazorRogue.Tests.TestSupport;

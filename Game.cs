@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using BlazorRogue.Combat.Warhammer;
+using BlazorRogue.Effects;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;

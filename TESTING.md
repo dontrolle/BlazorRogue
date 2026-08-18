@@ -8,7 +8,7 @@ writing tests and how to manually verify changes that can't be unit tested.
 xUnit project covering core, UI-independent game logic: dice/combat math (`Combat/`),
 `Configuration` JSON parsing, `Map` geometry helpers, and end-to-end dungeon-generation smoke tests.
 It references `BlazorRogue.csproj` directly (`InternalsVisibleTo` in `BlazorRogue.csproj` lets tests
-wire up internal-setter statics like `References.SoundManager`, mirroring how `Pages/Indoor.razor`
+wire up internal-setter statics like `References.SoundManager`, mirroring how `Pages/GamePage.razor`
 does it at runtime), and mirrors `Data/*.json` into its own output directory since
 `Configuration.Parse()` reads them via relative `Data\...` paths at the working directory. Add or
 update tests here for changes to game logic (combat, configuration parsing, map/dungeon generation).

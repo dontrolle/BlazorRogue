@@ -29,7 +29,7 @@ how to test changes in these areas.
   constructing a `Game` writes them as a side effect. So whichever game was built last would
   otherwise win — one player's keypress mutating another's map. Every handler that touches game
   state must therefore call `session.Activate(soundManager)` first (see `KeyUp` in
-  `Pages/Indoor.razor`); `Activate` is the single place the statics are written. This is safe only
+  `Pages/GamePage.razor`); `Activate` is the single place the statics are written. This is safe only
   because the game loop is fully synchronous — nothing awaits between activation and the end of the
   handler, so no other circuit can interleave. **Do not read `References.*` during render**, which
   happens outside any handler; use the component's own `game` instance instead.
@@ -62,7 +62,7 @@ how to test changes in these areas.
   and `Orientation.cs`.
   `Vision/` implements field-of-view (the Adam Milazzo visibility algorithm, `AdamMilVisibility`).
   Rendering is split between a tileset path and an ASCII path — `GameObject.Render(Map map)` is the
-  per-object hook, and `Pages/Indoor.razor` is the Blazor page that renders the grid, switching
+  per-object hook, and `Pages/GamePage.razor` is the Blazor page that renders the grid, switching
   between tileset and ASCII based on the `renderAscii` flag.
   Most map state is *derived*: `Decorations`, `MoveableDecorations`, `BlocksLightMap`,
   `BlocksMovementMap` and `IsVisibleMap` are all rebuilt by `PostGenInitalize()`/the `Render*`
@@ -77,7 +77,7 @@ how to test changes in these areas.
   (`blazorroguefuncs.registerKeyup` in `wwwroot/blazorrogue.js`), not a Blazor `@onkeyup` on the map
   div — so movement works no matter what has focus (or nothing does), with no click-to-focus step.
   The listener is registered once in `OnAfterRenderAsync` against a shared `DotNetObjectReference`
-  (the same one `blazorViewport.registerResize` uses) and calls back into `Indoor.OnGlobalKeyUp`,
+  (the same one `blazorViewport.registerResize` uses) and calls back into `GamePage.OnGlobalKeyUp`,
   which forwards to the same `KeyUp`/`OnKeyPress` logic and then calls `StateHasChanged` itself,
   since a JS-invoked callback doesn't auto-render the way a Blazor-bound event does. Both listeners
   are unregistered in `DisposeAsync`.
