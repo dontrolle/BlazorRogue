@@ -19,6 +19,7 @@ class Game
     public int CurrentLevelNumber { get; private set; }
 
     const int MaxMessages = 5;
+    internal bool DebugMode;
     readonly List<string> messages = [];
     public IReadOnlyList<string> Messages => messages;
 
