@@ -2,7 +2,6 @@
   "uf_floor_sets": [
     {
       "id": "ground_grass",
-      "special": true,
       "img_prefix": "ground_grass",
       "img_floor": [
         1,
@@ -15,7 +14,6 @@
     },
     {
       "id": "ground_dirt_brown",
-      "special": true,
       "img_prefix": "ground_dirt_brown",
       "img_floor": [
         1,
@@ -28,7 +26,6 @@
     },    
     {
       "id": "ground_crusted",
-      "special": true,
       "img_prefix": "ground_crusted",
       "img_floor": [
         1,
@@ -41,7 +38,6 @@
     },    
     {
       "id": "blue",
-      "special": false,
       "img_prefix": "floor_set_blue",
       "img_floor": [
         1,
@@ -59,7 +55,6 @@
     },
     {
       "id": "dark",
-      "special": false,
       "img_prefix": "floor_set_dark",
       "img_floor": [
         1,
@@ -77,7 +72,6 @@
     },
     {
       "id": "grey",
-      "special": false,
       "img_prefix": "floor_set_grey",
       "img_floor": [
         1,
@@ -95,7 +89,6 @@
     },
     {
       "id": "diagonal_blue",
-      "special": true,
       "img_prefix": "floor_diagonal_blue",
       "img_floor": [
         1,
@@ -108,7 +101,6 @@
     },
     {
       "id": "diagonal_red",
-      "special": true,
       "img_prefix": "floor_diagonal_red",
       "img_floor": [
         1,
@@ -121,7 +113,6 @@
     },
     {
       "id": "crusted_grey",
-      "special": true,
       "img_prefix": "floor_crusted_grey",
       "img_floor": [
         1,
@@ -134,7 +125,6 @@
     },
     {
       "id": "extra_1",
-      "special": true,
       "img_prefix": "floor_extra",
       "img_floor": [
         1
@@ -144,7 +134,6 @@
     },
     {
       "id": "extra_2",
-      "special": true,
       "img_prefix": "floor_extra",
       "img_floor": [
         2

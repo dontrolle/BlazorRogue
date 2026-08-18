@@ -14,6 +14,7 @@ namespace BlazorRogue.Tests;
 public class DungeonGeneratorBaseTests
 {
     static readonly string[] DungeonAndCryptIds = ["dungeon", "crypt"];
+    static readonly string[] GreyAndDarkFloorSetIds = ["grey", "dark"];
 
     static SettingsMap SettingsWithWallTileSet(params (string Id, double Weight)[] weights) =>
         new(
@@ -23,6 +24,30 @@ public class DungeonGeneratorBaseTests
                     new Dictionary<string, object>
                     {
                         ["wall_tile_set"] = new List<(string, double)>(weights),
+                    }
+                ),
+            }
+        );
+
+    static SettingsMap SettingsWithWallAndFloorTileSet(
+        (string Id, double Weight)[] wallWeights,
+        (string Id, double Weight)[] commonFloorWeights,
+        (string Id, double Weight)[]? specialFloorWeights = null
+    ) =>
+        new(
+            new Dictionary<string, object>
+            {
+                ["common"] = new SettingsMap(
+                    new Dictionary<string, object>
+                    {
+                        ["wall_tile_set"] = new List<(string, double)>(wallWeights),
+                        ["floor_tile_set"] = new SettingsMap(
+                            new Dictionary<string, object>
+                            {
+                                ["common"] = new List<(string, double)>(commonFloorWeights),
+                                ["special"] = new List<(string, double)>(specialFloorWeights ?? []),
+                            }
+                        ),
                     }
                 ),
             }
@@ -112,5 +137,94 @@ public class DungeonGeneratorBaseTests
             MapGeneratorFactory.Create(level, game).GenerateMap()
         );
         Assert.Contains("crypt", ex.Message);
+    }
+
+    static IEnumerable<TileSet> FloorTileSetsUsedIn(Map map)
+    {
+        for (int x = 0; x < map.Width; x++)
+        {
+            for (int y = 0; y < map.Height; y++)
+            {
+                if (map.Tiles[x, y].TileType == TileType.Floor)
+                {
+                    yield return map.Tiles[x, y].TileSet;
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void GeneratedMapOnlyEverUsesFloorTileSetIdsListedInCommonPool()
+    {
+        // Mirrors GeneratedMapOnlyEverUsesWallTileSetIdsListedInLevelSettings, but for
+        // "common.floor_tile_set.common". percentage_chance_of_special_room is forced to 0 so no
+        // room can pull from the (here empty) "special" pool instead.
+        var game = new Game();
+        var settings = new SettingsMap(
+            new Dictionary<string, object>
+            {
+                ["common"] = new SettingsMap(
+                    new Dictionary<string, object>
+                    {
+                        ["wall_tile_set"] = new List<(string, double)> { ("dungeon", 1.0) },
+                        ["floor_tile_set"] = new SettingsMap(
+                            new Dictionary<string, object>
+                            {
+                                ["common"] = new List<(string, double)>
+                                {
+                                    ("grey", 1.0),
+                                    ("dark", 1.0),
+                                },
+                            }
+                        ),
+                    }
+                ),
+                ["layout"] = new SettingsMap(
+                    new Dictionary<string, object> { ["percentage_chance_of_special_room"] = 0.0 }
+                ),
+            }
+        );
+        var level = LevelWith(BasicDungeonGenerator.Id, settings);
+
+        var map = MapGeneratorFactory.Create(level, game).GenerateMap();
+
+        Assert.All(
+            FloorTileSetsUsedIn(map),
+            floorSet => Assert.Contains(floorSet.Id, GreyAndDarkFloorSetIds)
+        );
+    }
+
+    [Fact]
+    public void GeneratedMapFallsBackToAllFloorSetsWhenFloorTileSetIsUnspecified()
+    {
+        // SettingsMap.Empty must still resolve to some valid floor-set from every known floorset
+        // rather than throwing.
+        var game = new Game();
+        var level = LevelWith(BasicDungeonGenerator.Id, SettingsMap.Empty);
+
+        var map = MapGeneratorFactory.Create(level, game).GenerateMap();
+
+        var knownFloorSetIds = game.Configuration.FloorSets.Select(t => t.Id).ToHashSet();
+        Assert.All(
+            FloorTileSetsUsedIn(map),
+            floorSet => Assert.Contains(floorSet.Id, knownFloorSetIds)
+        );
+    }
+
+    [Fact]
+    public void CaveGeneratorUsesTheSingleFloorTileSetIdSpecifiedInCommonPool()
+    {
+        var game = new Game();
+        var level = LevelWith(
+            CaveGenerator.Id,
+            SettingsWithWallAndFloorTileSet(
+                wallWeights: [("cave", 1.0)],
+                commonFloorWeights: [("crusted_grey", 1.0)]
+            )
+        );
+
+        var map = MapGeneratorFactory.Create(level, game).GenerateMap();
+
+        Assert.All(FloorTileSetsUsedIn(map), floorSet => Assert.Equal("crusted_grey", floorSet.Id));
     }
 }

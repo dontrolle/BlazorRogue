@@ -83,6 +83,34 @@ abstract class MapGeneratorBase(
         return SelectRandomWeighted(wallSets, weights);
     }
 
+    /// <summary>
+    /// Resolves a named floor-set pool (e.g. "common" or "special") for a level: weighted ids
+    /// listed under the level's <c>common.floor_tile_set.&lt;pool&gt;</c> setting, or - when that
+    /// pool is unspecified/empty - a uniform pool over <paramref name="defaultPool"/> (typically
+    /// every known floor-set). Returns the resolved pool rather than a single pick, since callers
+    /// may need to pick from it repeatedly (e.g. once per room).
+    /// </summary>
+    protected static (TileSet[] TileSets, double[] Weights) ResolveFloorPool(
+        Configuration configuration,
+        SettingsMap settings,
+        string pool,
+        IEnumerable<TileSet> defaultPool
+    )
+    {
+        var weighted = CommonSettings(settings)
+            .GetMap("floor_tile_set", SettingsMap.Empty)
+            .GetWeightedIds(pool, []);
+        if (weighted.Count == 0)
+        {
+            TileSet[] defaultTileSets = [.. defaultPool];
+            return (defaultTileSets, [.. defaultTileSets.Select(_ => 1.0)]);
+        }
+
+        TileSet[] floorSets = [.. weighted.Select(w => configuration.FloorSetById(w.Id))];
+        double[] weights = [.. weighted.Select(w => w.Weight)];
+        return (floorSets, weights);
+    }
+
     public Map GenerateMap(Moveable? existingPlayer = null)
     {
         var playerPos = CreateLayout();

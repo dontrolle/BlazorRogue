@@ -14,6 +14,12 @@
             "wall_tile_set": [
               [ "hedge" , 1 ]
             ],
+            "floor_tile_set": {
+              "common": [
+                ["ground_grass", 1],
+                ["ground_crusted", 1]
+              ]
+            },
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0,
             "percentage_chance_of_altars": 0,
@@ -24,8 +30,7 @@
           "layout": {
             "percentage_chance_of_initial_wall": 0.3,
             "smoothing_pass_one_iterations": 3,
-            "smoothing_pass_two_iterations": 2,
-            "floor_tile_set": "ground_grass"
+            "smoothing_pass_two_iterations": 2
           }
         }
       }
@@ -46,6 +51,19 @@
               [ "dungeon", 1 ],
               [ "ruins", 1 ]
             ],
+            "floor_tile_set": {
+              "common": [
+                ["blue", 1], 
+                ["dark", 1], 
+                ["grey", 1]
+              ], 
+              "special": [
+                ["diagonal_blue", 1],
+                ["diagonal_red", 1],
+                ["extra_1", 1],
+                ["extra_2", 1]
+              ]
+            },
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.06,
             "percentage_chance_of_altars": 0.04,
@@ -79,7 +97,12 @@
           "common": {
             "wall_tile_set": [
               [ "cave" , 1 ]
-            ],            
+            ],
+            "floor_tile_set": {
+              "common": [
+                [ "crusted_grey", 1 ]
+              ]
+            },
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.01,
             "percentage_chance_of_altars": 0.01,
@@ -90,8 +113,7 @@
           "layout": {
             "percentage_chance_of_initial_wall": 0.4,
             "smoothing_pass_one_iterations": 4,
-            "smoothing_pass_two_iterations": 3,
-            "floor_tile_set": "crusted_grey"
+            "smoothing_pass_two_iterations": 3
           }
         }
       }
