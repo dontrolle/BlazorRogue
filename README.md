@@ -113,17 +113,22 @@ GameObjects/                      GameObject and its subclasses (Moveable, Door,
 Components/                       Component base class, InventoryComponent, UseableComponent
 Combat/                           Combat system, incl. the Warhammer-inspired ruleset (Combat/Warhammer/)
 AI/                               Monster AI components
+Effects/                          EffectsSystem (screen shake) and SoundManager (audio cues)
 Vision/                           Field-of-view implementation
 World/                            Map, Tile, Decoration, map generators (IMapGenerator and
                                    implementors) and related types
+Rendering/                        AnimationCssGenerator (generates @keyframes CSS from
+                                   monster/hero animation data)
 Entities/                         Type definitions parsed from configuration (MoveableType,
                                    LevelConfiguration, SettingsMap, etc.), plus Configuration.cs
                                    which parses Data/*.json into them
 Sessions/                         Per-browser session state that survives page reloads
+Utility/                          Small standalone helpers (e.g. string extension methods)
 Data/                             JSON game data: monsters, heroes, floorsets, wallsets,
                                    decorations, levels
 Game.cs / References.cs           Core game state (see Architecture below)
 wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
+docker/                           Dockerfile and Dockerfile.graphics (see Docker below)
 ```
 
 ## Architecture
