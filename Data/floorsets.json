@@ -9,6 +9,14 @@
         3,
         4
       ],
+      "img_stairs": {
+        "up": [
+          ["floor_set_grey_8", 1]
+        ],
+        "down": [
+          ["door_trap_closed_brown", 1]
+        ]
+      },
       "character": ".",
       "character_color": "green"
     },
@@ -21,6 +29,15 @@
         3,
         4
       ],
+      "img_stairs": {
+        "up": [
+          ["floor_set_grey_8", 1]
+        ],
+        "down": [
+          ["door_trap_closed_brown", 1],
+          ["door_trap_closed_tan", 1]
+        ]
+      },      
       "character": ".",
       "character_color": "brown"
     },    
@@ -33,6 +50,14 @@
         3,
         4
       ],
+      "img_stairs": {
+        "up": [
+          ["floor_set_grey_8", 1]
+        ],
+        "down": [
+          ["door_trap_closed_brown", 1]
+        ]
+      },      
       "character": ".",
       "character_color": "brown"
     },    
@@ -47,8 +72,12 @@
         5
       ],
       "img_stairs": {
-        "up": 8,
-        "down": 9
+        "up": [
+          ["floor_set_blue_8", 1]
+        ],
+        "down": [
+          ["floor_set_blue_9", 1]
+        ]
       },
       "character": ".",
       "character_color": "blue"
@@ -64,8 +93,12 @@
         5
       ],
       "img_stairs": {
-        "up": 8,
-        "down": 9
+        "up": [
+          ["floor_set_dark_8", 1]
+        ],
+        "down": [
+          ["floor_set_dark_9", 1]
+        ]
       },
       "character": ".",
       "character_color": "#5E5D5D"
@@ -81,8 +114,12 @@
         5
       ],
       "img_stairs": {
-        "up": 8,
-        "down": 9
+        "up": [
+          ["floor_set_grey_8", 1]
+        ],
+        "down": [
+          ["floor_set_grey_9", 1]
+        ]
       },
       "character": ".",
       "character_color": "gray"

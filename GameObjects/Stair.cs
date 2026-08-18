@@ -1,5 +1,6 @@
 using System;
 using BlazorRogue.Components;
+using BlazorRogue.Entities;
 using BlazorRogue.World;
 
 namespace BlazorRogue.GameObjects;
@@ -14,6 +15,11 @@ class Stair(int x, int y, StairDirection direction)
     : GameObject(x, y, NameFor(direction), useableComponent: new UseableComponent(Use))
 {
     public StairDirection Direction { get; } = direction;
+
+    // Weighted-picked once (see Render) and then reused on every subsequent Render call, so a
+    // stair with multiple weighted image options doesn't change its displayed art between
+    // re-renders.
+    string? pickedImageName;
 
     static string NameFor(StairDirection direction) =>
         direction switch
@@ -50,15 +56,18 @@ class Stair(int x, int y, StairDirection direction)
     public override void Render(Map map)
     {
         var tileSet = map.Tiles[X, Y].TileSet;
-        var stairsSource = tileSet.StairImageIndexes is not null
+        var stairsSource = tileSet.StairImages is not null
             ? tileSet
             : References.Configuration.DefaultStairsFloorSet;
-        var (up, down) = stairsSource.StairImageIndexes!.Value;
-        int index = Direction == StairDirection.Down ? down : up;
+        var (up, down) = stairsSource.StairImages!.Value;
+        pickedImageName ??= TileSet.PickWeighted(
+            Direction == StairDirection.Down ? down : up,
+            Random.Shared
+        );
 
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, stairsSource.ImageName(index))
+                new Decoration(this, pickedImageName)
                 {
                     Character = CharacterFor(Direction),
                     CharacterColor = CharacterColor,

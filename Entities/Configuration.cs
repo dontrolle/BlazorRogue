@@ -179,7 +179,7 @@ class Configuration
         }
 
         DefaultStairsFloorSet = FloorSetById(DefaultStairsFloorSetId);
-        if (DefaultStairsFloorSet.StairImageIndexes is null)
+        if (DefaultStairsFloorSet.StairImages is null)
         {
             throw new InvalidOperationException(
                 $"Floor-set '{DefaultStairsFloorSetId}' is the fallback stair-image source for floor-sets "
@@ -296,6 +296,31 @@ class Configuration
         return [.. ids.Zip(weights, (id, weight) => (id, weight))];
     }
 
+    /// <summary>
+    /// Parses a required <c>img_stairs.&lt;property&gt;</c> weighted image-name list, e.g.
+    /// <c>"up": [["floor_set_grey_8", 1]]</c>, into a <see cref="TileSet.StairImages"/>
+    /// direction's array. Entries are literal image names, not indexes relative to the floor-set's
+    /// own <c>img_prefix</c>, so a floor-set's stairs can borrow art from a different image prefix.
+    /// </summary>
+    static (string Name, double Weight)[] GetWeightedImageNames(
+        JsonElement stairsElement,
+        string property,
+        string floorSetId
+    )
+    {
+        var weightedIds = ParseWeightedIds(
+            stairsElement.GetProperty(property),
+            $"img_stairs.{property}"
+        );
+        if (weightedIds.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Floor-set '{floorSetId}' has an \"img_stairs.{property}\" list with no entries - at least one weighted image name is required."
+            );
+        }
+        return [.. weightedIds.Select(w => (w.Id, w.Weight))];
+    }
+
     void ParseFloorSetType(JsonElement element)
     {
         string id,
@@ -310,13 +335,13 @@ class Configuration
         charFloor = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
-        (int, int)? stairImageIndexes = null;
+        ((string Name, double Weight)[] Up, (string Name, double Weight)[] Down)? stairImages =
+            null;
         if (element.TryGetProperty("img_stairs", out var stairsElement))
         {
-            stairImageIndexes = (
-                stairsElement.GetProperty("up").GetInt32(),
-                stairsElement.GetProperty("down").GetInt32()
-            );
+            var up = GetWeightedImageNames(stairsElement, "up", id);
+            var down = GetWeightedImageNames(stairsElement, "down", id);
+            stairImages = (up, down);
         }
 
         var t = new TileSet(
@@ -324,7 +349,7 @@ class Configuration
             TileType.Floor,
             imgPrefix,
             [.. imgFloorList],
-            stairImageIndexes: stairImageIndexes,
+            stairImages: stairImages,
             character: charFloor,
             characterColor: charColor
         );

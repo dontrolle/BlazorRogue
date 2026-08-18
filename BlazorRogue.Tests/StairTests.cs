@@ -6,6 +6,12 @@ namespace BlazorRogue.Tests;
 
 public class StairTests
 {
+    static readonly string[] GroundGrassDownStairOptions =
+    [
+        "door_trap_closed_brown",
+        "door_trap_closed_tan",
+    ];
+
     [Fact]
     public void RenderUsesTheStairsOwnFloorSetImageWhenItDefinesStairImages()
     {
@@ -26,21 +32,49 @@ public class StairTests
     {
         var game = new Game();
         var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
-        var groundGrass = game.Configuration.FloorSetById("ground_grass");
-        Assert.Null(groundGrass.StairImageIndexes); // guards the premise of this test
-        game.Map.Tiles[x, y].TileSet = groundGrass;
+        var groundDirtBrown = game.Configuration.FloorSetById("extra_2");
+        Assert.Null(groundDirtBrown.StairImages); // guards the premise of this test
+        game.Map.Tiles[x, y].TileSet = groundDirtBrown;
         game.Map.Decorations[x, y].Clear();
 
         var stair = new Stair(x, y, StairDirection.Up);
         stair.Render(game.Map);
 
         var decoration = Assert.Single(game.Map.Decorations[x, y]);
-        Assert.Equal(
-            game.Configuration.DefaultStairsFloorSet.ImageName(
-                game.Configuration.DefaultStairsFloorSet.StairImageIndexes!.Value.Up
-            ),
-            decoration.ImageName
-        );
+        var (upOptions, _) = game.Configuration.DefaultStairsFloorSet.StairImages!.Value;
+        Assert.Contains(decoration.ImageName, upOptions.Select(o => o.Name));
+    }
+
+    [Fact]
+    public void RenderPicksAmongMultipleWeightedOptionsForADirection()
+    {
+        var game = new Game();
+        var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
+        game.Map.Tiles[x, y].TileSet = game.Configuration.FloorSetById("ground_grass");
+        game.Map.Decorations[x, y].Clear();
+
+        var stair = new Stair(x, y, StairDirection.Down);
+        stair.Render(game.Map);
+
+        var decoration = Assert.Single(game.Map.Decorations[x, y]);
+        Assert.Contains(decoration.ImageName, GroundGrassDownStairOptions);
+    }
+
+    [Fact]
+    public void RenderReusesTheSamePickedImageAcrossRepeatedRenderCalls()
+    {
+        var game = new Game();
+        var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
+        game.Map.Tiles[x, y].TileSet = game.Configuration.FloorSetById("ground_grass");
+        game.Map.Decorations[x, y].Clear();
+
+        var stair = new Stair(x, y, StairDirection.Down);
+        stair.Render(game.Map);
+        stair.Render(game.Map);
+
+        Assert.Equal(2, game.Map.Decorations[x, y].Count);
+        var imageNames = game.Map.Decorations[x, y].Select(d => d.ImageName).Distinct();
+        Assert.Single(imageNames);
     }
 
     [Fact]
