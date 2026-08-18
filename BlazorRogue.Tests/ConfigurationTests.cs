@@ -162,24 +162,35 @@ public class ConfigurationTests
         var configuration = ParseConfiguration();
 
         var grey = configuration.FloorSetById("grey");
-        Assert.Equal((8, 9), grey.StairImageIndexes);
+        Assert.Equal([("floor_set_grey_8", 1)], grey.StairImages!.Value.Up);
+        Assert.Equal([("floor_set_grey_9", 1)], grey.StairImages!.Value.Down);
 
         var blue = configuration.FloorSetById("blue");
-        Assert.Equal((8, 9), blue.StairImageIndexes);
+        Assert.Equal([("floor_set_blue_8", 1)], blue.StairImages!.Value.Up);
+        Assert.Equal([("floor_set_blue_9", 1)], blue.StairImages!.Value.Down);
 
         var dark = configuration.FloorSetById("dark");
-        Assert.Equal((8, 9), dark.StairImageIndexes);
+        Assert.Equal([("floor_set_dark_8", 1)], dark.StairImages!.Value.Up);
+        Assert.Equal([("floor_set_dark_9", 1)], dark.StairImages!.Value.Down);
+
+        // "ground_grass" is drafted with a genuinely multi-option weighted "down" list.
+        var groundGrass = configuration.FloorSetById("ground_grass");
+        Assert.Equal([("floor_set_grey_8", 1)], groundGrass.StairImages!.Value.Up);
+        Assert.Equal(
+            [("door_trap_closed_brown", 1), ("door_trap_closed_tan", 1)],
+            groundGrass.StairImages!.Value.Down
+        );
     }
 
     [Fact]
     public void ParseLoadsFloorSetsWithoutStairImagesAsNull()
     {
-        // "ground_grass" doesn't currently ship dedicated stair art; Stair.Render is expected to
-        // fall back to Configuration.DefaultStairsFloorSet for these.
+        // "ground_dirt_brown" doesn't ship dedicated stair art; Stair.Render is expected to fall
+        // back to Configuration.DefaultStairsFloorSet for these.
         var configuration = ParseConfiguration();
 
-        var groundGrass = configuration.FloorSetById("ground_grass");
-        Assert.Null(groundGrass.StairImageIndexes);
+        var groundDirtBrown = configuration.FloorSetById("ground_dirt_brown");
+        Assert.Null(groundDirtBrown.StairImages);
     }
 
     [Fact]
@@ -191,7 +202,7 @@ public class ConfigurationTests
         var configuration = ParseConfiguration();
 
         Assert.Equal("grey", configuration.DefaultStairsFloorSet.Id);
-        Assert.NotNull(configuration.DefaultStairsFloorSet.StairImageIndexes);
+        Assert.NotNull(configuration.DefaultStairsFloorSet.StairImages);
     }
 
     [Fact]

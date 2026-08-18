@@ -38,10 +38,14 @@ class TileSet
     public (int Left, int Right)? EdgeSouthIndexes { get; }
     public (int Left, int Right)? EdgeFreeIndexes { get; }
 
-    // Per-floorset stair art (see Data/floorsets.json's optional "img_stairs" object). Null when
-    // this floorset doesn't define its own stair art, in which case callers fall back to
-    // Configuration.DefaultStairsFloorSet.
-    public (int Up, int Down)? StairImageIndexes { get; }
+    // Per-floorset stair art (see Data/floorsets.json's optional "img_stairs" object): weighted
+    // lists of literal image names (not indexes relative to ImgPrefix, so a floorset's stairs can
+    // borrow art from a different image prefix entirely). Null when this floorset doesn't define
+    // its own stair art, in which case callers fall back to Configuration.DefaultStairsFloorSet.
+    public (
+        (string Name, double Weight)[] Up,
+        (string Name, double Weight)[] Down
+    )? StairImages { get; }
 
     public string Character { get; }
     public string CharacterColor { get; }
@@ -59,7 +63,8 @@ class TileSet
         (int Left, int Right)? edgeNorthIndexes = null,
         (int Left, int Right)? edgeSouthIndexes = null,
         (int Left, int Right)? edgeFreeIndexes = null,
-        (int Up, int Down)? stairImageIndexes = null,
+        ((string Name, double Weight)[] Up, (string Name, double Weight)[] Down)? stairImages =
+            null,
         string character = "¤",
         string characterColor = "fuchsia"
     )
@@ -81,7 +86,7 @@ class TileSet
         EdgeSouthIndexes = edgeSouthIndexes;
         EdgeFreeIndexes = edgeFreeIndexes;
 
-        StairImageIndexes = stairImageIndexes;
+        StairImages = stairImages;
 
         Character = character;
         CharacterColor = characterColor;
@@ -104,4 +109,26 @@ class TileSet
     public virtual string ImageName(int index) => ImgPrefix + "_" + index;
 
     public string EdgeImageName(int index) => ImgPrefix + "_edge_" + index;
+
+    /// <summary>
+    /// Weighted-picks a literal image name from a <see cref="StairImages"/> Up/Down list. Kept
+    /// standalone (rather than sharing MapGeneratorBase.WeightedPick's T[]-generic implementation)
+    /// since it isn't reachable from GameObjects/Stair.cs and reorganizing map-gen code is out of
+    /// scope for stair-image selection.
+    /// </summary>
+    internal static string PickWeighted((string Name, double Weight)[] options, Random rng)
+    {
+        double r = rng.NextDouble() * options.Sum(o => o.Weight);
+        int i;
+        for (i = 0; i < options.Length; i++)
+        {
+            if (r < options[i].Weight)
+            {
+                break;
+            }
+            r -= options[i].Weight;
+        }
+
+        return options[i].Name;
+    }
 }
