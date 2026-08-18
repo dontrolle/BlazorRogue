@@ -63,18 +63,14 @@ class Configuration
 
     readonly HashSet<string> floorSetIds = [];
 
-    readonly List<TileSet> standardFloorSets = [];
-    public IEnumerable<TileSet> StandardFloorSets => standardFloorSets.AsReadOnly();
-
-    readonly List<TileSet> specialFloorSets = [];
-    public IEnumerable<TileSet> SpecialFloorSets => specialFloorSets.AsReadOnly();
-
     readonly Dictionary<string, TileSet> floorSetsById = [];
+    public IEnumerable<TileSet> FloorSets => floorSetsById.Values;
 
     /// <summary>
-    /// Looks up a floor-set by id. Every id added by <see cref="ParseFloorSetType"/> is unique
-    /// (enforced via <see cref="floorSetIds"/>), so callers operating on already-parsed floorsets
-    /// can rely on this never throwing for a valid id.
+    /// Looks up a floor-set by id, for resolving the ids referenced by a level's
+    /// <c>common.floor_tile_set</c> weights. Every id added by <see cref="ParseFloorSetType"/> is
+    /// unique (enforced via <see cref="floorSetIds"/>) and validated to exist by <see cref="Parse"/>,
+    /// so callers operating on already-parsed levels can rely on this never throwing.
     /// </summary>
     public TileSet FloorSetById(string id) =>
         floorSetsById.TryGetValue(id, out var floorSet)
@@ -154,9 +150,9 @@ class Configuration
                 );
             }
 
-            var wallTileSetWeights = level
-                .Value.SettingsMap.GetMap("common", SettingsMap.Empty)
-                .GetWeightedIds("wall_tile_set", []);
+            var commonSettings = level.Value.SettingsMap.GetMap("common", SettingsMap.Empty);
+
+            var wallTileSetWeights = commonSettings.GetWeightedIds("wall_tile_set", []);
             foreach (var (wallSetId, _) in wallTileSetWeights)
             {
                 if (!wallSetIds.Contains(wallSetId))
@@ -164,6 +160,20 @@ class Configuration
                     throw new InvalidOperationException(
                         $"Level '{level.Value.Id}' references unknown wall-tile-set id '{wallSetId}' in wall_tile_set."
                     );
+                }
+            }
+
+            var floorTileSetPools = commonSettings.GetMap("floor_tile_set", SettingsMap.Empty);
+            foreach (string pool in new[] { "common", "special" })
+            {
+                foreach (var (floorSetId, _) in floorTileSetPools.GetWeightedIds(pool, []))
+                {
+                    if (!floorSetIds.Contains(floorSetId))
+                    {
+                        throw new InvalidOperationException(
+                            $"Level '{level.Value.Id}' references unknown floor-tile-set id '{floorSetId}' in floor_tile_set.{pool}."
+                        );
+                    }
                 }
             }
         }
@@ -292,11 +302,9 @@ class Configuration
             imgPrefix,
             charFloor,
             charColor;
-        bool special;
         var imgFloorList = new List<int>();
 
         id = GetRequiredString(element, "id");
-        special = element.GetProperty("special").GetBoolean();
         imgPrefix = GetRequiredString(element, "img_prefix");
         GetIntArray(element, "img_floor", imgFloorList);
         charFloor = GetRequiredString(element, "character");
@@ -326,15 +334,6 @@ class Configuration
             throw new InvalidOperationException($"Found another floor-set with id: {id}.");
         }
         floorSetsById.Add(id, t);
-
-        if (special)
-        {
-            specialFloorSets.Add(t);
-        }
-        else
-        {
-            standardFloorSets.Add(t);
-        }
     }
 
     void ParseWallSetType(JsonElement element)

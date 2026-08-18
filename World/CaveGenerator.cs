@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
@@ -34,8 +33,18 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
         .GetInt("smoothing_pass_one_iterations", 4);
     readonly int smoothingPassTwoIterations = LayoutSettings(settings)
         .GetInt("smoothing_pass_two_iterations", 3);
-    readonly string floorTileSet = LayoutSettings(settings)
-        .GetString("floor_tile_set", "crusted_grey");
+    readonly TileSet floorTileSet = SelectFloorTileSet(game.Configuration, settings);
+
+    static TileSet SelectFloorTileSet(Configuration configuration, SettingsMap settings)
+    {
+        var (tileSets, weights) = ResolveFloorPool(
+            configuration,
+            settings,
+            "common",
+            configuration.FloorSets
+        );
+        return SelectRandomWeighted(tileSets, weights);
+    }
 
     static SettingsMap LayoutSettings(SettingsMap settings) =>
         settings.GetMap("layout", SettingsMap.Empty);
@@ -89,13 +98,7 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
 
     Tuple<int, int> FinalizeCaveGen(bool[,] genmap)
     {
-        var floorset =
-            configuration.SpecialFloorSets.FirstOrDefault(t => t.Id == floorTileSet)
-            ?? throw new InvalidOperationException(
-                "Missing tileset " + floorTileSet + " in read configuration."
-            );
-        int[] floorIndexes = [1, 2, 3, 4];
-        FillMap(genmap, floorset);
+        FillMap(genmap, floorTileSet);
 
         return GetRandomUnblockedMapTile();
     }

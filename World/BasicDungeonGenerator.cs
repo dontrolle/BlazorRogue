@@ -38,6 +38,19 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
     readonly double percentageChanceOfSpecialRoom = LayoutSettings(settings)
         .GetDouble("percentage_chance_of_special_room", 1.0);
 
+    readonly (TileSet[] TileSets, double[] Weights) commonFloorPool = ResolveFloorPool(
+        game.Configuration,
+        settings,
+        "common",
+        game.Configuration.FloorSets
+    );
+    readonly (TileSet[] TileSets, double[] Weights) specialFloorPool = ResolveFloorPool(
+        game.Configuration,
+        settings,
+        "special",
+        game.Configuration.FloorSets
+    );
+
     static SettingsMap LayoutSettings(SettingsMap settings) =>
         settings.GetMap("layout", SettingsMap.Empty);
 
@@ -196,11 +209,14 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
         var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
         var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset })
-            .Intersect(configuration.StandardFloorSets)
+            .Intersect(commonFloorPool.TileSets)
             .ToArray();
 
-        // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-        var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
+        // Randomly choose either floor set for the tunnel - restricted to the common floor pool
+        var tunnelFloorSet = GetRandomElementWeighted(
+            commonFloorPool.TileSets,
+            commonFloorPool.Weights
+        );
         if (possibleTileSets.Length > 0)
         {
             tunnelFloorSet = GetRandomElement(possibleTileSets);
@@ -233,11 +249,14 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
         var to_floor_tileset = map.Tiles[toRoom.CenterX, toRoom.CenterY].TileSet;
 
         var possibleTileSets = (new[] { from_floor_tileset, to_floor_tileset })
-            .Intersect(configuration.StandardFloorSets)
+            .Intersect(commonFloorPool.TileSets)
             .ToArray();
 
-        // Randomly choose either floor set for the tunnel - restricted to BaseFloorSets
-        var tunnelFloorSet = GetRandomElement(configuration.StandardFloorSets);
+        // Randomly choose either floor set for the tunnel - restricted to the common floor pool
+        var tunnelFloorSet = GetRandomElementWeighted(
+            commonFloorPool.TileSets,
+            commonFloorPool.Weights
+        );
         if (possibleTileSets.Length > 0)
         {
             tunnelFloorSet = GetRandomElement(possibleTileSets);
@@ -262,16 +281,17 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
         bool placeWalls = !elideOuterWalls;
 
         // choose random floor-set for this room
-        var floorset = GetRandomElement(configuration.StandardFloorSets);
-        //bool specialRoom = false;
+        var floorset = GetRandomElementWeighted(commonFloorPool.TileSets, commonFloorPool.Weights);
         if (
             width >= specialRoomWidth
             && height >= specialRoomHeight
             && random.NextDouble() < percentageChanceOfSpecialRoom
         )
         {
-            //specialRoom = true;
-            floorset = GetRandomElement(configuration.SpecialFloorSets);
+            floorset = GetRandomElementWeighted(
+                specialFloorPool.TileSets,
+                specialFloorPool.Weights
+            );
         }
 
         if (placeWalls)

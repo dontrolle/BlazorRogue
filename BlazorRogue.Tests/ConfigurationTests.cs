@@ -6,6 +6,8 @@ namespace BlazorRogue.Tests;
 
 public class ConfigurationTests
 {
+    static readonly string[] FloorTileSetPoolNames = ["common", "special"];
+
     static Configuration ParseConfiguration()
     {
         var configuration = new Configuration();
@@ -109,7 +111,7 @@ public class ConfigurationTests
     {
         var configuration = ParseConfiguration();
 
-        Assert.NotEmpty(configuration.StandardFloorSets);
+        Assert.NotEmpty(configuration.FloorSets);
         Assert.NotEmpty(configuration.DungeonWallSets);
     }
 
@@ -172,7 +174,7 @@ public class ConfigurationTests
     [Fact]
     public void ParseLoadsFloorSetsWithoutStairImagesAsNull()
     {
-        // Special floorsets don't currently ship dedicated stair art; Stair.Render is expected to
+        // "ground_grass" doesn't currently ship dedicated stair art; Stair.Render is expected to
         // fall back to Configuration.DefaultStairsFloorSet for these.
         var configuration = ParseConfiguration();
 
@@ -199,9 +201,7 @@ public class ConfigurationTests
         // indirectly here by asserting all currently-loaded floor set ids are unique - a duplicate
         // would previously have caused Parse() itself to throw before we ever got here.
         var configuration = ParseConfiguration();
-        var ids = configuration
-            .StandardFloorSets.Select(t => t.Id)
-            .Concat(configuration.SpecialFloorSets.Select(t => t.Id));
+        var ids = configuration.FloorSets.Select(t => t.Id);
 
         Assert.Equal(ids.Count(), ids.Distinct().Count());
     }
@@ -277,6 +277,30 @@ public class ConfigurationTests
                     .SettingsMap.GetMap("common", SettingsMap.Empty)
                     .GetWeightedIds("wall_tile_set", []);
                 Assert.All(weights, w => Assert.NotNull(configuration.WallSetById(w.Id)));
+            }
+        );
+    }
+
+    [Fact]
+    public void ParseValidatesEveryLevelsFloorTileSetIdsAreKnown()
+    {
+        // Mirrors ParseValidatesEveryLevelsWallTileSetIdsAreKnown above, but for the ids referenced
+        // by a level's "common.floor_tile_set.common"/".special" pools - an unknown id would have
+        // thrown inside ParseConfiguration() above, before this line ever runs.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.Levels.Values,
+            level =>
+            {
+                var floorTileSetPools = level
+                    .SettingsMap.GetMap("common", SettingsMap.Empty)
+                    .GetMap("floor_tile_set", SettingsMap.Empty);
+                foreach (var pool in FloorTileSetPoolNames)
+                {
+                    var weights = floorTileSetPools.GetWeightedIds(pool, []);
+                    Assert.All(weights, w => Assert.NotNull(configuration.FloorSetById(w.Id)));
+                }
             }
         );
     }
