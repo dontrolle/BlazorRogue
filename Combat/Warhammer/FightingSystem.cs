@@ -49,9 +49,11 @@ class FightingSystem(Game game) : IFightingSystem
 
         string description = hit ? "hits" : "misses";
         string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
-        Game.AddMessage($"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}");
+        Game.AddMessage(
+            $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"
+        );
 
-        if(Game.DebugMode)
+        if (Game.DebugMode)
         {
             Game.AddMessage(
                 $"({attacker.Owner!.Name} rolls {toHitRoll} => SL {attackerSL}) ({defender.Owner!.Name} rolls {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
