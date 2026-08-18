@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace BlazorRogue.Combat.Warhammer;
 
@@ -12,23 +11,15 @@ class FightingSystem(Game game) : IFightingSystem
         ArgumentNullException.ThrowIfNull(attacker);
         ArgumentNullException.ThrowIfNull(defender);
 
-        Debug.WriteLine($"----------------------------");
         int toHitRoll = Dice.RollD100();
-        Debug.WriteLine(
-            $"{attacker.Owner!.Name} rolls {toHitRoll} and has adv {attacker.Advantage}"
-        );
+
         int attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
-        Debug.WriteLine($" => SL {attackerSL}");
 
         int toDefendRoll = Dice.RollD100();
-        Debug.WriteLine(
-            $"{defender.Owner!.Name} rolls {toDefendRoll} and has adv {defender.Advantage}"
-        );
         int defenderSL = Dice.GetSuccessLevel(
             toDefendRoll,
             defender.WeaponSkill + defender.Advantage
         );
-        Debug.WriteLine($" => {defenderSL}");
 
         bool hit = false;
         int attackerSLAdvantage = attackerSL - defenderSL;
@@ -41,18 +32,13 @@ class FightingSystem(Game game) : IFightingSystem
             hit = true;
         }
 
-        string description = hit ? "hit" : "miss";
-        Debug.WriteLine($"Result: {description} with SL {attackerSLAdvantage}");
-
+        int damage = 0;
         if (hit)
         {
             attacker.GainAdvantage();
             defender.ResetAdvantage();
-            int hitLocation = Dice.ReverseD100(toHitRoll);
-            Debug.WriteLine($" hit location {hitLocation}");
 
-            int damage = attacker.WeaponDamage + attackerSLAdvantage;
-            Debug.WriteLine($" damage to apply {damage}");
+            damage = attacker.WeaponDamage + attackerSLAdvantage;
             defender.ApplyDamage(damage);
         }
         else
@@ -61,7 +47,23 @@ class FightingSystem(Game game) : IFightingSystem
             attacker.ResetAdvantage();
         }
 
-        Debug.WriteLine($"----------------------------");
+        // if we're not in a test, then add messages
+        if (Game != null)
+        {
+            string description = hit ? "hits" : "misses";
+            string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
+            Game.AddMessage(
+                $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"
+            );
+
+            if (Game.DebugMode)
+            {
+                Game.AddMessage(
+                    $"({attacker.Owner!.Name} rolls {toHitRoll} => SL {attackerSL}) ({defender.Owner!.Name} rolls {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
+                );
+            }
+        }
+
         return hit;
     }
 }

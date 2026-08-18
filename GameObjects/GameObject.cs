@@ -80,6 +80,7 @@ abstract class GameObject
     internal void Kill()
     {
         References.SoundManager.PlayKillMonsterSound();
+        References.Game.AddMessage($"{Name} was killed!");
         OnGameObjectKilled(new EventArgs());
     }
 }
