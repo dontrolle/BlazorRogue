@@ -7,6 +7,7 @@ class LevelConfiguration(
     int height,
     int width,
     string generatorId,
+    string backgroundSoundtrack,
     SettingsMap settingsMap
 )
 {
@@ -16,5 +17,6 @@ class LevelConfiguration(
     public int Height { get; } = height;
     public int Width { get; } = width;
     public string MapGeneratorId { get; } = generatorId;
+    public string BackgroundSoundtrack { get; } = backgroundSoundtrack;
     public SettingsMap SettingsMap { get; } = settingsMap;
 }

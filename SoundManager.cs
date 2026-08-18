@@ -10,13 +10,14 @@ class SoundManager(IJSRuntime jsRuntime)
     readonly Random random = new();
     readonly string footstepDirtPrefix = "Footstep_Dirt_0";
 
-    async Task PlaySound(string sound)
+    async Task PlaySound(string sound) =>
+        await InvokeJs("blazorroguefuncs.playSound", $"sound/{sound}").ConfigureAwait(false);
+
+    async Task InvokeJs(string jsFunction, string arg)
     {
         try
         {
-            _ = await jsRuntime
-                .InvokeAsync<object>("blazorroguefuncs.playSound", $"sound/{sound}")
-                .ConfigureAwait(false);
+            _ = await jsRuntime.InvokeAsync<object>(jsFunction, arg).ConfigureAwait(false);
         }
         catch (JSDisconnectedException)
         {
@@ -76,4 +77,8 @@ class SoundManager(IJSRuntime jsRuntime)
         string sound = $"Pickup_Gold_0{soundindex}.mp3";
         await PlaySound(sound).ConfigureAwait(false);
     }
+
+    public async void PlayBackgroundMusic(string track) =>
+        await InvokeJs("blazorroguefuncs.playBackgroundMusic", $"sound/{track}")
+            .ConfigureAwait(false);
 }
