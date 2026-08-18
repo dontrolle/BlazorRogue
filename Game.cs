@@ -40,7 +40,7 @@ class Game
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        CurrentLevelNumber = 1;
+        CurrentLevelNumber = 0;
         var level = configuration.Levels[CurrentLevelNumber];
         MapGenerator = MapGeneratorFactory.Create(level, this);
 
