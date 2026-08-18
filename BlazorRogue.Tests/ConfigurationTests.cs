@@ -174,7 +174,7 @@ public class ConfigurationTests
         Assert.Equal([("floor_set_dark_9", 1)], dark.StairImages!.Value.Down);
 
         // "ground_grass" is drafted with a genuinely multi-option weighted "down" list.
-        var groundGrass = configuration.FloorSetById("ground_grass");
+        var groundGrass = configuration.FloorSetById("ground_dirt_brown");
         Assert.Equal([("floor_set_grey_8", 1)], groundGrass.StairImages!.Value.Up);
         Assert.Equal(
             [("door_trap_closed_brown", 1), ("door_trap_closed_tan", 1)],
@@ -189,7 +189,7 @@ public class ConfigurationTests
         // back to Configuration.DefaultStairsFloorSet for these.
         var configuration = ParseConfiguration();
 
-        var groundDirtBrown = configuration.FloorSetById("ground_dirt_brown");
+        var groundDirtBrown = configuration.FloorSetById("extra_2");
         Assert.Null(groundDirtBrown.StairImages);
     }
 

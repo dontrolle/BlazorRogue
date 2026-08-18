@@ -32,7 +32,7 @@ public class StairTests
     {
         var game = new Game();
         var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
-        var groundDirtBrown = game.Configuration.FloorSetById("ground_dirt_brown");
+        var groundDirtBrown = game.Configuration.FloorSetById("extra_2");
         Assert.Null(groundDirtBrown.StairImages); // guards the premise of this test
         game.Map.Tiles[x, y].TileSet = groundDirtBrown;
         game.Map.Decorations[x, y].Clear();
