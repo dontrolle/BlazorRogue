@@ -18,6 +18,12 @@ class Game
 
     public int CurrentLevelNumber { get; private set; }
 
+    // Levels already visited this playthrough, keyed by level number, so TransitionToLevel can
+    // restore one exactly as it was left instead of regenerating it. Only 3 levels are defined in
+    // Data/levels.json today, so this is unbounded rather than evicted - even a much deeper dungeon
+    // would be trivial next to a session's other memory use.
+    readonly Dictionary<int, Map> visitedLevels = [];
+
     const int MaxMessages = 5;
     internal bool DebugMode;
     readonly List<string> messages = [];
@@ -58,19 +64,35 @@ class Game
     }
 
     /// <summary>
-    /// Regenerates the level in the given direction from scratch (nothing about a level persists
-    /// between visits) and moves the existing player - stats, inventory and all - onto it.
+    /// Moves the existing player - stats, inventory and all - to the level in the given direction.
+    /// A level visited earlier this playthrough is restored from visitedLevels exactly as it was
+    /// left (monsters, doors, chests, fog of war and all); a level visited for the first time is
+    /// freshly generated, same as before.
     /// </summary>
     public void TransitionToLevel(StairDirection direction)
     {
         int targetLevelNumber = CurrentLevelNumber + (direction == StairDirection.Down ? 1 : -1);
         var levelConfig = Configuration.Levels[targetLevelNumber];
 
-        Map.DetachPlayer();
         var player = Map.Player;
+        Map.DetachPlayer();
+        visitedLevels[CurrentLevelNumber] = Map;
 
-        MapGenerator = MapGeneratorFactory.Create(levelConfig, this);
-        Map = MapGenerator.GenerateMap(player);
+        if (visitedLevels.TryGetValue(targetLevelNumber, out var cachedMap))
+        {
+            // Land on the stair leading back the way the player came, not wherever this level's
+            // own CreateLayout() happened to place a first-time spawn - that spot has no relation
+            // to the stair actually used to get here.
+            var entryStair = cachedMap.GetStair(Opposite(direction));
+            cachedMap.ReattachPlayer(player, entryStair.X, entryStair.Y);
+            Map = cachedMap;
+        }
+        else
+        {
+            MapGenerator = MapGeneratorFactory.Create(levelConfig, this);
+            Map = MapGenerator.GenerateMap(player);
+        }
+
         References.Map = Map;
         CurrentLevelNumber = targetLevelNumber;
         References.SoundManager.PlayBackgroundMusic(levelConfig.BackgroundSoundtrack);
@@ -78,6 +100,9 @@ class Game
         string verb = direction == StairDirection.Down ? "descend to" : "ascend to";
         AddMessage($"You {verb} {levelConfig.Name}.");
     }
+
+    static StairDirection Opposite(StairDirection direction) =>
+        direction == StairDirection.Down ? StairDirection.Up : StairDirection.Down;
 
     public void AddMessage(string message)
     {
