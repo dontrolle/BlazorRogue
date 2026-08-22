@@ -12,11 +12,17 @@
         "parameters":{
           "common": {
             "wall_tile_set": [            
-              [ "crypt" , 1 ]
+              [ "crypt" , 1 ],
+              [ "dungeon", 1 ],
+              [ "ruins", 1 ],
+              [ "hedge" , 1 ],
+              [ "cave" , 1 ]
             ],
             "floor_tile_set": {
               "common": [
-                ["blue", 1]
+                ["blue", 1],
+                ["dark", 1], 
+                ["grey", 1]                
               ]
             }
           }

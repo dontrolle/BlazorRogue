@@ -128,8 +128,14 @@ public class TileTests
 
         game.Map.Tiles[x, y].Render(game.Map);
 
-        Assert.Equal(wallSet.ImageFreestandingIndex, game.Map.Tiles[x, y].TileIndex);
-        Assert.Empty(game.Map.Decorations[x, y]);
+        // The freestanding sprite has transparent margins, so it's layered as a decoration over a
+        // borrowed floor image rather than replacing the tile's own base image outright.
+        var pillar = Assert.Single(
+            game.Map.Decorations[x, y],
+            d => d.VerticalOffset == 0 && d.HorizontalOffset == 0
+        );
+        Assert.Equal(wallSet.ImageName(wallSet.ImageFreestandingIndex), pillar.ImageName);
+        Assert.Equal(game.Map.Tiles[x, y - 1].ImageName, game.Map.Tiles[x, y].ImageName);
     }
 
     [Fact]

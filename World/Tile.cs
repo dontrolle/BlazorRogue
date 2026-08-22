@@ -12,7 +12,17 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     public TileSet TileSet { get; set; } = tileSet;
     public int TileIndex { get; set; } = tileIndex;
 
-    public string ImageName => TileSet.ImageName(TileIndex);
+    // Set (and reset) each Render() call for a freestanding wall tile (see Render below) - the
+    // tile is still, in every other respect, a normal wall (Blocking, TileType, Character all stay
+    // keyed to TileSet/TileIndex as usual); only the graphical background image is swapped for a
+    // neighboring floor tile's, since the freestanding sprite art is a decoration layered on top
+    // rather than a full opaque tile in its own right.
+    (TileSet TileSet, int TileIndex)? floorUnderlay;
+
+    public string ImageName =>
+        floorUnderlay is { } underlay
+            ? underlay.TileSet.ImageName(underlay.TileIndex)
+            : TileSet.ImageName(TileIndex);
     public string ImageUrl => $"img/uf_terrain/{ImageName}.png";
     public TileType TileType => TileSet.TileType;
 
@@ -52,6 +62,8 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             return;
         }
 
+        floorUnderlay = null;
+
         var owner = new TileDecorationOwner(X, Y);
 
         bool hasFloorAbove = Y > 0 && IsOpen(map.Tiles[X, Y - 1].TileType);
@@ -59,11 +71,17 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         bool hasFloorLeft = X > 0 && IsOpen(map.Tiles[X - 1, Y].TileType);
         bool hasFloorRight = X < map.Width - 1 && IsOpen(map.Tiles[X + 1, Y].TileType);
 
-        // A wall tile with open ground on all four sides is drawn as a single dedicated
-        // freestanding sprite instead of the usual base image + half-wall/south-face/edge frills.
+        // A wall tile with open ground on all four sides is drawn as a dedicated freestanding
+        // sprite layered over a borrowed floor image (all four neighbors are open, so the north
+        // one is always available here), instead of the usual base image + half-wall/south-
+        // face/edge frills. The freestanding art has transparent margins - unlike the base wall
+        // images - so it needs an actual floor tile underneath it, not just its own background.
         if (hasFloorAbove && hasFloorBelow && hasFloorLeft && hasFloorRight)
         {
-            TileIndex = TileSet.ImageFreestandingIndex;
+            var floorNeighbor = map.Tiles[X, Y - 1];
+            floorUnderlay = (floorNeighbor.TileSet, floorNeighbor.TileIndex);
+            map.Decorations[X, Y]
+                .Add(new Decoration(owner, TileSet.ImageName(TileSet.ImageFreestandingIndex)));
             return;
         }
 
