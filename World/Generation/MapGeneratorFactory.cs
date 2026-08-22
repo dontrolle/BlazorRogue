@@ -13,6 +13,7 @@ static class MapGeneratorFactory
     {
         [BasicDungeonGenerator.Id] = (w, h, n, g, s) => new BasicDungeonGenerator(w, h, n, g, s),
         [CaveGenerator.Id] = (w, h, n, g, s) => new CaveGenerator(w, h, n, g, s),
+        [TestMapGenerator.Id] = (w, h, n, g, s) => new TestMapGenerator(w, h, n, g, s),
     };
 
     public static IMapGenerator Create(LevelConfiguration level, Game game) =>

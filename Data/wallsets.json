@@ -68,6 +68,7 @@
           6
         ]
       },
+      "img_freestanding": 13,
       "character": "#",
       "character_color": "#7d7a7a"
     },
@@ -139,6 +140,7 @@
           6
         ]
       },
+      "img_freestanding": 13,
       "character": "#",
       "character_color": "darkgray"
     },
@@ -210,6 +212,7 @@
           6
         ]
       },
+      "img_freestanding": 13,
       "character": "#",
       "character_color": "#B5651D"
     },
@@ -285,6 +288,7 @@
         "south": [5, 6],
         "free": [3, 4]
       },
+      "img_freestanding": 13,
       "character": "#",
       "character_color": "#DB8C44"
     },
@@ -360,6 +364,7 @@
         "south": [5, 6],
         "free": [3, 4]
       },
+      "img_freestanding": 14,
       "character": "#",
       "character_color": "#86af2c"
     }

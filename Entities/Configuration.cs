@@ -401,6 +401,8 @@ class Configuration
             imgDecoratedEdgeNorthIndexes
         );
 
+        int imgFreestandingIndex = GetRequiredInt(element, "img_freestanding");
+
         character = GetRequiredString(element, "character");
         charColor = GetRequiredString(element, "character_color");
 
@@ -427,6 +429,7 @@ class Configuration
             edgeNorthIndexes,
             edgeSouthIndexes,
             edgeFreeIndexes,
+            imgFreestandingIndex: imgFreestandingIndex,
             character: character,
             characterColor: charColor
         );

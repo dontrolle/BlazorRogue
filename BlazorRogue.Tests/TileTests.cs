@@ -12,8 +12,15 @@ namespace BlazorRogue.Tests;
 /// </summary>
 public class TileTests
 {
-    static (Game Game, int X, int Y) SetUpWallSurroundedByFloor(
+    // Builds a wall tile with the given sides set to open floor and the rest left as wall, so
+    // callers can exercise a single frill (half-wall/south-face/edge) without also tripping the
+    // "surrounded on all four sides" freestanding case.
+    static (Game Game, int X, int Y) SetUpWall(
         string wallSetId,
+        bool floorAbove,
+        bool floorBelow,
+        bool floorLeft,
+        bool floorRight,
         string floorSetId = "grey"
     )
     {
@@ -25,14 +32,19 @@ public class TileTests
         int y = game.Map.Height / 2;
 
         game.Map.Tiles[x, y].TileSet = wallSet;
-        game.Map.Tiles[x, y - 1].TileSet = floorSet;
-        game.Map.Tiles[x, y + 1].TileSet = floorSet;
-        game.Map.Tiles[x - 1, y].TileSet = floorSet;
-        game.Map.Tiles[x + 1, y].TileSet = floorSet;
+        game.Map.Tiles[x, y - 1].TileSet = floorAbove ? floorSet : wallSet;
+        game.Map.Tiles[x, y + 1].TileSet = floorBelow ? floorSet : wallSet;
+        game.Map.Tiles[x - 1, y].TileSet = floorLeft ? floorSet : wallSet;
+        game.Map.Tiles[x + 1, y].TileSet = floorRight ? floorSet : wallSet;
         game.Map.Decorations[x, y].Clear();
 
         return (game, x, y);
     }
+
+    static (Game Game, int X, int Y) SetUpWallSurroundedByFloor(
+        string wallSetId,
+        string floorSetId = "grey"
+    ) => SetUpWall(wallSetId, true, true, true, true, floorSetId);
 
     [Fact]
     public void ImageUrlCombinesTheUfTerrainFolderWithTheTilesOwnImageName()
@@ -63,7 +75,13 @@ public class TileTests
     [Fact]
     public void RenderAddsAHalfWallDecorationWhenFloorIsAbove()
     {
-        var (game, x, y) = SetUpWallSurroundedByFloor("cave");
+        var (game, x, y) = SetUpWall(
+            "cave",
+            floorAbove: true,
+            floorBelow: false,
+            floorLeft: false,
+            floorRight: false
+        );
 
         game.Map.Tiles[x, y].Render(game.Map);
 
@@ -77,7 +95,13 @@ public class TileTests
     [Fact]
     public void RenderAddsASouthFaceDecorationWhenFloorIsBelow()
     {
-        var (game, x, y) = SetUpWallSurroundedByFloor("cave");
+        var (game, x, y) = SetUpWall(
+            "cave",
+            floorAbove: false,
+            floorBelow: true,
+            floorLeft: false,
+            floorRight: false
+        );
 
         game.Map.Tiles[x, y].Render(game.Map);
 
@@ -89,6 +113,29 @@ public class TileTests
         // Never mutates the tile's own base pick - the south-face art is a layered decoration,
         // not a TileIndex overwrite, so repeated/localized re-renders stay idempotent.
         Assert.NotEqual(southFace.ImageName, game.Map.Tiles[x, y].ImageName);
+    }
+
+    [Theory]
+    [InlineData("crypt")]
+    [InlineData("dungeon")]
+    [InlineData("ruins")]
+    [InlineData("cave")]
+    [InlineData("hedge")]
+    public void RenderUsesTheFreestandingImageWhenOpenOnAllFourSides(string wallSetId)
+    {
+        var (game, x, y) = SetUpWallSurroundedByFloor(wallSetId);
+        var wallSet = game.Configuration.WallSetById(wallSetId);
+
+        game.Map.Tiles[x, y].Render(game.Map);
+
+        // The freestanding sprite has transparent margins, so it's layered as a decoration over a
+        // borrowed floor image rather than replacing the tile's own base image outright.
+        var pillar = Assert.Single(
+            game.Map.Decorations[x, y],
+            d => d.VerticalOffset == 0 && d.HorizontalOffset == 0
+        );
+        Assert.Equal(wallSet.ImageName(wallSet.ImageFreestandingIndex), pillar.ImageName);
+        Assert.Equal(game.Map.Tiles[x, y - 1].ImageName, game.Map.Tiles[x, y].ImageName);
     }
 
     [Fact]
@@ -125,7 +172,13 @@ public class TileTests
         // edge art for it rather than throwing, since edges are now opportunistic (available to
         // any generator/wall-set combination that defines them) rather than something only
         // CaveGenerator required.
-        var (game, x, y) = SetUpWallSurroundedByFloor("crypt");
+        var (game, x, y) = SetUpWall(
+            "crypt",
+            floorAbove: true,
+            floorBelow: true,
+            floorLeft: false,
+            floorRight: false
+        );
 
         game.Map.Tiles[x, y].Render(game.Map);
 
@@ -145,6 +198,9 @@ public class TileTests
 
         game.Map.Tiles[x, y].TileSet = wallSet;
         game.Map.Tiles[x, y - 1].TileSet = floorSet;
+        game.Map.Tiles[x, y + 1].TileSet = wallSet;
+        game.Map.Tiles[x - 1, y].TileSet = wallSet;
+        game.Map.Tiles[x + 1, y].TileSet = wallSet;
         game.Map.AddGameObject(
             new Door(x, y - 1, "wood", 1, Orientation.Horizontal, isOpen: false)
         );
@@ -171,7 +227,10 @@ public class TileTests
         int y = game.Map.Height / 2;
 
         game.Map.Tiles[x, y].TileSet = wallSet;
+        game.Map.Tiles[x, y - 1].TileSet = wallSet;
         game.Map.Tiles[x, y + 1].TileSet = floorSet;
+        game.Map.Tiles[x - 1, y].TileSet = wallSet;
+        game.Map.Tiles[x + 1, y].TileSet = wallSet;
         game.Map.AddGameObject(
             new Door(x, y + 1, "wood", 1, Orientation.Horizontal, isOpen: false)
         );
@@ -192,7 +251,13 @@ public class TileTests
         // The half-wall/south-face picks are random - repeated Render() calls (e.g. triggered by
         // a neighboring tile changing, once dynamic maps exist) must not re-roll a different
         // sprite for a tile that itself hasn't changed.
-        var (game, x, y) = SetUpWallSurroundedByFloor("cave");
+        var (game, x, y) = SetUpWall(
+            "cave",
+            floorAbove: true,
+            floorBelow: true,
+            floorLeft: false,
+            floorRight: false
+        );
 
         game.Map.Tiles[x, y].Render(game.Map);
         var firstPass = game
