@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Effects;
 using BlazorRogue.Entities;
@@ -26,6 +27,7 @@ class Game
     readonly Dictionary<int, Map> visitedLevels = [];
 
     const int MaxMessages = 5;
+    const int DefaultStartingLevelNumber = 0;
     internal bool DebugMode;
     readonly List<string> messages = [];
     public IReadOnlyList<string> Messages => messages;
@@ -35,22 +37,32 @@ class Game
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses
-    /// <see cref="Game(Configuration)"/>; this overload exists for tests and standalone use.
+    /// <see cref="Game(Configuration, string)"/>; this overload exists for tests and standalone
+    /// use.
     /// </remarks>
-    public Game()
-        : this(ParseConfiguration()) { }
+    public Game(string? startingLevelId = null)
+        : this(ParseConfiguration(), startingLevelId) { }
 
     /// <summary>
     /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
     /// shared with other games - it is immutable once parsed.
     /// </summary>
-    public Game(Configuration configuration)
+    /// <param name="configuration">Already-parsed, immutable game content.</param>
+    /// <param name="startingLevelId">
+    /// When given, starts on the level with this id instead of <see cref="DefaultStartingLevelNumber"/>
+    /// - e.g. "test_level", driven by the "Game:StartingLevelId" config value (see Program.cs), so
+    /// switching to it is a config/env-var flip rather than an edit to this file or to
+    /// Data/levels.json's level numbering.
+    /// </param>
+    public Game(Configuration configuration, string? startingLevelId = null)
     {
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        CurrentLevelNumber = 0;
-        var level = configuration.Levels[CurrentLevelNumber];
+        var level = startingLevelId is null
+            ? configuration.Levels[DefaultStartingLevelNumber]
+            : configuration.Levels.Values.Single(l => l.Id == startingLevelId);
+        CurrentLevelNumber = level.Number;
         MapGenerator = MapGeneratorFactory.Create(level, this);
 
         FightingSystem = new FightingSystem(this);

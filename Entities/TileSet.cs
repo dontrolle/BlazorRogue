@@ -31,6 +31,10 @@ class TileSet
     public int[] ImageEdgeNorthIndexes =>
         [.. ImageSimpleEdgeNorthIndexes, .. ImageDecoratedEdgeNorthIndexes];
 
+    // Dedicated art for a wall tile with open (floor/black) tiles on all four orthogonal sides -
+    // used instead of the usual base image + half-wall/south-face/edge frills (see Tile.Render).
+    public int ImageFreestandingIndex { get; }
+
     // Cave-generator-style wall edge filler art (see WallEdge): (Left, Right) index pairs, used
     // when the neighboring tile to the west/east respectively is floor/black. Null when this
     // wall-set doesn't define edge art (e.g. the dungeon-generator wall-sets never need it).
@@ -65,6 +69,7 @@ class TileSet
         (int Left, int Right)? edgeFreeIndexes = null,
         ((string Name, double Weight)[] Up, (string Name, double Weight)[] Down)? stairImages =
             null,
+        int imgFreestandingIndex = 0,
         string character = "¤",
         string characterColor = "fuchsia"
     )
@@ -75,6 +80,7 @@ class TileSet
 
         ImageBaseIndexes = imgBaseIndexes;
         ImageBaseWeights = SetWeights(ImageBaseIndexes, imgBaseWeights);
+        ImageFreestandingIndex = imgFreestandingIndex;
 
         ImageSouthEdgeIndexes = imgSouthEdgeIndexes ?? [];
         ImageSouthEdgeWeights = SetWeights(ImageSouthEdgeIndexes, imgSouthEdgeWeights);
