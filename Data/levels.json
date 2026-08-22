@@ -1,5 +1,28 @@
 {
   "levels": [
+      {
+      "no": -1,
+      "id": "test_level",
+      "name": "The Testlevel",
+      "height": 10,
+      "width": 20,
+      "background_soundtrack": "Ambience_Cave_00.mp3",
+      "map_generator": {
+        "generator_id": "test_map_generator",
+        "parameters":{
+          "common": {
+            "wall_tile_set": [            
+              [ "crypt" , 1 ]
+            ],
+            "floor_tile_set": {
+              "common": [
+                ["blue", 1]
+              ]
+            }
+          }
+        }
+      }
+    },
     {
       "no": 0,
       "id": "level0",

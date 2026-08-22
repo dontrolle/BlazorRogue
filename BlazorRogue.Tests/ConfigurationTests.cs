@@ -157,6 +157,22 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsWallSetFreestandingIndex()
+    {
+        // Every wall-set must define "img_freestanding" - the single-sprite art used for a wall
+        // tile with open ground on all four sides (see Tile.Render). "hedge" uses 14 since its
+        // img_base pool already occupies index 13; every other wall-set uses 13.
+        var configuration = ParseConfiguration();
+
+        foreach (var id in new[] { "crypt", "dungeon", "ruins", "cave" })
+        {
+            Assert.Equal(13, configuration.WallSetById(id).ImageFreestandingIndex);
+        }
+
+        Assert.Equal(14, configuration.WallSetById("hedge").ImageFreestandingIndex);
+    }
+
+    [Fact]
     public void ParseLoadsOutdoorWallSets()
     {
         var configuration = ParseConfiguration();

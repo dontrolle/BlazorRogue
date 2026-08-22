@@ -577,6 +577,14 @@ else
 
     void CenterViewportOnPlayer()
     {
+        // windowWidth/windowHeight still hold their hardcoded field defaults the first time this
+        // runs (FitMapToViewportAsync hasn't resolved the real browser viewport size yet) - shrink
+        // them to the map's size first so a map smaller than the default viewport doesn't send a
+        // negative max into Math.Clamp below, or leave windowWidth/Height larger than the map for
+        // the tile-grid render loop.
+        windowWidth = Math.Min(windowWidth, game.Map.Width);
+        windowHeight = Math.Min(windowHeight, game.Map.Height);
+
         int optimalXOffset = game.Map.Player.X - windowWidth / 2;
         windowXOffset = Math.Clamp(optimalXOffset, 0, game.Map.Width - windowWidth);
 

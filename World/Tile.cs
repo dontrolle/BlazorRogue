@@ -59,6 +59,14 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         bool hasFloorLeft = X > 0 && IsOpen(map.Tiles[X - 1, Y].TileType);
         bool hasFloorRight = X < map.Width - 1 && IsOpen(map.Tiles[X + 1, Y].TileType);
 
+        // A wall tile with open ground on all four sides is drawn as a single dedicated
+        // freestanding sprite instead of the usual base image + half-wall/south-face/edge frills.
+        if (hasFloorAbove && hasFloorBelow && hasFloorLeft && hasFloorRight)
+        {
+            TileIndex = TileSet.ImageFreestandingIndex;
+            return;
+        }
+
         if (hasFloorAbove)
         {
             RenderHalfWall(map, owner);
