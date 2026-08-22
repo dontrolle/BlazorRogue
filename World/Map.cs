@@ -55,6 +55,14 @@ class Map
     public IEnumerable<Decoration> AllDecorations(int x, int y) =>
         Decorations[x, y].Concat(MoveableDecorations[x, y]);
 
+    /// <summary>
+    /// The stair on this map leading in the given direction. Exactly one is guaranteed to exist
+    /// whenever the neighboring level is defined (see MapGeneratorBase.AddStairs), which callers
+    /// revisiting a cached level via that stair may rely on.
+    /// </summary>
+    public Stair GetStair(StairDirection direction) =>
+        GameObjects.OfType<Stair>().Single(stair => stair.Direction == direction);
+
     public Map(int width, int height, TileSet dungeonWallSet, Game game)
     {
         DungeonWallSet = dungeonWallSet;
@@ -228,11 +236,37 @@ class Map
     }
 
     /// <summary>
-    /// Unsubscribes this map's PlayerKilled handler from the player before it's placed onto a new
-    /// map (e.g. via stairs) - otherwise the player's GameObjectKilled event keeps a reference to
-    /// this (now discarded) map, and a later death would double-fire PlayerKilled.
+    /// Detaches the player from this map before it moves to another one (e.g. via stairs):
+    /// unsubscribes this map's PlayerKilled handler (otherwise the player's GameObjectKilled event
+    /// keeps a reference to this map, and a later death would double-fire PlayerKilled), removes
+    /// the player from moveables, and unblocks their tile. Levels are cached rather than discarded
+    /// once left (see Game.TransitionToLevel), so unlike a one-off discarded map, skipping any of
+    /// this would leave a stale player reference - and a permanently blocked tile - behind on a map
+    /// that gets revisited later while the player is actually elsewhere.
     /// </summary>
-    public void DetachPlayer() => Player.GameObjectKilled -= PlayerKilled;
+    public void DetachPlayer()
+    {
+        Player.GameObjectKilled -= PlayerKilled;
+        _ = moveables.Remove(Player);
+        BlocksMovementMap[Player.X, Player.Y] = false;
+    }
+
+    /// <summary>
+    /// Re-places a player who was previously detached from this already-initialized map back onto
+    /// it at (x, y) - e.g. when returning to a level from Game's visited-levels cache. Refreshes the
+    /// render/visibility state that PostGenInitalize computes for a freshly generated map, since
+    /// nothing does so automatically for a cached map that has been sitting inactive.
+    /// </summary>
+    public void ReattachPlayer(Moveable player, int x, int y)
+    {
+        player.PlaceAt(x, y);
+        AddPlayer(player);
+        BlocksMovementMap[x, y] = true;
+
+        RecomputeVisibility();
+        RenderGameObjects();
+        RenderMoveables();
+    }
 
     /// <summary>
     /// True once the player has died. The game is then finished: no further turns are accepted and
