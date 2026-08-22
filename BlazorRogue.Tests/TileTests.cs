@@ -35,6 +35,18 @@ public class TileTests
     }
 
     [Fact]
+    public void ImageUrlCombinesTheUfTerrainFolderWithTheTilesOwnImageName()
+    {
+        var game = new Game();
+        int x = game.Map.Width / 2;
+        int y = game.Map.Height / 2;
+        game.Map.Tiles[x, y].TileSet = game.Configuration.WallSetById("cave");
+        game.Map.Tiles[x, y].TileIndex = 7;
+
+        Assert.Equal("img/uf_terrain/wall_cave_7.png", game.Map.Tiles[x, y].ImageUrl);
+    }
+
+    [Fact]
     public void RenderProducesNoDecorationsForNonWallTiles()
     {
         var game = new Game();

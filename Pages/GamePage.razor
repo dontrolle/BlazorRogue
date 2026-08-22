@@ -141,10 +141,6 @@ else
                     int y = wY + windowYOffset;
 
                     Tile tile = game.Map.Tiles[x, y];
-                    string character = tile.Character;
-                    string charactercolor = tile.CharacterColor;
-                    string imgFileName = tile.ImageName + ".png";
-                    string tiletype = tile.TileType.ToString();
                     string fovClass = game.Map.IsVisibleMap[x, y] ? "" : "outoffov";
                     string tileClass = $"tile {(fovClass)}";
                     string cellClass = "cell";
@@ -154,12 +150,12 @@ else
                         {
                             if (renderAscii)
                             {
-                                <div class="@tileClass" style="color:@charactercolor" alt="@x,@y (@tiletype)">@character</div>
+                                <div class="@tileClass" style="color:@tile.CharacterColor" alt="@x,@y (@tile.TileType)">@tile.Character</div>
                             }
                             else
                             {
-                                <div class="@tileClass" style="background-image: url('img/uf_terrain/@imgFileName')"
-                                     alt="@x,@y (@tiletype)"> </div>
+                                <div class="@tileClass" style="background-image: url('@tile.ImageUrl')"
+                                     alt="@x,@y (@tile.TileType)"> </div>
                             }
 
                             @foreach (var decoration in game.Map.AllDecorations(x, y))

@@ -13,6 +13,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     public int TileIndex { get; set; } = tileIndex;
 
     public string ImageName => TileSet.ImageName(TileIndex);
+    public string ImageUrl => $"img/uf_terrain/{ImageName}.png";
     public TileType TileType => TileSet.TileType;
 
     public string Character => TileSet.Character;
