@@ -38,6 +38,7 @@ class Moveable : GameObject
     {
         InvisibleOutsideFov = true;
         Blocking = true;
+        Singular = monsterType.Singular;
         AnimationClass = monsterType.AnimationClass;
         Id = monsterType.Id;
         AsciiCharacter = monsterType.AsciiCharacter;

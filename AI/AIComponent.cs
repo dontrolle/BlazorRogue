@@ -10,5 +10,12 @@ abstract class AIComponent(Map map) : Component()
 
     public abstract void TakeTurn();
 
-    public void Wake() => Awake = true;
+    public void Wake()
+    {
+        if (Awake)
+            return;
+
+        Awake = true;
+        References.Game.AddMessage($"{Owner!.Name} awake{(Owner!.Singular ? "s" : "")}");
+    }
 }

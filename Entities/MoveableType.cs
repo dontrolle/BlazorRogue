@@ -12,7 +12,8 @@ class MoveableType(
     int armour,
     int wounds,
     string aiComponentId,
-    SettingsMap aiComponentSettings
+    SettingsMap aiComponentSettings,
+    bool singular
 )
 {
     public string AnimationClass { get; } = animationClass;
@@ -27,4 +28,5 @@ class MoveableType(
     public int Wounds { get; } = wounds;
     public string AIComponentId { get; } = aiComponentId;
     public SettingsMap AIComponentSettings { get; } = aiComponentSettings;
+    public bool Singular { get; } = singular;
 }

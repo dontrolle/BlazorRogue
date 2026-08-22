@@ -556,6 +556,12 @@ class Configuration
         );
         var (aiComponentId, aiComponentSettings) = ParseAIComponent(element);
 
+        bool singular = true;
+        if (element.TryGetProperty("singular", out var singularElement))
+        {
+            singular = singularElement.GetBoolean();
+        }
+
         var m = new MoveableType(
             id,
             name,
@@ -568,7 +574,8 @@ class Configuration
             armour,
             wounds,
             aiComponentId,
-            aiComponentSettings
+            aiComponentSettings,
+            singular
         );
         moveableDictionary.Add(id, m);
     }

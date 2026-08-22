@@ -62,6 +62,8 @@ class Game
         References.EffectsSystem = EffectsSystem;
 
         References.Game = this;
+        // Add initial message for when the game starts
+        AddMessage($"You arrive in the {level.Name}.");
     }
 
     /// <summary>
