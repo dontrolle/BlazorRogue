@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.Entities;
 
-namespace BlazorRogue.World;
+namespace BlazorRogue.World.Generation;
 
 /// <summary>
 /// Basic dungeon generator, following the basic principles laid out in the excellent tutorials on RogueBasin, https://www.roguebasin.com/index.php/Tutorials.

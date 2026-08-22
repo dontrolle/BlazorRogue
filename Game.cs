@@ -4,6 +4,7 @@ using BlazorRogue.Effects;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;
+using BlazorRogue.World.Generation;
 
 namespace BlazorRogue;
 

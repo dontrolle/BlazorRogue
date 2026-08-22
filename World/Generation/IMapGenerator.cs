@@ -1,6 +1,6 @@
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue.World;
+namespace BlazorRogue.World.Generation;
 
 interface IMapGenerator
 {

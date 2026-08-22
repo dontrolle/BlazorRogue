@@ -76,19 +76,20 @@ repo — the ASCII renderer works without them, but the tileset renderer needs
   between tileset and ASCII based on the `renderAscii` flag.
 - **Map generation**: each level in `Data/levels.json` (parsed into `LevelConfiguration`) names its
   map generator by a string id (e.g. `"basic_dungeon_generator"`) instead of the game hardcoding
-  one. `World/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator` via a small
-  `Dictionary<string, Func<...>>` registry — each generator exposes its own id as a
+  one. `World/Generation/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator` via a
+  small `Dictionary<string, Func<...>>` registry — each generator exposes its own id as a
   `public const string Id` (e.g. `BasicDungeonGenerator.Id`), so id and class can't drift apart.
-  `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
-  generators; `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs`
-  (cellular automaton) are its two concrete subclasses.
+  `World/Generation/MapGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
+  generators; `World/Generation/BasicDungeonGenerator.cs` (rooms + corridors) and
+  `World/Generation/CaveGenerator.cs` (cellular automaton) are its two concrete subclasses. All of
+  `World/Generation/` lives in the `BlazorRogue.World.Generation` namespace.
 - **`SettingsMap` / component parameters**: `SettingsMap` (`Entities/SettingsMap.cs`) is the general
   mechanism for a data-driven component's free-form `parameters` JSON, not something specific to map
   generators — a small recursive value tree of int/double/string/nested-map, read via typed getters
   (`GetInt`/`GetDouble`/`GetString`/`GetMap`), each with a required form and a `(key, defaultValue)`
   form. This keeps `System.Text.Json` confined to `Configuration.cs` — consumers never reference it
   directly. A level's `map_generator.parameters` parses into one (settings shared by every
-  `DungeonGeneratorBase` subclass live under a `"common"` key; a generator's own settings live under
+  `MapGeneratorBase` subclass live under a `"common"` key; a generator's own settings live under
   `"layout"`); a monster's `ai_component.parameters` parses into one the same way (see *AI
   components* below). **Gotcha:** primary-constructor field initializers can't reference another
   instance field/method of the same type (`CS0236`) — only static members and the primary
