@@ -7,6 +7,15 @@
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
+        },
+        "BlazorRogue (Test Level)": {
+            "commandName": "Project",
+            "launchBrowser": true,
+            "applicationUrl": "https://localhost:5001",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "Game__StartingLevelId": "test_level"
+            }
         }
     }
 }
