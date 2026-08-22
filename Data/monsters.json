@@ -14,7 +14,8 @@
       "ai_component": {
         "id": "random_walk_ai",
         "parameters": {}
-      }
+      },
+      "singular": false
     },
     {
       "id": "rat",

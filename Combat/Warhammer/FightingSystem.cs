@@ -50,7 +50,9 @@ class FightingSystem(Game game) : IFightingSystem
         // if we're not in a test, then add messages
         if (Game != null)
         {
-            string description = hit ? "hits" : "misses";
+            string hitTerm = $"hit{(attacker.Owner!.Singular ? "s" : "")}";
+            string missTerm = $"miss{(attacker.Owner!.Singular ? "es" : "")}";
+            string description = hit ? hitTerm : missTerm;
             string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
             Game.AddMessage(
                 $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"

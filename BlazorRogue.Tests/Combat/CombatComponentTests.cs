@@ -26,7 +26,8 @@ public class CombatComponentTests
             armour: armour,
             wounds: wounds,
             aiComponentId: AIComponentFactory.DefaultId,
-            aiComponentSettings: SettingsMap.Empty
+            aiComponentSettings: SettingsMap.Empty,
+            singular: true
         );
 
         return new Moveable(0, 0, aIComponent: null, type);

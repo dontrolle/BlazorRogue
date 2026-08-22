@@ -19,7 +19,8 @@ public class AnimationCssGeneratorTests
             armour: 0,
             wounds: 1,
             aiComponentId: "",
-            aiComponentSettings: new SettingsMap(new Dictionary<string, object>())
+            aiComponentSettings: new SettingsMap(new Dictionary<string, object>()),
+            singular: true
         );
 
     [Fact]

@@ -19,6 +19,11 @@ abstract class GameObject
 
     public bool InvisibleOutsideFov { get; set; }
     public string Name { get; private set; }
+
+    /// <summary>
+    /// Is the object a singular entity (like a single goblin?) or is it multiple (like a swarm of flies)?
+    /// </summary>
+    public bool Singular { get; internal set; } = true;
     public virtual string InfoText { get; set; } = "";
 
     // Components

@@ -68,6 +68,22 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseDefaultsSingularToTrueWhenMonsterHasNoSingularField()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.True(configuration.MonsterTypes["rat"].Singular);
+    }
+
+    [Fact]
+    public void ParseReadsExplicitSingularFalseWhenMonsterHasOne()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.False(configuration.MonsterTypes["flies"].Singular);
+    }
+
+    [Fact]
     public void ParseValidatesEveryMonstersAIComponentIdIsKnown()
     {
         // Configuration.Parse() checks every monster's ai_component id against AIComponentFactory
