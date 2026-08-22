@@ -124,7 +124,7 @@ class Map
         );
 
         RecomputeVisibility();
-        RenderGameObjects();
+        RenderDecorations();
         RenderMoveables();
     }
 
@@ -188,8 +188,10 @@ class Map
 
     void ClearDecorations(int x, int y) => Decorations[x, y].Clear();
 
-    // Renders GameObjects to Decorations, updating the latter
-    public void RenderGameObjects()
+    // Renders Tiles and GameObjects to Decorations, updating the latter. Both contribute to the
+    // same per-cell Decorations list, so they're rebuilt together here rather than via separate
+    // clear-and-rebuild passes, which would let whichever ran second wipe the other's work.
+    public void RenderDecorations()
     {
         if (!postGenInitialized)
         {
@@ -199,13 +201,14 @@ class Map
         }
 
         ClearDecorations();
+        ForEachTile((x, y) => Tiles[x, y].Render(this));
         foreach (var gameObject in GameObjects)
         {
             gameObject.Render(this);
         }
     }
 
-    public void RenderGameObjects(int x, int y)
+    public void RenderDecorations(int x, int y)
     {
         if (!postGenInitialized)
         {
@@ -215,6 +218,7 @@ class Map
         }
 
         ClearDecorations(x, y);
+        Tiles[x, y].Render(this);
         var reRenderGameObjects = GameObjectByCoord[x, y];
         foreach (var gameObject in reRenderGameObjects)
         {
@@ -264,7 +268,7 @@ class Map
         BlocksMovementMap[x, y] = true;
 
         RecomputeVisibility();
-        RenderGameObjects();
+        RenderDecorations();
         RenderMoveables();
     }
 
@@ -314,7 +318,7 @@ class Map
 
         AddGameObject(puddleObject);
         // somewhat icky calling RenderXxx here...
-        RenderGameObjects(killed.X, killed.Y);
+        RenderDecorations(killed.X, killed.Y);
     }
 
     public void AddMonster(Moveable monster)
@@ -429,7 +433,7 @@ class Map
         {
             UpdateBlocksLight(destX, destY);
             UpdateBlockMovement(destX, destY);
-            RenderGameObjects(destX, destY);
+            RenderDecorations(destX, destY);
         }
 
         return stateChanged;

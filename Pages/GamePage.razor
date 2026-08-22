@@ -602,7 +602,7 @@ else
         // When I begin to do effecs, I may need to revisit this...
         game.Map.UpdateBlocksLight(decoration.GameObject.X, decoration.GameObject.Y, recomputeVisibility: true);
         game.Map.UpdateBlockMovement(decoration.GameObject.X, decoration.GameObject.Y);
-        game.Map.RenderGameObjects(decoration.GameObject.X, decoration.GameObject.Y);
+        game.Map.RenderDecorations(decoration.GameObject.X, decoration.GameObject.Y);
         // TODO Don't I need to Render Moveables here also?
     }
 

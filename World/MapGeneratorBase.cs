@@ -278,7 +278,7 @@ abstract class MapGeneratorBase(
         {
             for (int y = 0; y < map.Height; y++)
             {
-                AddPostGenWallDecorations(x, y);
+                AddTorches(x, y);
 
                 AddPostGenFloorDecorations(x, y);
             }
@@ -429,86 +429,32 @@ abstract class MapGeneratorBase(
         return numberOfSurroundingBlockingSpots;
     }
 
-    protected void AddPostGenWallDecorations(int x, int y)
+    // Wall tiles with a floor tile directly below (and no door there) may get a torch. Purely a
+    // content-placement roll, unlike Tile.Render's half-wall/wall-face/edge art - a torch isn't
+    // implied by tile geometry the way that art is, so it stays a generator decision.
+    protected void AddTorches(int x, int y)
     {
-        // Add halfwall decorations on all wall tiles (offset -1) with a floor-tile or a black tile directly above
-        // if tile above has door, select from 1-3, else from tiles 1-6
-        if (y > 0)
+        if (map.Tiles[x, y].TileType != TileType.Wall)
         {
-            if (
-                map.Tiles[x, y].TileType == TileType.Wall
-                && (
-                    map.Tiles[x, y - 1].TileType == TileType.Floor
-                    || map.Tiles[x, y - 1].TileType == TileType.Black
-                )
-            )
-            {
-                int[] halfwallIndexes = map.DungeonWallSet.ImageEdgeNorthIndexes;
-
-                bool restrictToSimplerHalfWall =
-                    MapTileContainsDoor(x, y - 1) || random.Next(0, 4) < 3;
-                if (restrictToSimplerHalfWall)
-                {
-                    halfwallIndexes = map.DungeonWallSet.ImageSimpleEdgeNorthIndexes;
-                }
-
-                map.AddGameObject(new HalfWall(x, y, GetRandomElement(halfwallIndexes)));
-
-                ExtraDecorationOnNorthHalfWall(x, y);
-            }
+            return;
         }
 
-        // Wall should have front, if there is a floor tile or a black tile below; if tile below has a door, choose 14
-        if (y < map.Height - 1)
+        if (y >= map.Height - 1 || map.Tiles[x, y + 1].TileType != TileType.Floor)
         {
-            if (
-                map.Tiles[x, y].TileType == TileType.Wall
-                && (
-                    map.Tiles[x, y + 1].TileType == TileType.Floor
-                    || map.Tiles[x, y + 1].TileType == TileType.Black
-                )
-            )
-            {
-                int index = GetRandomElementWeighted(
-                    map.DungeonWallSet.ImageSouthEdgeIndexes,
-                    map.DungeonWallSet.ImageSouthEdgeWeights
-                );
-                bool mapTileBelowHasDoor = MapTileContainsDoor(x, y + 1);
-                if (mapTileBelowHasDoor)
-                {
-                    // TODO: UF
-                    index = 14;
-                }
-                map.Tiles[x, y].TileIndex = index;
-
-                // check for adding torch
-                if (
-                    !mapTileBelowHasDoor
-                    && map.Tiles[x, y + 1].TileType == TileType.Floor
-                    && random.NextDouble() < percentageChanceOfTorch
-                )
-                {
-                    map.AddGameObject(new Torch(x, y));
-                    //map.DebugInfo.Add($"Added torch at ({x},{y}).");
-                }
-
-                ExtraDecorationOnSouthWallFront(x, y);
-            }
+            return;
         }
 
-        if (map.Tiles[x, y].TileType == TileType.Wall)
+        if (MapTileContainsDoor(x, y + 1))
         {
-            ExtraDecorationOnFreeStandingWall(x, y);
+            return;
+        }
+
+        if (random.NextDouble() < percentageChanceOfTorch)
+        {
+            map.AddGameObject(new Torch(x, y));
+            //map.DebugInfo.Add($"Added torch at ({x},{y}).");
         }
     }
-
-    // Hooks for subclass-specific extra wall decorations (e.g. cave edges), called from
-    // AddPostGenWallDecorations above. No-op by default.
-    protected virtual void ExtraDecorationOnNorthHalfWall(int x, int y) { }
-
-    protected virtual void ExtraDecorationOnSouthWallFront(int x, int y) { }
-
-    protected virtual void ExtraDecorationOnFreeStandingWall(int x, int y) { }
 
     /// <summary>
     /// Does the map contain a door at (x,y)?
