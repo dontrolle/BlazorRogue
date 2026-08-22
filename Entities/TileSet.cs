@@ -131,4 +131,24 @@ class TileSet
 
         return options[i].Name;
     }
+
+    /// <summary>
+    /// Weighted-picks an element from <paramref name="elements"/>, used by <see cref="Tile"/> for
+    /// its own generation-time-independent index picks (e.g. south wall-face art).
+    /// </summary>
+    internal static T PickWeighted<T>(T[] elements, double[] weights, Random rng)
+    {
+        int i;
+        double r = rng.NextDouble() * weights.Sum();
+        for (i = 0; i < weights.Length; i++)
+        {
+            if (r < weights[i])
+            {
+                break;
+            }
+            r -= weights[i];
+        }
+
+        return elements[i];
+    }
 }

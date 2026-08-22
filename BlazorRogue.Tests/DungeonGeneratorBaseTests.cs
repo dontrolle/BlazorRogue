@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using BlazorRogue.Entities;
 using BlazorRogue.World;
@@ -113,30 +112,15 @@ public class DungeonGeneratorBaseTests
     {
         // Mirrors levels.json's level0: cave_generator with the "hedge" wall-set, whose
         // level_type is "outdoor" rather than "cave" - and which relies on wallsets.json's data-
-        // driven "edges" entry (rather than CaveGenerator hardcoding cave-specific indexes) to
-        // decorate wall tiles via WallEdge. This exercises that whole path end-to-end without
-        // throwing.
+        // driven "edges" entry (read by Tile.Render, opportunistically for any wall-set/generator
+        // combination that defines it) to decorate wall tiles. This exercises that whole path
+        // end-to-end without throwing.
         var game = new Game();
         var level = LevelWith(CaveGenerator.Id, SettingsWithWallTileSet(("hedge", 1.0)));
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
 
         Assert.Equal("hedge", map.DungeonWallSet.Id);
-    }
-
-    [Fact]
-    public void CaveGeneratorThrowsWhenWallSetHasNoEdgeIndexes()
-    {
-        // "crypt" never defines an "edges" entry in wallsets.json (only the dungeon generator
-        // uses it, which never reads edge data) - CaveGenerator should fail clearly rather than
-        // throwing a raw NullReferenceException if it's ever pointed at such a wall-set.
-        var game = new Game();
-        var level = LevelWith(CaveGenerator.Id, SettingsWithWallTileSet(("crypt", 1.0)));
-
-        var ex = Assert.Throws<InvalidOperationException>(() =>
-            MapGeneratorFactory.Create(level, game).GenerateMap()
-        );
-        Assert.Contains("crypt", ex.Message);
     }
 
     static IEnumerable<TileSet> FloorTileSetsUsedIn(Map map)
