@@ -1,7 +1,7 @@
 using System;
 using BlazorRogue.Entities;
 
-namespace BlazorRogue.World;
+namespace BlazorRogue.World.Generation;
 
 /// <summary>
 /// Cave generator, using cellular automate.

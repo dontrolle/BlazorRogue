@@ -1,5 +1,5 @@
 using BlazorRogue.Entities;
-using BlazorRogue.World;
+using BlazorRogue.World.Generation;
 
 namespace BlazorRogue.Tests;
 

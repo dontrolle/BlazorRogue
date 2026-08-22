@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using BlazorRogue;
 using BlazorRogue.Entities;
-using BlazorRogue.World;
+
+namespace BlazorRogue.World.Generation;
 
 static class MapGeneratorFactory
 {

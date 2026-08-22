@@ -6,7 +6,7 @@ using BlazorRogue.Components;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
-namespace BlazorRogue.World;
+namespace BlazorRogue.World.Generation;
 
 abstract class MapGeneratorBase(
     int width,

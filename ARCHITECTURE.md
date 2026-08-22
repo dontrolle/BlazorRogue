@@ -92,16 +92,20 @@ how to test changes in these areas.
 - **Map generation**: each level in `Data/levels.json` (parsed into `LevelConfiguration`, see
   `Entities/LevelConfiguration.cs`) names its map generator by a string id (`map_generator
   .generator_id`, e.g. `"basic_dungeon_generator"`) rather than the game hardcoding one.
-  `World/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator`
-  (`World/IMapGenerator.cs`) via a small `Dictionary<string, Func<...>>` registry — each generator
-  exposes its own id as a `public const string Id` (e.g. `BasicDungeonGenerator.Id`), so the id and
-  the class stay in sync without a separate lookup table to maintain by hand.
+  `World/Generation/MapGeneratorFactory.cs` maps that id to a concrete `IMapGenerator`
+  (`World/Generation/IMapGenerator.cs`) via a small `Dictionary<string, Func<...>>` registry — each
+  generator exposes its own id as a `public const string Id` (e.g. `BasicDungeonGenerator.Id`), so
+  the id and the class stay in sync without a separate lookup table to maintain by hand.
   `Game`'s constructor resolves the generator via `MapGeneratorFactory.Create(level, this)` and
   exposes it as `Game.MapGenerator` (`IMapGenerator`), not a hardcoded concrete type.
-  `World/DungeonGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
+  `World/Generation/MapGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
   generators (rendering/decoration helpers, door placement, `GenerateMap()`'s overall flow);
-  `World/BasicDungeonGenerator.cs` (rooms + corridors) and `World/CaveGenerator.cs` (cellular
-  automaton) are its two concrete subclasses, each implementing `CreateLayout()`.
+  `World/Generation/BasicDungeonGenerator.cs` (rooms + corridors) and
+  `World/Generation/CaveGenerator.cs` (cellular automaton) are its two concrete subclasses, each
+  implementing `CreateLayout()`. All of `World/Generation/` (plus its types' use of `Map`/`Tile`/
+  `TileType`/`Orientation` from the parent `World` namespace, visible without a `using` since C#
+  namespace lookup searches enclosing namespaces) lives in the `BlazorRogue.World.Generation`
+  namespace, one level under `BlazorRogue.World`.
 - **`SettingsMap` / component parameters**: `SettingsMap` (`Entities/SettingsMap.cs`) is the general
   mechanism for a data-driven component's free-form `parameters` JSON — a small recursive value tree
   restricted to int, double, string, and nested maps of the same. It's not specific to map
@@ -112,7 +116,7 @@ how to test changes in these areas.
   reference the JSON library, they just call typed getters (`GetInt`/`GetDouble`/`GetString`/
   `GetMap`), each with a required form (throws a clear error naming the missing/mistyped key) and a
   `(key, defaultValue)` form. For map generators specifically: settings shared by every
-  `DungeonGeneratorBase` subclass (the decoration percentage-chance fields) are grouped under a
+  `MapGeneratorBase` subclass (the decoration percentage-chance fields) are grouped under a
   `"common"` key in `parameters`; a generator's own settings (e.g. `BasicDungeonGenerator`'s
   room-size bounds, `CaveGenerator`'s smoothing-pass iteration counts) live under `"layout"` — see
   `Data/levels.json` for the shape. Because every `SettingsMap` lookup used by the generators is the
@@ -125,7 +129,7 @@ how to test changes in these areas.
   of the same type being constructed (`CS0236`) — only static members and the primary constructor's
   own parameters are visible at that point. That's why each generator that reads `SettingsMap`
   values in a field initializer (e.g. `BasicDungeonGenerator.LayoutSettings`,
-  `DungeonGeneratorBase.CommonSettings`) does so via a `private static` helper method rather than an
+  `MapGeneratorBase.CommonSettings`) does so via a `private static` helper method rather than an
   intermediate instance field.
 - **AI components**: a monster's AI is chosen the same way map generators are — `monsters.json` (and
   `heroes.json`, though it's unused there since the player's `AIComponent` is always `null`) names it
@@ -136,7 +140,7 @@ how to test changes in these areas.
   `MapGeneratorFactory` — each component exposes its own id as `public const string ComponentId`
   (e.g. `RandomWalkAIComponent.ComponentId`). `Configuration.Parse()` validates every monster's id
   against `AIComponentFactory.IsKnown` right after loading `monsters.json`, the same fail-fast
-  pattern used for `generator_id`. `World/DungeonGeneratorBase.cs` builds each monster's
+  pattern used for `generator_id`. `World/Generation/MapGeneratorBase.cs` builds each monster's
   `AIComponent` via `AIComponentFactory.Create(monsterType.AIComponentId, map,
   monsterType.AIComponentSettings)` rather than hardcoding a component type.
 - **Combat**: lives under `Combat/`, with a specific ruleset in `Combat/Warhammer/`

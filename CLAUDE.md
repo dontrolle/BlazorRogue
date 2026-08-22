@@ -17,7 +17,8 @@ Combat/           Combat system, incl. the Warhammer-inspired ruleset (Combat/Wa
 AI/               Monster AI components
 Effects/          EffectsSystem (screen shake) and SoundManager (audio cues)
 Vision/           Field-of-view implementation
-World/            Map, Tile, Decoration, map generators (IMapGenerator and implementors)
+World/            Map, Tile, Decoration; World/Generation/ holds the map generators (IMapGenerator
+                  and implementors)
 Rendering/        AnimationCssGenerator (generates @keyframes CSS from monster/hero data)
 Entities/         Types parsed from configuration, plus Configuration.cs (parses Data/*.json)
 Sessions/         Per-browser session state that survives page reloads

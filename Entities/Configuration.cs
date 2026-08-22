@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using BlazorRogue.AI;
 using BlazorRogue.World;
+using BlazorRogue.World.Generation;
 
 namespace BlazorRogue.Entities;
 
