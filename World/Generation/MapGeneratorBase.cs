@@ -113,7 +113,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Implementation of IMapGenerator.GenerrateMap that calls a set of overridable generator-functions in turn:
     ///     CreateLayout(), AddDoors(), AddStairs(), AddPlayer(), AddMonsters()
-    /// 
+    ///
     ///  and ensures that map.PostGenInitialize() is called.
     /// </summary>
     /// <param name="existingPlayer">An existing player object, if relevant.</param>
@@ -137,7 +137,7 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Basic method for adding a player object at the spot given by <paramref name="playerPos"/>. 
+    /// Basic method for adding a player object at the spot given by <paramref name="playerPos"/>.
     /// If <paramref name="existingPlayer"/> is not set, then a new player will be created.
     /// </summary>
     /// <param name="playerPos">Position to add the player at.</param>
@@ -215,7 +215,7 @@ abstract class MapGeneratorBase(
     protected abstract Tuple<int, int> CreateLayout();
 
     /// <summary>
-    /// Adds doors in suitable places - assumes that candidate door spots have been added to the candidateDoors list.  
+    /// Adds doors in suitable places - assumes that candidate door spots have been added to the candidateDoors list.
     /// </summary>
     protected virtual void AddDoors()
     {
@@ -435,7 +435,7 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Returns the number of blocking tiles around the map-tile at (<paramref name="x"/>, <paramref name="y"/>). 
+    /// Returns the number of blocking tiles around the map-tile at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
     protected int NumberOfSurroundingBlockingSpots(int x, int y)
     {
@@ -461,7 +461,7 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Has a chance (<c>percentageChanceOfTorch</c>) of adding a torch at (<paramref name="x"/>, <paramref name="y"/>). 
+    /// Has a chance (<c>percentageChanceOfTorch</c>) of adding a torch at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
     protected void AddTorches(int x, int y)
     {
