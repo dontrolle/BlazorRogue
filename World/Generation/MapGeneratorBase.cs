@@ -63,8 +63,7 @@ abstract class MapGeneratorBase(
     /// Resolves the wall <see cref="TileSet"/> for a level: weighted-picks among the ids listed in
     /// the level's <c>common.wall_tile_set</c> setting, or - when that's unspecified, e.g. for
     /// levels with no "common" parameters at all - falls back to a uniform pick over
-    /// <paramref name="defaultPool"/> (the generator's whole level-type pool), preserving the
-    /// previous behaviour.
+    /// <paramref name="defaultPool"/> (the generator's whole level-type pool).
     /// </summary>
     protected static TileSet SelectWallSet(
         Configuration configuration,
@@ -111,7 +110,15 @@ abstract class MapGeneratorBase(
         return (floorSets, weights);
     }
 
-    public Map GenerateMap(Moveable? existingPlayer = null)
+    /// <summary>
+    /// Implementation of IMapGenerator.GenerrateMap that calls a set of overridable generator-functions in turn:
+    ///     CreateLayout(), AddDoors(), AddStairs(), AddPlayer(), AddMonsters()
+    ///
+    ///  and ensures that map.PostGenInitialize() is called.
+    /// </summary>
+    /// <param name="existingPlayer">An existing player object, if relevant.</param>
+    /// <returns>The generated map.</returns>
+    public virtual Map GenerateMap(Moveable? existingPlayer = null)
     {
         var playerPos = CreateLayout();
 
@@ -129,6 +136,12 @@ abstract class MapGeneratorBase(
         return map;
     }
 
+    /// <summary>
+    /// Basic method for adding a player object at the spot given by <paramref name="playerPos"/>.
+    /// If <paramref name="existingPlayer"/> is not set, then a new player will be created.
+    /// </summary>
+    /// <param name="playerPos">Position to add the player at.</param>
+    /// <param name="existingPlayer">And existing player object, if relevant.</param>
     protected virtual void AddPlayer(Tuple<int, int> playerPos, Moveable? existingPlayer)
     {
         if (existingPlayer is null)
@@ -195,9 +208,16 @@ abstract class MapGeneratorBase(
         }
     }
 
+    /// <summary>
+    /// Should create the basic layout of the map - placing walls and floors.
+    /// </summary>
+    /// <returns>A tuple representing the player position.</returns>
     protected abstract Tuple<int, int> CreateLayout();
 
-    protected void AddDoors()
+    /// <summary>
+    /// Adds doors in suitable places - assumes that candidate door spots have been added to the candidateDoors list.
+    /// </summary>
+    protected virtual void AddDoors()
     {
         foreach (var candidateDoor in candidateDoors)
         {
@@ -253,6 +273,11 @@ abstract class MapGeneratorBase(
         }
     }
 
+    /// <summary>
+    /// Simple method that uses brute-force to find a random unblocked tile.
+    /// </summary>
+    /// <returns>An unblocked tile.</returns>
+    /// <exception cref="InvalidOperationException">Throws, if no unblocked tile was found.</exception>
     protected Tuple<int, int> GetRandomUnblockedMapTile()
     {
         int maxSearch = 200;
@@ -272,7 +297,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Adds decorations on walls and floors.
     /// </summary>
-    protected void AddPostMapGenerationDecorations()
+    protected virtual void AddPostMapGenerationDecorations()
     {
         for (int x = 0; x < map.Width; x++)
         {
@@ -285,6 +310,9 @@ abstract class MapGeneratorBase(
         }
     }
 
+    /// <summary>
+    /// Adds various decorations to the floor at (<paramref name="x"/>, <paramref name="y"/>).
+    /// </summary>
     protected void AddPostGenFloorDecorations(int x, int y)
     {
         if (map.Tiles[x, y].TileType == TileType.Floor)
@@ -406,6 +434,9 @@ abstract class MapGeneratorBase(
         }
     }
 
+    /// <summary>
+    /// Returns the number of blocking tiles around the map-tile at (<paramref name="x"/>, <paramref name="y"/>).
+    /// </summary>
     protected int NumberOfSurroundingBlockingSpots(int x, int y)
     {
         int numberOfSurroundingBlockingSpots = 0;
@@ -429,11 +460,15 @@ abstract class MapGeneratorBase(
         return numberOfSurroundingBlockingSpots;
     }
 
-    // Wall tiles with a floor tile directly below (and no door there) may get a torch. Purely a
-    // content-placement roll, unlike Tile.Render's half-wall/wall-face/edge art - a torch isn't
-    // implied by tile geometry the way that art is, so it stays a generator decision.
+    /// <summary>
+    /// Has a chance (<c>percentageChanceOfTorch</c>) of adding a torch at (<paramref name="x"/>, <paramref name="y"/>).
+    /// </summary>
     protected void AddTorches(int x, int y)
     {
+        // Wall tiles with a floor tile directly below (and no door there) may get a torch. Purely a
+        // content-placement roll, unlike Tile.Render's half-wall/wall-face/edge art - a torch isn't
+        // implied by tile geometry the way that art is, so it stays a generator decision.
+
         if (map.Tiles[x, y].TileType != TileType.Wall)
         {
             return;
@@ -497,11 +532,10 @@ abstract class MapGeneratorBase(
     protected bool GetRandomBool() => random.Next(0, 2) == 0;
 
     /// <summary>
-    /// Update the map to have a wall tile at (x,y).
+    /// Update the map to have a wall tile at (<paramref name="x"/>,<paramref name="y"/>).
     /// </summary>
     protected void PlaceWall(int x, int y)
     {
-        // TODO: Fix - right now important to clear all properties, else some may remain from earlier floor, e.g.
         map.Tiles[x, y].TileSet = map.DungeonWallSet;
         map.Tiles[x, y].TileIndex = GetRandomElementWeighted(
             map.DungeonWallSet.ImageBaseIndexes,
@@ -511,11 +545,10 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Update the map to have a floor tile at (x,y).
+    /// Update the map to have a floor tile at (<paramref name="x"/>,<paramref name="y"/>).
     /// </summary>
     protected void PlaceFloor(int x, int y, TileSet floorSet)
     {
-        // TODO: Fix - right now important to clear all properties, else some may remain from earlier wall, e.g.
         map.Tiles[x, y].TileSet = floorSet;
         map.Tiles[x, y].TileIndex = GetRandomElement(floorSet.ImageBaseIndexes);
         map.Tiles[x, y].Blocking = false;
