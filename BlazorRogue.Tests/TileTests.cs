@@ -115,6 +115,40 @@ public class TileTests
         Assert.NotEqual(southFace.ImageName, game.Map.Tiles[x, y].ImageName);
     }
 
+    [Fact]
+    public void RenderAddsAShadowDecorationWhenFloorIsBelow()
+    {
+        var (game, x, y) = SetUpWall(
+            "cave",
+            floorAbove: false,
+            floorBelow: true,
+            floorLeft: false,
+            floorRight: false
+        );
+
+        game.Map.Tiles[x, y].Render(game.Map);
+
+        var shadow = Assert.Single(
+            game.Map.Decorations[x, y],
+            d => d.VerticalOffset == 1 && d.HorizontalOffset == 0
+        );
+        Assert.Equal("shadow_1", shadow.ImageName);
+    }
+
+    [Fact]
+    public void RenderUsesShadow3ForTheFreestandingPillar()
+    {
+        var (game, x, y) = SetUpWallSurroundedByFloor("cave");
+
+        game.Map.Tiles[x, y].Render(game.Map);
+
+        var shadow = Assert.Single(
+            game.Map.Decorations[x, y],
+            d => d.VerticalOffset == 1 && d.HorizontalOffset == 0
+        );
+        Assert.Equal("shadow_3", shadow.ImageName);
+    }
+
     [Theory]
     [InlineData("crypt")]
     [InlineData("dungeon")]
@@ -182,8 +216,8 @@ public class TileTests
 
         game.Map.Tiles[x, y].Render(game.Map);
 
-        // Half-wall (north) and south-face still render; only edge art is skipped.
-        Assert.Equal(2, game.Map.Decorations[x, y].Count);
+        // Half-wall (north), south-face, and its shadow still render; only edge art is skipped.
+        Assert.Equal(3, game.Map.Decorations[x, y].Count);
         Assert.All(game.Map.Decorations[x, y], d => Assert.Equal(0, d.HorizontalOffset));
     }
 

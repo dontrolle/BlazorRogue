@@ -82,6 +82,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             floorUnderlay = (floorNeighbor.TileSet, floorNeighbor.TileIndex);
             map.Decorations[X, Y]
                 .Add(new Decoration(owner, TileSet.ImageName(TileSet.ImageFreestandingIndex)));
+            RenderShadow(map, owner, "shadow_3");
             return;
         }
 
@@ -95,6 +96,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         {
             RenderSouthFace(map, owner);
             RenderEdges(map, owner, TileSet.EdgeSouthIndexes, hasFloorLeft, hasFloorRight, 0);
+            RenderShadow(map, owner, "shadow_1");
         }
 
         RenderEdges(map, owner, TileSet.EdgeFreeIndexes, hasFloorLeft, hasFloorRight, 0);
@@ -124,6 +126,11 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             : TileSet.ImageEdgeNorthIndexes;
         return pool[Random.Next(0, pool.Length)];
     }
+
+    // Casts the wall's shadow onto the floor tile below - same "own cell, offset into the
+    // neighbor" trick as RenderHalfWall's VerticalOffset = -1, just pointed the other way.
+    void RenderShadow(Map map, TileDecorationOwner owner, string imageName) =>
+        map.Decorations[X, Y].Add(new Decoration(owner, imageName) { VerticalOffset = 1 });
 
     void RenderSouthFace(Map map, TileDecorationOwner owner)
     {
