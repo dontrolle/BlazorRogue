@@ -32,7 +32,6 @@ class Door : GameObject
 
     public override void Render(Map map)
     {
-        // TODO: Maybe all bottom (defined how?) walls should just have half wall tiles as decoration? Would match examples...
         if (Orientation == Orientation.Vertical)
         {
             if (IsOpen)
