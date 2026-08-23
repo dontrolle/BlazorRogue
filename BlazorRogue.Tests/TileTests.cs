@@ -31,7 +31,11 @@ public class TileTests
         int x = game.Map.Width / 2;
         int y = game.Map.Height / 2;
 
-        game.Map.Tiles[x, y].TileSet = wallSet;
+        // A fresh Tile, not a mutation of whatever the generator put here - that instance may
+        // already have been Render()-ed once during GenerateMap() (on the map's real, random
+        // layout) and cached a halfWallIndex/southFaceIndex that would then survive this test's
+        // own Render() call below instead of being recomputed for the scenario being built here.
+        game.Map.Tiles[x, y] = new Tile(x, y, wallSet, 0);
         game.Map.Tiles[x, y - 1].TileSet = floorAbove ? floorSet : wallSet;
         game.Map.Tiles[x, y + 1].TileSet = floorBelow ? floorSet : wallSet;
         game.Map.Tiles[x - 1, y].TileSet = floorLeft ? floorSet : wallSet;
@@ -182,7 +186,7 @@ public class TileTests
         int y = game.Map.Height / 2;
 
         // Wall above and below - only the free-standing (east/west) edge branch applies.
-        game.Map.Tiles[x, y].TileSet = wallSet;
+        game.Map.Tiles[x, y] = new Tile(x, y, wallSet, 0);
         game.Map.Tiles[x, y - 1].TileSet = wallSet;
         game.Map.Tiles[x, y + 1].TileSet = wallSet;
         game.Map.Tiles[x - 1, y].TileSet = floorSet;
@@ -230,7 +234,7 @@ public class TileTests
         int x = game.Map.Width / 2;
         int y = game.Map.Height / 2;
 
-        game.Map.Tiles[x, y].TileSet = wallSet;
+        game.Map.Tiles[x, y] = new Tile(x, y, wallSet, 0);
         game.Map.Tiles[x, y - 1].TileSet = floorSet;
         game.Map.Tiles[x, y + 1].TileSet = wallSet;
         game.Map.Tiles[x - 1, y].TileSet = wallSet;
@@ -260,7 +264,7 @@ public class TileTests
         int x = game.Map.Width / 2;
         int y = game.Map.Height / 2;
 
-        game.Map.Tiles[x, y].TileSet = wallSet;
+        game.Map.Tiles[x, y] = new Tile(x, y, wallSet, 0);
         game.Map.Tiles[x, y - 1].TileSet = wallSet;
         game.Map.Tiles[x, y + 1].TileSet = floorSet;
         game.Map.Tiles[x - 1, y].TileSet = wallSet;
