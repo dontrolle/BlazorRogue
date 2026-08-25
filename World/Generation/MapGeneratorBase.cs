@@ -8,6 +8,17 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World.Generation;
 
+/// <summary>
+/// Base class for map-generators providing an implementation of
+/// <c>IMapGenerator.GenerateMap()</c> that calls a set of overridable generator-
+/// functions in turn.
+/// </summary>
+/// <param name="width">Width of map to generate</param>
+/// <param name="height">Height of map to generate</param>
+/// <param name="levelNumber">Which level is the map set at?</param>
+/// <param name="game">Game instance</param>
+/// <param name="wallSet">Which main wall-tileset to use</param>
+/// <param name="settings">Parsed configuration</param>
 abstract class MapGeneratorBase(
     int width,
     int height,
@@ -20,7 +31,7 @@ abstract class MapGeneratorBase(
     protected readonly Map map = new(width, height, wallSet, game);
     protected readonly Configuration configuration = game.Configuration;
     protected readonly int levelNumber = levelNumber;
-    protected readonly Random random = new();
+    protected readonly Random mapGenerationRandomSource = new();
 
     // Decorations - shared by every DungeonGeneratorBase subclass, so levels.json groups these
     // under "common" rather than mixing them in with a specific generator's own layout parameters.
@@ -111,8 +122,9 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Implementation of IMapGenerator.GenerrateMap that calls a set of overridable generator-functions in turn:
-    ///     CreateLayout(), AddDoors(), AddStairs(), AddPlayer(), AddMonsters()
+    /// Implementation of IMapGenerator.GenerateMap that calls a set of overridable generator-functions in turn:
+    ///     CreateLayout(), AddDoors(), AddRandomPostMapGenerationDecorations(),
+    ///     AddStairs(), AddPlayer(), AddMonsters()
     ///
     ///  and ensures that map.PostGenInitialize() is called.
     /// </summary>
@@ -123,7 +135,7 @@ abstract class MapGeneratorBase(
         var playerPos = CreateLayout();
 
         AddDoors();
-        AddPostMapGenerationDecorations();
+        AddRandomPostMapGenerationDecorations();
         AddStairs();
 
         AddPlayer(playerPos, existingPlayer);
@@ -240,7 +252,7 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                random.Next(1, 4),
+                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Horizontal,
                                 GetRandomBool()
                             )
@@ -262,7 +274,7 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                random.Next(1, 4),
+                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Vertical,
                                 GetRandomBool()
                             )
@@ -283,8 +295,8 @@ abstract class MapGeneratorBase(
         int maxSearch = 200;
         for (int i = 0; i < maxSearch; i++)
         {
-            int x = random.Next(0, map.Width);
-            int y = random.Next(0, map.Height);
+            int x = mapGenerationRandomSource.Next(0, map.Width);
+            int y = mapGenerationRandomSource.Next(0, map.Height);
 
             if (!map.IsBlocked(x, y))
                 return Tuple.Create(x, y);
@@ -295,30 +307,30 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Adds decorations on walls and floors.
+    /// Adds decorations randomly on walls and floors.
     /// </summary>
-    protected virtual void AddPostMapGenerationDecorations()
+    protected virtual void AddRandomPostMapGenerationDecorations()
     {
         for (int x = 0; x < map.Width; x++)
         {
             for (int y = 0; y < map.Height; y++)
             {
-                AddTorches(x, y);
+                PlaceTorchIfEligible(x, y);
 
-                AddPostGenFloorDecorations(x, y);
+                AddRandomPostGenFloorDecorationsAt(x, y);
             }
         }
     }
 
     /// <summary>
-    /// Adds various decorations to the floor at (<paramref name="x"/>, <paramref name="y"/>).
+    /// Adds random decorations to the floor at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
-    protected void AddPostGenFloorDecorations(int x, int y)
+    protected void AddRandomPostGenFloorDecorationsAt(int x, int y)
     {
         if (map.Tiles[x, y].TileType == TileType.Floor)
         {
             if (
-                random.NextDouble() < percentageChanceOfBones
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfBones
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
             )
@@ -333,7 +345,7 @@ abstract class MapGeneratorBase(
             }
 
             if (
-                random.NextDouble() < percentageChanceOfTables
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfTables
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
             )
@@ -351,7 +363,7 @@ abstract class MapGeneratorBase(
             }
 
             if (
-                random.NextDouble() < percentageChanceOfAltars
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfAltars
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
             )
@@ -369,14 +381,14 @@ abstract class MapGeneratorBase(
             }
 
             if (
-                random.NextDouble() < percentageChanceOfChests
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfChests
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
             )
             {
                 string chestId = "chest_silver";
-                int gold = random.Next(0, 4);
-                if (random.Next(0, 4) == 0)
+                int gold = mapGenerationRandomSource.Next(0, 4);
+                if (mapGenerationRandomSource.Next(0, 4) == 0)
                 {
                     chestId = "chest_gold";
                     gold += 4;
@@ -389,7 +401,7 @@ abstract class MapGeneratorBase(
 
             // in the following we rely on floors never being placed on the perimeter tiles, else we could do
             //if(x > 0 && x < map.Width -1 && y > 0 && y < map.Height - 1){ ... }
-            if (random.NextDouble() < percentageChanceOfSpiderWebInCorner)
+            if (mapGenerationRandomSource.NextDouble() < percentageChanceOfSpiderWebInCorner)
             {
                 bool wallAbove = map.Tiles[x, y - 1].TileType == TileType.Wall;
                 bool wallBelow = map.Tiles[x, y + 1].TileType == TileType.Wall;
@@ -463,7 +475,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Has a chance (<c>percentageChanceOfTorch</c>) of adding a torch at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
-    protected void AddTorches(int x, int y)
+    protected void PlaceTorchIfEligible(int x, int y)
     {
         // Wall tiles with a floor tile directly below (and no door there) may get a torch. Purely a
         // content-placement roll, unlike Tile.Render's half-wall/wall-face/edge art - a torch isn't
@@ -484,7 +496,7 @@ abstract class MapGeneratorBase(
             return;
         }
 
-        if (random.NextDouble() < percentageChanceOfTorch)
+        if (mapGenerationRandomSource.NextDouble() < percentageChanceOfTorch)
         {
             map.AddGameObject(new Torch(x, y));
             //map.DebugInfo.Add($"Added torch at ({x},{y}).");
@@ -497,15 +509,16 @@ abstract class MapGeneratorBase(
     protected bool MapTileContainsDoor(int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
 
-    protected T GetRandomElement<T>(T[] elements) => elements[random.Next(0, elements.Length)];
+    protected T GetRandomElement<T>(T[] elements) =>
+        elements[mapGenerationRandomSource.Next(0, elements.Length)];
 
 #pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
     protected T GetRandomElement<T>(IEnumerable<T> elements) =>
-        elements.ElementAt(random.Next(0, elements.Count()));
+        elements.ElementAt(mapGenerationRandomSource.Next(0, elements.Count()));
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
 
     protected T GetRandomElementWeighted<T>(T[] elements, double[] weights) =>
-        WeightedPick(elements, weights, random);
+        WeightedPick(elements, weights, mapGenerationRandomSource);
 
     // Shared core for GetRandomElementWeighted (instance, seedable via `random`) and
     // SelectRandomWeighted (static, for use ahead of the base constructor running - see
@@ -529,7 +542,7 @@ abstract class MapGeneratorBase(
         return elements[i];
     }
 
-    protected bool GetRandomBool() => random.Next(0, 2) == 0;
+    protected bool GetRandomBool() => mapGenerationRandomSource.Next(0, 2) == 0;
 
     /// <summary>
     /// Update the map to have a wall tile at (<paramref name="x"/>,<paramref name="y"/>).
