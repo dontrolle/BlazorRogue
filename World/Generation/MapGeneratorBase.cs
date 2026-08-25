@@ -10,8 +10,8 @@ namespace BlazorRogue.World.Generation;
 
 /// <summary>
 /// Base class for map-generators providing an implementation of
-/// <c>IMapGenerator.GenerateMap()</c> that calls a set of overridable generator-
-/// functions in turn.
+/// <c>IMapGenerator.GenerateMap()</c> that creates an empty map and 
+/// calls a set of overridable generator-functions in turn.
 /// </summary>
 /// <param name="width">Width of map to generate</param>
 /// <param name="height">Height of map to generate</param>
