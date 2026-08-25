@@ -2,6 +2,14 @@ using System;
 using BlazorRogue.Entities;
 using BlazorRogue.World.Generation;
 
+/// <summary>
+/// Map generator for creating maps for testing.
+/// </summary>
+/// <param name="width">Map width</param>
+/// <param name="height">Map height</param>
+/// <param name="levelNumber">The level's "no" in levels.json, used e.g. to decide which stairs exist</param>
+/// <param name="game">Game instance</param>
+/// <param name="settings">Map settings</param>
 class TestMapGenerator(
     int width,
     int height,
@@ -31,7 +39,7 @@ class TestMapGenerator(
     {
         var floorSet = GetRandomElementWeighted(commonFloorPool.TileSets, commonFloorPool.Weights);
 
-        // Floor must never reach the outer ring - AddPostGenFloorDecorations (spider-web corner
+        // Floor must never reach the outer ring - AddRandomPostGenFloorDecorationsAt (spider-web corner
         // checks, NumberOfSurroundingBlockingSpots) indexes a floor tile's neighbors unguarded,
         // relying on every generator keeping the perimeter as walls.
         for (int x = 0; x < map.Width; x++)

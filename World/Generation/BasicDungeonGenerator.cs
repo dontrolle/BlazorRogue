@@ -114,10 +114,10 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
         Room? lastRoom = null;
         for (int i = 0; i < maxRooms; i++)
         {
-            int w = random.Next(minRoomWidth, maxRoomWidth + 1);
-            int h = random.Next(minRoomHeight, maxRoomHeight + 1);
-            int x = random.Next(1, map.Width - w - 1);
-            int y = random.Next(1, map.Height - h - 1);
+            int w = mapGenerationRandomSource.Next(minRoomWidth, maxRoomWidth + 1);
+            int h = mapGenerationRandomSource.Next(minRoomHeight, maxRoomHeight + 1);
+            int x = mapGenerationRandomSource.Next(1, map.Width - w - 1);
+            int y = mapGenerationRandomSource.Next(1, map.Height - h - 1);
             var newRoom = new Room(x, y, w, h);
             bool intersect = false;
             foreach (var r in rooms)
@@ -285,7 +285,7 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
         if (
             width >= specialRoomWidth
             && height >= specialRoomHeight
-            && random.NextDouble() < percentageChanceOfSpecialRoom
+            && mapGenerationRandomSource.NextDouble() < percentageChanceOfSpecialRoom
         )
         {
             floorset = GetRandomElementWeighted(

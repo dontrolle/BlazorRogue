@@ -55,7 +55,7 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
         bool[,] genmap = new bool[map.Width, map.Height];
 
         void InitFill(int x, int y) =>
-            genmap[x, y] = random.NextDouble() < percentageChanceOfInitialWall;
+            genmap[x, y] = mapGenerationRandomSource.NextDouble() < percentageChanceOfInitialWall;
 
         map.ForEachTile(InitFill);
 
