@@ -64,6 +64,11 @@ public class CombatComponentTests
     [Fact]
     public void ApplyDamageKillsOwnerWhenWoundsReachZero()
     {
+        // GameObject.Kill() reaches References.Game directly, so it must be set up here rather
+        // than relying on some other test's `new Game()` having run first in the same process -
+        // that ordering isn't guaranteed and was the source of an intermittent NullReferenceException.
+        _ = new Game();
+
         var moveable = CreateMoveable(toughness: 0, armour: 0, wounds: 5);
         bool killed = false;
         moveable.GameObjectKilled += (_, _) => killed = true;
