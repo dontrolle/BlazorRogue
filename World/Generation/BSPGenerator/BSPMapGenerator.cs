@@ -1,7 +1,7 @@
 using System;
 using BlazorRogue.Entities;
 
-namespace BlazorRogue.World.Generation;
+namespace BlazorRogue.World.Generation.BSPGenerator;
 
 /// <summary>
 /// Dungeon generator that lays out rooms via binary space partitioning.
@@ -23,45 +23,13 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 {
     public const string Id = "bsp_map_generator";
 
-    public const int BspBorderWidth = 2;
-
     protected override Tuple<int, int> CreateLayout()
     {
-        var root = new BspNode(new Area(0, map.Width, 0, map.Height));
-        
-        bool thresholdReached = false;
-        while (!thresholdReached)
-        {
-            // bool horizontalSplit = GetRandomBool();
-            // if (horizontalSplit)
-            // {
-            //     int horizontalDivider = mapGenerationRandomSource.NextInt64()
-            // }
-            // else
-            // {
+        var root = new Node(new Area(0, map.Width, 0, map.Height));
 
-            // }
-        }
+        root.SplitUntilThreshold(15, 6, mapGenerationRandomSource);
 
         // player position random for now
         return GetRandomUnblockedMapTile();
-    }
-
-    class BspNode(Area area)
-    {
-        internal readonly Area Area = area;
-        private Room? room;
-        private ICorridor? corridor;
-        internal BspNode? Left;
-        internal BspNode? Right;
-
-
-    }
-
-
-
-    class ICorridor
-    {
-        
     }
 }

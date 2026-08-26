@@ -16,9 +16,8 @@ class Room(int x, int y, int width, int height)
     public int CenterX => X + ((Width - 1) / 2);
     public int CenterY => Y + ((Height - 1) / 2);
 
-    public Room(Area area) : this(area.XMin, area.YMin, area.Width, area.Height)
-    {
-    }
+    public Room(Area area)
+        : this(area.XMin, area.YMin, area.Width, area.Height) { }
 
     public bool Intersect(Room other)
     {

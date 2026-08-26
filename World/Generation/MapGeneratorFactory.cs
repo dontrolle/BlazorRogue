@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BlazorRogue.Entities;
+using BlazorRogue.World.Generation.BSPGenerator;
 
 namespace BlazorRogue.World.Generation;
 

@@ -1,12 +1,10 @@
 namespace BlazorRogue.World.Generation;
 
-class Area(int xMin, int xMax, int yMin, int yMax)
+/// <summary>
+/// An area given by coordinates, used internally by map generators.
+/// </summary>
+record struct Area(int XMin, int XMax, int YMin, int YMax)
 {
-    internal readonly int XMin = xMin;
-    internal readonly int XMax = xMax;
-    internal readonly int YMin = yMin;
-    internal readonly int YMax = yMax;
-
-    internal int Width => XMax - XMin;
-    internal int Height => YMax - YMin;
+    internal readonly int Width => XMax - XMin;
+    internal readonly int Height => YMax - YMin;
 }
