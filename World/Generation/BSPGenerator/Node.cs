@@ -16,7 +16,8 @@ class Node(Area area, int id = 0)
     /// </summary>
     internal int Id => id;
 
-    // private Room? room;
+    internal Room? Room;
+
     // private Corridor? corridor;
     internal Node? Left;
     internal Node? Right;
@@ -211,6 +212,90 @@ class Node(Area area, int id = 0)
 
     static string FormatArea(Area area) =>
         $"[{area.XMin},{area.YMin}]-[{area.XMax},{area.YMax}] ({area.Width}x{area.Height})";
+
+    const char AsciiDivider = '#';
+    const char AsciiRoomFloor = '.';
+    const char AsciiUncarved = ' ';
+
+    /// <summary>
+    /// Renders the plan under this node as an ASCII grid, for eyeballing room-carving and
+    /// corridor-connection before the layout is transferred onto a real <see cref="World.Map"/>.
+    /// One character per map tile:
+    /// <list type="bullet">
+    /// <item><c>'#'</c> - a divider line between leaf areas (where a wall will end up).</item>
+    /// <item><c>'.'</c> - carved room floor.</item>
+    /// <item><c>' '</c> - leaf-area interior not (yet) carved into a room.</item>
+    /// </list>
+    /// Works on any node; the grid is sized and offset to this node's <see cref="Area"/>, so
+    /// calling it on the root renders the whole map.
+    /// </summary>
+    internal string ToAsciiMap()
+    {
+        int originX = area.XMin;
+        int originY = area.YMin;
+        int width = area.Width;
+        int height = area.Height;
+
+        char[,] grid = new char[height, width];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                grid[y, x] = AsciiDivider;
+            }
+        }
+
+        foreach (var leaf in Leaves())
+        {
+            // Area coords are half-open [Min, Max); the cells a leaf owns are Min..Max-1. The
+            // divider column/row a split consumes is owned by neither child, so it stays '#'.
+            FillGrid(
+                grid,
+                leaf.Area.XMin - originX,
+                leaf.Area.XMax - 1 - originX,
+                leaf.Area.YMin - originY,
+                leaf.Area.YMax - 1 - originY,
+                AsciiUncarved
+            );
+
+            if (leaf.Room is { } room)
+            {
+                FillGrid(
+                    grid,
+                    room.Left - originX,
+                    room.Right - originX,
+                    room.Upper - originY,
+                    room.Lower - originY,
+                    AsciiRoomFloor
+                );
+            }
+        }
+
+        // TODO(corridors): once ConnectRooms populates a corridor on each internal node, walk
+        // the tree here and paint corridor cells (suggest '+') on top of the grid.
+
+        var sb = new StringBuilder((width + 1) * height);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                _ = sb.Append(grid[y, x]);
+            }
+            _ = sb.Append('\n');
+        }
+        return sb.ToString();
+    }
+
+    static void FillGrid(char[,] grid, int xFrom, int xTo, int yFrom, int yTo, char value)
+    {
+        for (int y = yFrom; y <= yTo; y++)
+        {
+            for (int x = xFrom; x <= xTo; x++)
+            {
+                grid[y, x] = value;
+            }
+        }
+    }
 
     public override string ToString() => ToTreeString();
 }

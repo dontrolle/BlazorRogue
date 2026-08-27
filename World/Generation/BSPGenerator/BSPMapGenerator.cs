@@ -22,12 +22,31 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     )
 {
     public const string Id = "bsp_map_generator";
+    const int AreaThreshold = 15;
+    const int MinSplit = 6;
+    const int MinMarginBetweenAreaBorderAndRoom = 1;
+
+    //const int MaxMarginBetweenAreaBorderAndRoom = 2;
 
     protected override Tuple<int, int> CreateLayout()
     {
         var root = new Node(new Area(0, map.Width, 0, map.Height));
 
-        root.SplitUntilThreshold(15, 6, mapGenerationRandomSource);
+        // split map until thresholds
+        root.SplitUntilThreshold(AreaThreshold, MinSplit, mapGenerationRandomSource);
+
+        // carve rooms in leaf areas
+        foreach (var leaf in root.Leaves())
+        {
+            leaf.Room = new Room(
+                new Area(
+                    leaf.Area.XMin + MinMarginBetweenAreaBorderAndRoom,
+                    leaf.Area.XMax - MinMarginBetweenAreaBorderAndRoom,
+                    leaf.Area.YMin + MinMarginBetweenAreaBorderAndRoom,
+                    leaf.Area.YMax - MinMarginBetweenAreaBorderAndRoom
+                )
+            );
+        }
 
         // player position random for now
         return GetRandomUnblockedMapTile();

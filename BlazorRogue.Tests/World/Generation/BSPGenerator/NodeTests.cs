@@ -51,8 +51,9 @@ public class NodeTests(ITestOutputHelper output)
     }
 
     // Not a real test - run with
-    // `dotnet test --filter DisplayName~Print --logger "console;verbosity=detailed"` to eyeball
-    // the tree output for a random split, e.g. while tweaking SplitUntilThreshold's behavior.
+    // `dotnet test --filter DisplayName~PrintRandomSplit --logger "console;verbosity=detailed"` to
+    // eyeball the tree output for a random split, e.g. while tweaking SplitUntilThreshold's
+    // behavior. (Filtering on ~Print alone would also run BspLayoutTests' inspection test.)
     [Fact]
     public void PrintRandomSplitForManualInspection()
     {
