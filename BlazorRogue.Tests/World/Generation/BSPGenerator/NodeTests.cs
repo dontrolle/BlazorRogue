@@ -38,9 +38,16 @@ public class NodeTests(ITestOutputHelper output)
     [Fact]
     public void PrintRandomSplitForManualInspection()
     {
-        var node = new Node(new Area(0, 120, 0, 80));
-        node.SplitUntilThreshold(25, 10, new Random(1));
+        var node = new Node(new Area(0, 60, 0, 40));
+        var leaves = new List<Node>();
+        node.SplitUntilThreshold(25, 10, new Random(1), leaves);
 
         output.WriteLine(node.ToTreeString());
+        output.WriteLine($"no of leaves: {leaves.Count}");
+
+        var ids = leaves.Select(l => l.Id);
+        string idString = string.Join(", ", ids);
+
+        output.WriteLine($"ids: [{idString}]");
     }
 }

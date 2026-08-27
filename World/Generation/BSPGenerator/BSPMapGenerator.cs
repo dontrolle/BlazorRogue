@@ -27,7 +27,7 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     {
         var root = new Node(new Area(0, map.Width, 0, map.Height));
 
-        root.SplitUntilThreshold(15, 6, mapGenerationRandomSource);
+        root.SplitUntilThreshold(15, 6, mapGenerationRandomSource, []);
 
         // player position random for now
         return GetRandomUnblockedMapTile();

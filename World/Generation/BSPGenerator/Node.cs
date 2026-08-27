@@ -9,8 +9,9 @@ namespace BlazorRogue.World.Generation.BSPGenerator;
 /// is either a leaf (not yet split) or has been divided into <see cref="Left"/> and
 /// <see cref="Right"/> children covering the same area.
 /// </summary>
-class Node(Area area)
+class Node(Area area, int id = 0)
 {
+    internal int Id => id;
     // private Room? room;
     // private Corridor? corridor;
     internal Node? Left;
@@ -32,10 +33,11 @@ class Node(Area area)
     /// <param name="randomSource">
     /// Random source used to pick the split axis (when both are viable) and the split position.
     /// </param>
+    /// <param name="leafNodes">List of seen leaf-nodes in the BSP tree.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="threshold"/> is less than <c>2 * minSplit</c>.
     /// </exception>
-    internal void SplitUntilThreshold(int threshold, int minSplit, Random randomSource)
+    internal void SplitUntilThreshold(int threshold, int minSplit, Random randomSource, List<Node> leafNodes)
     {
         if (threshold < 2 * minSplit)
         {
@@ -53,6 +55,8 @@ class Node(Area area)
         // are we done?
         if (!mayHorizontalSplit && !mayVerticalSplit)
         {
+            // we are at a leaf
+            leafNodes.Add(this);
             return;
         }
 
@@ -82,8 +86,8 @@ class Node(Area area)
         }
 
         // and now recurse
-        Left!.SplitUntilThreshold(threshold, minSplit, randomSource);
-        Right!.SplitUntilThreshold(threshold, minSplit, randomSource);
+        Left!.SplitUntilThreshold(threshold, minSplit, randomSource, leafNodes);
+        Right!.SplitUntilThreshold(threshold, minSplit, randomSource, leafNodes);
     }
 
     /// <summary>
@@ -104,8 +108,8 @@ class Node(Area area)
             throw new ArgumentOutOfRangeException(nameof(yPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos));
-        Right = new Node(new Area(area.XMin, area.XMax, yPos + 1, area.YMax));
+        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos), (Id * 2) + 1);
+        Right = new Node(new Area(area.XMin, area.XMax, yPos + 1, area.YMax), (Id * 2) + 2);
     }
 
     /// <summary>
@@ -126,8 +130,8 @@ class Node(Area area)
             throw new ArgumentOutOfRangeException(nameof(xPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax));
-        Right = new Node(new Area(xPos + 1, area.XMax, area.YMin, area.YMax));
+        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax), (Id * 2) + 1);
+        Right = new Node(new Area(xPos + 1, area.XMax, area.YMin, area.YMax), (Id * 2) + 2);
     }
 
     void ValidateNoExistingSplit()
@@ -144,7 +148,7 @@ class Node(Area area)
     internal string ToTreeString()
     {
         var sb = new StringBuilder();
-        _ = sb.Append("Root ").Append(FormatArea(area)).Append('\n');
+        _ = sb.Append("Root ").Append(FormatArea(area)).Append("  {").Append(Id).Append('}').Append('\n');
         AppendChildren(sb, "");
         return sb.ToString();
     }
@@ -170,6 +174,9 @@ class Node(Area area)
                 .Append(label)
                 .Append(' ')
                 .Append(FormatArea(child.Area))
+                .Append("  {")
+                .Append(child.Id)
+                .Append('}')
                 .Append('\n');
             child.AppendChildren(sb, prefix + (isLast ? "    " : "│   "));
         }
