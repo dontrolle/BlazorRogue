@@ -1,4 +1,3 @@
-using System;
 using BlazorRogue.World.Generation;
 using BlazorRogue.World.Generation.BSPGenerator;
 using Xunit.Abstractions;
@@ -12,7 +11,7 @@ public class NodeTests(ITestOutputHelper output)
     {
         var node = new Node(new Area(0, 20, 0, 10));
 
-        Assert.Equal("Root [0,0]-[20,10] (20x10)\n", node.ToTreeString());
+        Assert.Equal("Root [0,0]-[20,10] (20x10)  {0}\n", node.ToTreeString());
     }
 
     [Fact]
@@ -22,14 +21,16 @@ public class NodeTests(ITestOutputHelper output)
         node.SplitVerticalAt(9);
         node.Left!.SplitHorizontalAt(4);
 
-        var expected =
-            "Root [0,0]-[20,10] (20x10)\n"
-            + "├── L [0,0]-[9,10] (9x10)\n"
-            + "│   ├── L [0,0]-[9,4] (9x4)\n"
-            + "│   └── R [0,5]-[9,10] (9x5)\n"
-            + "└── R [10,0]-[20,10] (10x10)\n";
+        var expectedTree =
+            "Root [0,0]-[20,10] (20x10)  {0}\n"
+            + "├── L [0,0]-[9,10] (9x10)  {1}\n"
+            + "│   ├── L [0,0]-[9,4] (9x4)  {3}\n"
+            + "│   └── R [0,5]-[9,10] (9x5)  {4}\n"
+            + "└── R [10,0]-[20,10] (10x10)  {2}\n";
 
-        Assert.Equal(expected, node.ToTreeString());
+        Assert.Equal(expectedTree, node.ToTreeString());
+        IEnumerable<int> expectedLeafIds = [2, 3, 4];
+        Assert.Equal(expectedLeafIds, node.Leaves().Select(n => n.Id).OrderBy(i => i));
     }
 
     // Not a real test - run with
@@ -39,11 +40,12 @@ public class NodeTests(ITestOutputHelper output)
     public void PrintRandomSplitForManualInspection()
     {
         var node = new Node(new Area(0, 60, 0, 40));
-        var leaves = new List<Node>();
-        node.SplitUntilThreshold(25, 10, new Random(1), leaves);
+        node.SplitUntilThreshold(25, 10, new Random(1));
 
         output.WriteLine(node.ToTreeString());
-        output.WriteLine($"no of leaves: {leaves.Count}");
+
+        var leaves = node.Leaves();
+        output.WriteLine($"no of leaves: {leaves.Count()}");
 
         var ids = leaves.Select(l => l.Id);
         string idString = string.Join(", ", ids);

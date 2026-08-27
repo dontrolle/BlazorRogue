@@ -12,6 +12,7 @@ namespace BlazorRogue.World.Generation.BSPGenerator;
 class Node(Area area, int id = 0)
 {
     internal int Id => id;
+
     // private Room? room;
     // private Corridor? corridor;
     internal Node? Left;
@@ -33,11 +34,10 @@ class Node(Area area, int id = 0)
     /// <param name="randomSource">
     /// Random source used to pick the split axis (when both are viable) and the split position.
     /// </param>
-    /// <param name="leafNodes">List of seen leaf-nodes in the BSP tree.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="threshold"/> is less than <c>2 * minSplit</c>.
     /// </exception>
-    internal void SplitUntilThreshold(int threshold, int minSplit, Random randomSource, List<Node> leafNodes)
+    internal void SplitUntilThreshold(int threshold, int minSplit, Random randomSource)
     {
         if (threshold < 2 * minSplit)
         {
@@ -56,7 +56,6 @@ class Node(Area area, int id = 0)
         if (!mayHorizontalSplit && !mayVerticalSplit)
         {
             // we are at a leaf
-            leafNodes.Add(this);
             return;
         }
 
@@ -86,9 +85,12 @@ class Node(Area area, int id = 0)
         }
 
         // and now recurse
-        Left!.SplitUntilThreshold(threshold, minSplit, randomSource, leafNodes);
-        Right!.SplitUntilThreshold(threshold, minSplit, randomSource, leafNodes);
+        Left!.SplitUntilThreshold(threshold, minSplit, randomSource);
+        Right!.SplitUntilThreshold(threshold, minSplit, randomSource);
     }
+
+    int LeftChildPotentialId => (Id * 2) + 1;
+    int RightChildPotentialId => (Id * 2) + 2;
 
     /// <summary>
     /// Splits this (not yet split) node into <see cref="Left"/> (top) and <see cref="Right"/>
@@ -108,8 +110,11 @@ class Node(Area area, int id = 0)
             throw new ArgumentOutOfRangeException(nameof(yPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos), (Id * 2) + 1);
-        Right = new Node(new Area(area.XMin, area.XMax, yPos + 1, area.YMax), (Id * 2) + 2);
+        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos), LeftChildPotentialId);
+        Right = new Node(
+            new Area(area.XMin, area.XMax, yPos + 1, area.YMax),
+            RightChildPotentialId
+        );
     }
 
     /// <summary>
@@ -130,8 +135,11 @@ class Node(Area area, int id = 0)
             throw new ArgumentOutOfRangeException(nameof(xPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax), (Id * 2) + 1);
-        Right = new Node(new Area(xPos + 1, area.XMax, area.YMin, area.YMax), (Id * 2) + 2);
+        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax), LeftChildPotentialId);
+        Right = new Node(
+            new Area(xPos + 1, area.XMax, area.YMin, area.YMax),
+            RightChildPotentialId
+        );
     }
 
     void ValidateNoExistingSplit()
@@ -143,12 +151,34 @@ class Node(Area area, int id = 0)
     }
 
     /// <summary>
+    /// Return leaves of tree rooted at this <c>Node</c>.
+    /// </summary>
+    /// <returns>An enumerable of leaf-nodes.</returns>
+    internal IEnumerable<Node> Leaves()
+    {
+        if (Left is null)
+        {
+            yield return this;
+            yield break;
+        }
+        foreach (var n in Left.Leaves())
+            yield return n;
+        foreach (var n in Right!.Leaves())
+            yield return n;
+    }
+
+    /// <summary>
     /// Renders the subtree rooted at this node as an indented ASCII tree, for debugging.
     /// </summary>
     internal string ToTreeString()
     {
         var sb = new StringBuilder();
-        _ = sb.Append("Root ").Append(FormatArea(area)).Append("  {").Append(Id).Append('}').Append('\n');
+        _ = sb.Append("Root ")
+            .Append(FormatArea(area))
+            .Append("  {")
+            .Append(Id)
+            .Append('}')
+            .Append('\n');
         AppendChildren(sb, "");
         return sb.ToString();
     }
