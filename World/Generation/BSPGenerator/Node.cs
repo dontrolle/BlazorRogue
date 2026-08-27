@@ -11,6 +11,9 @@ namespace BlazorRogue.World.Generation.BSPGenerator;
 /// </summary>
 class Node(Area area, int id = 0)
 {
+    /// <summary>
+    /// Debug-only identifier for use in tests; assigned via the standard 0-indexed binary heap scheme so expected values can be computed by hand. Not intended as a stable identity for gameplay logic (corridors, persistence, etc.) — use object reference for that.
+    /// </summary>
     internal int Id => id;
 
     // private Room? room;
@@ -89,8 +92,8 @@ class Node(Area area, int id = 0)
         Right!.SplitUntilThreshold(threshold, minSplit, randomSource);
     }
 
-    int LeftChildPotentialId => (Id * 2) + 1;
-    int RightChildPotentialId => (Id * 2) + 2;
+    int NextLeftId => (Id * 2) + 1;
+    int NextRightId => (Id * 2) + 2;
 
     /// <summary>
     /// Splits this (not yet split) node into <see cref="Left"/> (top) and <see cref="Right"/>
@@ -110,11 +113,8 @@ class Node(Area area, int id = 0)
             throw new ArgumentOutOfRangeException(nameof(yPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos), LeftChildPotentialId);
-        Right = new Node(
-            new Area(area.XMin, area.XMax, yPos + 1, area.YMax),
-            RightChildPotentialId
-        );
+        Left = new Node(new Area(area.XMin, area.XMax, area.YMin, yPos), NextLeftId);
+        Right = new Node(new Area(area.XMin, area.XMax, yPos + 1, area.YMax), NextRightId);
     }
 
     /// <summary>
@@ -135,11 +135,8 @@ class Node(Area area, int id = 0)
             throw new ArgumentOutOfRangeException(nameof(xPos), "Out of bounds");
         }
 
-        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax), LeftChildPotentialId);
-        Right = new Node(
-            new Area(xPos + 1, area.XMax, area.YMin, area.YMax),
-            RightChildPotentialId
-        );
+        Left = new Node(new Area(area.XMin, xPos, area.YMin, area.YMax), NextLeftId);
+        Right = new Node(new Area(xPos + 1, area.XMax, area.YMin, area.YMax), NextRightId);
     }
 
     void ValidateNoExistingSplit()
@@ -151,7 +148,7 @@ class Node(Area area, int id = 0)
     }
 
     /// <summary>
-    /// Return leaves of tree rooted at this <c>Node</c>.
+    /// Returns the leaves of the tree rooted at this node. No particular order is guaranteed.
     /// </summary>
     /// <returns>An enumerable of leaf-nodes.</returns>
     internal IEnumerable<Node> Leaves()

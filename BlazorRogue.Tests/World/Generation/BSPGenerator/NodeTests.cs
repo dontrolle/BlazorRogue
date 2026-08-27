@@ -15,6 +15,14 @@ public class NodeTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void LeavesOfAnUnsplitNodeIsJustItself()
+    {
+        var node = new Node(new Area(0, 20, 0, 10));
+
+        Assert.Equal([node], node.Leaves());
+    }
+
+    [Fact]
     public void ToTreeStringRendersSplitsAsIndentedChildren()
     {
         var node = new Node(new Area(0, 20, 0, 10));
@@ -29,6 +37,15 @@ public class NodeTests(ITestOutputHelper output)
             + "└── R [10,0]-[20,10] (10x10)  {2}\n";
 
         Assert.Equal(expectedTree, node.ToTreeString());
+    }
+
+    [Fact]
+    public void LeavesReturnsAllLeafNodesOfASplitTree()
+    {
+        var node = new Node(new Area(0, 20, 0, 10));
+        node.SplitVerticalAt(9);
+        node.Left!.SplitHorizontalAt(4);
+
         IEnumerable<int> expectedLeafIds = [2, 3, 4];
         Assert.Equal(expectedLeafIds, node.Leaves().Select(n => n.Id).OrderBy(i => i));
     }
