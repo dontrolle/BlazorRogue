@@ -24,7 +24,7 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     public const string Id = "bsp_map_generator";
     const int AreaThreshold = 15;
     const int MinSplit = 6;
-    const int MinMarginBetweenAreaBorderAndRoom = 1;
+    const int MinMarginBetweenAreaBorderAndRoom = 0;
 
     protected override Tuple<int, int> CreateLayout()
     {

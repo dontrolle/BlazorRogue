@@ -20,7 +20,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     // Mirrors BSPMapGenerator.AreaThreshold / MinSplit.
     const int Threshold = 15;
     const int MinSplit = 6;
-    const int Margin = 1;
+    const int Margin = 0;
     const int MinRoomWidth = 3;
     const int MinRoomHeight = 3;
 

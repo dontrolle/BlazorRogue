@@ -261,7 +261,7 @@ class Node(Area area, int id = 0)
     static string FormatArea(Area area) =>
         $"[{area.XMin},{area.YMin}]-[{area.XMax},{area.YMax}] ({area.Width}x{area.Height})";
 
-    const char AsciiDivider = '#';
+    const char AsciiDivider = '¤';
     const char AsciiRoomFloor = '.';
     const char AsciiUncarved = ' ';
 
