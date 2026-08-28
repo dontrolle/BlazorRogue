@@ -21,6 +21,8 @@ public class BspLayoutTests(ITestOutputHelper output)
     const int Threshold = 15;
     const int MinSplit = 6;
     const int Margin = 1;
+    const int MinRoomWidth = 3;
+    const int MinRoomHeight = 3;
 
     /// <summary>
     /// Builds a plan for a <paramref name="width"/> x <paramref name="height"/> map from a fixed
@@ -31,9 +33,10 @@ public class BspLayoutTests(ITestOutputHelper output)
         var root = new Node(new Area(0, width, 0, height));
         root.SplitUntilThreshold(Threshold, MinSplit, new Random(seed));
 
-        // TODO: uncomment as these land. Pass a fresh seeded Random to each pass so that
-        // changing one pass doesn't shift the random stream the next one observes.
-        // root.CarveRooms(Margin, new Random(seed));
+        // Each pass gets its own fresh seeded Random so changing one pass doesn't shift the
+        // random stream the next one observes.
+        root.CarveRooms(Margin, MinRoomWidth, MinRoomHeight, new Random(seed));
+        // TODO: uncomment once Node.ConnectRooms exists.
         // root.ConnectRooms(new Random(seed));
 
         return root;
@@ -52,9 +55,7 @@ public class BspLayoutTests(ITestOutputHelper output)
         output.WriteLine("\n" + root.ToAsciiMap());
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "Implement once Node.CarveRooms exists")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public void EveryLeafGetsARoom()
     {
         var root = CarvedPlan(80, 50, seed: 1);
@@ -62,9 +63,7 @@ public class BspLayoutTests(ITestOutputHelper output)
         Assert.All(root.Leaves(), leaf => Assert.NotNull(leaf.Room));
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "Implement once Node.CarveRooms exists")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public void EachRoomLiesInsideItsLeafAreaWithTheRequestedMargin()
     {
         // Loop over several seeds so this isn't pinned to one layout.
@@ -88,17 +87,34 @@ public class BspLayoutTests(ITestOutputHelper output)
         }
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "Implement once Node.CarveRooms exists")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public void RoomsInDifferentLeavesNeverTouch()
     {
         // Consequence of the margin invariant: no two rooms are edge- or corner-adjacent, so the
-        // divider cells between leaf areas stay free for walls. Check every pair of leaf rooms
-        // for a gap of >= 1 tile on at least one axis, or scan the ToAsciiMap grid for a room
-        // cell whose neighbour is a room cell belonging to a different leaf.
+        // divider cells between leaf areas stay free for walls. Every pair of leaf rooms must
+        // have a gap of >= 1 tile on at least one axis.
         var root = CarvedPlan(80, 50, seed: 1);
-        _ = root;
+        var rooms = root.Leaves().Select(leaf => leaf.Room!).ToList();
+
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            for (int j = i + 1; j < rooms.Count; j++)
+            {
+                var a = rooms[i];
+                var b = rooms[j];
+                bool separated =
+                    a.Right + 1 < b.Left
+                    || b.Right + 1 < a.Left
+                    || a.Lower + 1 < b.Upper
+                    || b.Lower + 1 < a.Upper;
+
+                Assert.True(
+                    separated,
+                    $"Rooms touch or overlap: [{a.Left},{a.Upper}]-[{a.Right},{a.Lower}] vs "
+                        + $"[{b.Left},{b.Upper}]-[{b.Right},{b.Lower}]"
+                );
+            }
+        }
     }
 
 #pragma warning disable xUnit1004 // Test methods should not be skipped

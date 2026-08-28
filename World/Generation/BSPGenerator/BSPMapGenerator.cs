@@ -38,14 +38,7 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         // carve rooms in leaf areas
         foreach (var leaf in root.Leaves())
         {
-            leaf.Room = new Room(
-                new Area(
-                    leaf.Area.XMin + MinMarginBetweenAreaBorderAndRoom,
-                    leaf.Area.XMax - MinMarginBetweenAreaBorderAndRoom,
-                    leaf.Area.YMin + MinMarginBetweenAreaBorderAndRoom,
-                    leaf.Area.YMax - MinMarginBetweenAreaBorderAndRoom
-                )
-            );
+            leaf.CarveRooms(MinMarginBetweenAreaBorderAndRoom, 3, 3, mapGenerationRandomSource);
         }
 
         // player position random for now

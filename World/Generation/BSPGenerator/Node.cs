@@ -15,7 +15,6 @@ class Node(Area area, int id = 0)
     /// Debug-only identifier for use in tests; assigned via the standard 0-indexed binary heap scheme so expected values can be computed by hand. Not intended as a stable identity for gameplay logic (corridors, persistence, etc.) — use object reference for that.
     /// </summary>
     internal int Id => id;
-
     internal Room? Room;
 
     // private Corridor? corridor;
@@ -36,7 +35,7 @@ class Node(Area area, int id = 0)
     /// <paramref name="threshold"/>.
     /// </param>
     /// <param name="randomSource">
-    /// Random source used to pick the split axis (when both are viable) and the split position.
+    /// Random source used to pick various properties, e.g. split axis and split positions.+
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="threshold"/> is less than <c>2 * minSplit</c>.
@@ -165,6 +164,55 @@ class Node(Area area, int id = 0)
             yield return n;
     }
 
+    internal void CarveRooms(
+        int minDistanceToDivider,
+        int minWidth,
+        int minHeight,
+        Random randomSource
+    )
+    {
+        if (Left is null && Right is null)
+        {
+            var innerAreaWithMargin = Area.CreateInnerAreaWithMargin(minDistanceToDivider);
+
+            if (minWidth > innerAreaWithMargin.Width)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minWidth),
+                    minWidth,
+                    $"Leaf area {FormatArea(area)} only has {innerAreaWithMargin.Width} cells of "
+                        + $"width after a margin of {minDistanceToDivider}; cannot fit a room this wide."
+                );
+            }
+            if (minHeight > innerAreaWithMargin.Height)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(minHeight),
+                    minHeight,
+                    $"Leaf area {FormatArea(area)} only has {innerAreaWithMargin.Height} cells of "
+                        + $"height after a margin of {minDistanceToDivider}; cannot fit a room this tall."
+                );
+            }
+
+            int roomWidth = randomSource.Next(minWidth, innerAreaWithMargin.Width + 1);
+            int roomHeight = randomSource.Next(minHeight, innerAreaWithMargin.Height + 1);
+            int xMin =
+                innerAreaWithMargin.XMin
+                + randomSource.Next(0, innerAreaWithMargin.Width - roomWidth);
+            int yMin =
+                innerAreaWithMargin.YMin
+                + randomSource.Next(0, innerAreaWithMargin.Height - roomHeight);
+
+            int xMax = xMin + roomWidth;
+            int yMax = yMin + roomHeight;
+            Room = new Room(new Area(xMin, xMax, yMin, yMax));
+            return;
+        }
+
+        Left?.CarveRooms(minDistanceToDivider, minWidth, minHeight, randomSource);
+        Right?.CarveRooms(minDistanceToDivider, minWidth, minHeight, randomSource);
+    }
+
     /// <summary>
     /// Renders the subtree rooted at this node as an indented ASCII tree, for debugging.
     /// </summary>
@@ -219,7 +267,7 @@ class Node(Area area, int id = 0)
 
     /// <summary>
     /// Renders the plan under this node as an ASCII grid, for eyeballing room-carving and
-    /// corridor-connection before the layout is transferred onto a real <see cref="World.Map"/>.
+    /// corridor-connection before the layout is transferred onto a real <see cref="Map"/>.
     /// One character per map tile:
     /// <list type="bullet">
     /// <item><c>'#'</c> - a divider line between leaf areas (where a wall will end up).</item>
