@@ -26,8 +26,6 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     const int MinSplit = 6;
     const int MinMarginBetweenAreaBorderAndRoom = 1;
 
-    //const int MaxMarginBetweenAreaBorderAndRoom = 2;
-
     protected override Tuple<int, int> CreateLayout()
     {
         var root = new Node(new Area(0, map.Width, 0, map.Height));
