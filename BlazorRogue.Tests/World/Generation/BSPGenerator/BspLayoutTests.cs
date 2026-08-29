@@ -60,7 +60,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     [Fact]
     public void PrintCarvedPlanForManualInspection()
     {
-        var root = CarvedPlan(width: 80, height: 50, seed: 1);
+        var root = CarvedPlan(width: 80, height: 50, seed: 1, chanceOfLeafHavingNoRoom: 0.05);
 
         output.WriteLine(root.ToTreeString());
         // Leading newline: the xUnit console logger indents the first physical line of a
@@ -138,7 +138,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     {
         var root = new Node(new Area(0, 20, 0, 20));
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        var _ = Assert.Throws<ArgumentOutOfRangeException>(() =>
             root.CarveRooms(Margin, MinRoomWidth, MinRoomHeight, new Random(1), chance)
         );
     }
