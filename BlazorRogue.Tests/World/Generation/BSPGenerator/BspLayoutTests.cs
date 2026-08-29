@@ -64,12 +64,19 @@ public class BspLayoutTests(ITestOutputHelper output)
     [Fact]
     public void PrintCarvedPlanForManualInspection()
     {
-        // At this fixed seed/threshold/minSplit, node {16} is the root of a 5-node subtree (16 ->
-        // 33 -> {67, 68}, 16 -> 34) - switching the carver there demonstrates a selectCarver
-        // override applying to a whole subtree rather than a single leaf. Re-run with
-        // DisplayName~PrintCarvedPlan to re-derive the node id if the split parameters change.
+        // At this fixed seed/threshold/minSplit: node {1} is the whole left half of the map, given
+        // OverlaidRectanglesRoomCarver throughout; node {14} is a 9-node/5-leaf subtree on the
+        // right given CaveRoomCarver. CaveRoomCarver needs leaves with a bit of room to work with -
+        // its cellular automaton can wall a leaf off entirely if both dimensions are small (under
+        // ~8), which is why it's pointed at {14} rather than a leafier, smaller subtree. Re-run
+        // with DisplayName~PrintCarvedPlan to re-derive node ids if the split parameters change.
         Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
-            node.Id == 1 ? OverlaidRectanglesRoomCarver.Instance : inherited;
+            node.Id switch
+            {
+                1 => OverlaidRectanglesRoomCarver.Instance,
+                14 => new CaveRoomCarver(),
+                _ => inherited,
+            };
 
         var root = CarvedPlan(
             width: 80,
