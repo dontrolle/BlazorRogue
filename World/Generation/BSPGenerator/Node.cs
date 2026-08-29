@@ -17,7 +17,7 @@ class Node(Area area, int id = 0)
     internal int Id => id;
     internal Room? Room;
 
-    // private Corridor? corridor;
+    internal Corridor? Corridor;
     internal Node? Left;
     internal Node? Right;
     internal Area Area => area;
@@ -243,6 +243,25 @@ class Node(Area area, int id = 0)
     }
 
     /// <summary>
+    /// Returns every node of the subtree rooted at this node, leaves and internal nodes alike.
+    /// No particular order is guaranteed.
+    /// </summary>
+    internal IEnumerable<Node> AllNodes()
+    {
+        yield return this;
+        if (Left is not null)
+        {
+            foreach (var n in Left.AllNodes())
+                yield return n;
+        }
+        if (Right is not null)
+        {
+            foreach (var n in Right.AllNodes())
+                yield return n;
+        }
+    }
+
+    /// <summary>
     /// Recursively carves a randomly sized and positioned <see cref="Room"/> into each leaf of
     /// the subtree rooted at this node.
     /// </summary>
@@ -342,6 +361,53 @@ class Node(Area area, int id = 0)
     }
 
     /// <summary>
+    /// Bottom-up, as each split unwinds: connects <see cref="Left"/>'s and <see cref="Right"/>'s
+    /// rooms/corridors with a new <see cref="Corridor"/>, so that every room reachable from this
+    /// node ends up in one connected component. Call on the root once <see cref="CarveRooms"/>
+    /// has run, to connect the whole plan.
+    /// </summary>
+    /// <param name="randomSource">
+    /// Random source used to pick each corridor's elbow direction, and (when both children have a
+    /// room) which child's point is carried up to represent this subtree to its parent.
+    /// </param>
+    /// <returns>
+    /// A <see cref="GridPoint"/> reachable from every room in this subtree - the center of this
+    /// node's <see cref="Room"/> for an unskipped leaf, or one end of the corridor just created
+    /// for an internal node. <c>null</c> if this subtree contains no room at all (every leaf in
+    /// it was skipped via <see cref="CarveRooms"/>'s <c>chanceOfLeafHavingNoRoom</c>) - callers
+    /// must treat that as "nothing to connect to here" rather than assuming a room exists.
+    /// </returns>
+    internal GridPoint? ConnectRooms(Random randomSource)
+    {
+        if (Left is null && Right is null)
+        {
+            return Room is { } room ? new GridPoint(room.CenterX, room.CenterY) : null;
+        }
+
+        var leftPoint = Left!.ConnectRooms(randomSource);
+        var rightPoint = Right!.ConnectRooms(randomSource);
+
+        // One or both sides may have no room anywhere in their subtree - nothing to connect on
+        // that side, so just pass the other side's point (or null) further up unconnected.
+        if (leftPoint is null)
+        {
+            return rightPoint;
+        }
+        if (rightPoint is null)
+        {
+            return leftPoint;
+        }
+
+        Corridor = new Corridor(
+            leftPoint.Value,
+            rightPoint.Value,
+            HorizontalFirst: randomSource.Next(0, 2) == 0
+        );
+
+        return randomSource.Next(0, 2) == 0 ? leftPoint : rightPoint;
+    }
+
+    /// <summary>
     /// Renders the subtree rooted at this node as an indented ASCII tree, for debugging.
     /// </summary>
     internal string ToTreeString()
@@ -392,14 +458,16 @@ class Node(Area area, int id = 0)
     const char AsciiDivider = '¤';
     const char AsciiRoomFloor = '.';
     const char AsciiUncarved = ' ';
+    const char AsciiCorridorFloor = '+';
 
     /// <summary>
     /// Renders the plan under this node as an ASCII grid, for eyeballing room-carving and
     /// corridor-connection before the layout is transferred onto a real <see cref="Map"/>.
     /// One character per map tile:
     /// <list type="bullet">
-    /// <item><c>'#'</c> - a divider line between leaf areas (where a wall will end up).</item>
+    /// <item><c>'¤'</c> - a divider line between leaf areas (where a wall will end up).</item>
     /// <item><c>'.'</c> - carved room floor.</item>
+    /// <item><c>'+'</c> - corridor floor, connecting rooms across leaves.</item>
     /// <item><c>' '</c> - leaf-area interior not (yet) carved into a room.</item>
     /// </list>
     /// Works on any node; the grid is sized and offset to this node's <see cref="Area"/>, so
@@ -447,8 +515,18 @@ class Node(Area area, int id = 0)
             }
         }
 
-        // TODO:(corridors): once ConnectRooms populates a corridor on each internal node, walk
-        // the tree here and paint corridor cells (suggest '+') on top of the grid.
+        foreach (var node in AllNodes())
+        {
+            if (node.Corridor is not { } corridor)
+            {
+                continue;
+            }
+
+            foreach (var point in corridor.Points())
+            {
+                grid[point.Y - originY, point.X - originX] = AsciiCorridorFloor;
+            }
+        }
 
         var sb = new StringBuilder((width + 1) * height);
         for (int y = 0; y < height; y++)

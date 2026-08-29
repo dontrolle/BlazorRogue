@@ -5,9 +5,7 @@ using Xunit.Abstractions;
 namespace BlazorRogue.Tests.World.Generation.BSPGenerator;
 
 /// <summary>
-/// Harness for the BSP room-carving and corridor-connection passes. The property tests are
-/// skipped stubs until <c>Node.CarveRooms</c> / <c>Node.ConnectRooms</c> exist - fill in each
-/// body and drop its <c>Skip</c> as that pass lands.
+/// Harness for the BSP room-carving and corridor-connection passes.
 /// <para>
 /// <see cref="PrintCarvedPlanForManualInspection"/> is the visual feedback loop: run it with
 /// <c>dotnet test --filter DisplayName~PrintCarvedPlan --logger "console;verbosity=detailed"</c>
@@ -50,8 +48,7 @@ public class BspLayoutTests(ITestOutputHelper output)
             new Random(seed),
             chanceOfLeafHavingNoRoom
         );
-        // TODO: uncomment once Node.ConnectRooms exists.
-        // root.ConnectRooms(new Random(seed));
+        var _ = root.ConnectRooms(new Random(seed));
 
         return root;
     }
@@ -222,26 +219,119 @@ public class BspLayoutTests(ITestOutputHelper output)
         }
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "Implement once Node.ConnectRooms exists")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public void EveryCorridorEndpointTouchesARoomOrAnotherCorridor()
     {
-        // No corridor should dead-end in void: walk the internal nodes, and for each corridor
-        // check that both ends sit on a room floor or on another corridor cell.
-        var root = CarvedPlan(80, 50, seed: 1);
-        _ = root;
+        // No corridor should dead-end in void: for each corridor, both ends must land exactly on
+        // a room's centre or on a cell painted by some other corridor. Holds by construction of
+        // ConnectRooms (an endpoint is always a value handed up unchanged from a child), so this
+        // is a regression guard against that invariant quietly breaking.
+        var root = CarvedPlan(80, 50, seed: 1, chanceOfLeafHavingNoRoom: 0.3);
+
+        var roomCenters = root.Leaves()
+            .Where(leaf => leaf.Room is not null)
+            .Select(leaf => new GridPoint(leaf.Room!.CenterX, leaf.Room!.CenterY))
+            .ToHashSet();
+
+        var corridors = root.AllNodes()
+            .Select(node => node.Corridor)
+            .Where(corridor => corridor is not null)
+            .Select(corridor => corridor!.Value)
+            .ToList();
+
+        // Sanity check that this seed/chance combination actually exercises corridors.
+        Assert.NotEmpty(corridors);
+
+        foreach (var corridor in corridors)
+        {
+            var otherCorridorCells = corridors
+                .Where(other => !other.Equals(corridor))
+                .SelectMany(other => other.Points())
+                .ToHashSet();
+
+            Assert.True(
+                roomCenters.Contains(corridor.From) || otherCorridorCells.Contains(corridor.From),
+                $"Corridor endpoint {corridor.From} touches neither a room nor another corridor."
+            );
+            Assert.True(
+                roomCenters.Contains(corridor.To) || otherCorridorCells.Contains(corridor.To),
+                $"Corridor endpoint {corridor.To} touches neither a room nor another corridor."
+            );
+        }
     }
 
-#pragma warning disable xUnit1004 // Test methods should not be skipped
-    [Fact(Skip = "Implement once Node.ConnectRooms exists")]
-#pragma warning restore xUnit1004 // Test methods should not be skipped
+    [Fact]
     public void AllRoomsAreReachableFromAnyRoom()
     {
         // The payoff check for the corridor pass: DFS order over Leaves() does not imply spatial
         // adjacency, so connectivity has to be proven. Flood-fill from one room's floor over
         // room+corridor cells and assert the reached set covers every room's centre.
-        var root = CarvedPlan(80, 50, seed: 1);
-        _ = root;
+        var root = CarvedPlan(80, 50, seed: 1, chanceOfLeafHavingNoRoom: 0.3);
+
+        var roomedLeaves = root.Leaves().Where(leaf => leaf.Room is not null).ToList();
+        Assert.NotEmpty(roomedLeaves);
+
+        var floorCells = new HashSet<GridPoint>();
+        foreach (var leaf in roomedLeaves)
+        {
+            var room = leaf.Room!;
+            for (int x = room.Left; x <= room.Right; x++)
+            {
+                for (int y = room.Upper; y <= room.Lower; y++)
+                {
+                    bool _ = floorCells.Add(new GridPoint(x, y));
+                }
+            }
+        }
+        foreach (var node in root.AllNodes())
+        {
+            if (node.Corridor is { } corridor)
+            {
+                foreach (var point in corridor.Points())
+                {
+                    bool _ = floorCells.Add(point);
+                }
+            }
+        }
+
+        var start = new GridPoint(roomedLeaves[0].Room!.CenterX, roomedLeaves[0].Room!.CenterY);
+        var reached = new HashSet<GridPoint> { start };
+        var frontier = new Queue<GridPoint>();
+        frontier.Enqueue(start);
+        while (frontier.Count > 0)
+        {
+            var current = frontier.Dequeue();
+            GridPoint[] neighbors =
+            [
+                current with
+                {
+                    X = current.X + 1,
+                },
+                current with
+                {
+                    X = current.X - 1,
+                },
+                current with
+                {
+                    Y = current.Y + 1,
+                },
+                current with
+                {
+                    Y = current.Y - 1,
+                },
+            ];
+            foreach (var neighbor in neighbors)
+            {
+                if (floorCells.Contains(neighbor) && reached.Add(neighbor))
+                {
+                    frontier.Enqueue(neighbor);
+                }
+            }
+        }
+
+        Assert.All(
+            roomedLeaves,
+            leaf => Assert.Contains(new GridPoint(leaf.Room!.CenterX, leaf.Room!.CenterY), reached)
+        );
     }
 }
