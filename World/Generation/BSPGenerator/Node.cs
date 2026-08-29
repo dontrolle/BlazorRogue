@@ -455,25 +455,22 @@ class Node(Area area, int id = 0)
     static string FormatArea(Area area) =>
         $"[{area.XMin},{area.YMin}]-[{area.XMax},{area.YMax}] ({area.Width}x{area.Height})";
 
-    const char AsciiDivider = '¤';
+    const char DefaultAsciiDivider = ' ';
+    const char DefaultAsciiCorridorFloor = '.';
     const char AsciiRoomFloor = '.';
     const char AsciiUncarved = ' ';
-    const char AsciiCorridorFloor = '+';
 
     /// <summary>
     /// Renders the plan under this node as an ASCII grid, for eyeballing room-carving and
     /// corridor-connection before the layout is transferred onto a real <see cref="Map"/>.
-    /// One character per map tile:
-    /// <list type="bullet">
-    /// <item><c>'¤'</c> - a divider line between leaf areas (where a wall will end up).</item>
-    /// <item><c>'.'</c> - carved room floor.</item>
-    /// <item><c>'+'</c> - corridor floor, connecting rooms across leaves.</item>
-    /// <item><c>' '</c> - leaf-area interior not (yet) carved into a room.</item>
-    /// </list>
+    ///
     /// Works on any node; the grid is sized and offset to this node's <see cref="Area"/>, so
     /// calling it on the root renders the whole map.
     /// </summary>
-    internal string ToAsciiMap()
+    internal string ToAsciiMap(
+        char asciiDivider = DefaultAsciiDivider,
+        char asciiCorridorFloor = DefaultAsciiCorridorFloor
+    )
     {
         int originX = area.XMin;
         int originY = area.YMin;
@@ -485,7 +482,7 @@ class Node(Area area, int id = 0)
         {
             for (int x = 0; x < width; x++)
             {
-                grid[y, x] = AsciiDivider;
+                grid[y, x] = asciiDivider;
             }
         }
 
@@ -524,7 +521,7 @@ class Node(Area area, int id = 0)
 
             foreach (var point in corridor.Points())
             {
-                grid[point.Y - originY, point.X - originX] = AsciiCorridorFloor;
+                grid[point.Y - originY, point.X - originX] = asciiCorridorFloor;
             }
         }
 
