@@ -387,17 +387,18 @@ class Node(Area area, int id = 0)
     /// room) which child's point is carried up to represent this subtree to its parent.
     /// </param>
     /// <returns>
-    /// A <see cref="GridPoint"/> reachable from every room in this subtree - the center of this
-    /// node's <see cref="Room"/> for an unskipped leaf, or one end of the corridor just created
-    /// for an internal node. <c>null</c> if this subtree contains no room at all (every leaf in
-    /// it was skipped via <see cref="CarveRooms"/>'s <c>chanceOfLeafHavingNoRoom</c>) - callers
-    /// must treat that as "nothing to connect to here" rather than assuming a room exists.
+    /// A <see cref="GridPoint"/> reachable from every room in this subtree - this node's
+    /// <see cref="Room"/>'s <see cref="Room.ConnectorPoint"/> for an unskipped leaf, or one end of
+    /// the corridor just created for an internal node. <c>null</c> if this subtree contains no
+    /// room at all (every leaf in it was skipped via <see cref="CarveRooms"/>'s
+    /// <c>chanceOfLeafHavingNoRoom</c>) - callers must treat that as "nothing to connect to here"
+    /// rather than assuming a room exists.
     /// </returns>
     internal GridPoint? ConnectRooms(Random randomSource)
     {
         if (Left is null && Right is null)
         {
-            return Room is { } room ? new GridPoint(room.CenterX, room.CenterY) : null;
+            return Room?.ConnectorPoint;
         }
 
         var leftPoint = Left!.ConnectRooms(randomSource);
@@ -517,14 +518,17 @@ class Node(Area area, int id = 0)
 
             if (leaf.Room is { } room)
             {
-                FillGrid(
-                    grid,
-                    room.Left - originX,
-                    room.Right - originX,
-                    room.Upper - originY,
-                    room.Lower - originY,
-                    AsciiRoomFloor
-                );
+                foreach (var footprintArea in room.FootprintAreas)
+                {
+                    FillGrid(
+                        grid,
+                        footprintArea.XMin - originX,
+                        footprintArea.XMax - 1 - originX,
+                        footprintArea.YMin - originY,
+                        footprintArea.YMax - 1 - originY,
+                        AsciiRoomFloor
+                    );
+                }
             }
         }
 

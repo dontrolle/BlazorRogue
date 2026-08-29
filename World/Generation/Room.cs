@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace BlazorRogue.World.Generation;
 
 /// <summary>
@@ -25,4 +27,24 @@ class Room(int x, int y, int width, int height)
         bool yInter = Lower >= other.Upper && Upper <= other.Lower;
         return xInter && yInter;
     }
+
+    /// <summary>
+    /// The room's floor footprint, as one or more (possibly overlapping) rectangular areas.
+    /// Code that needs to know exactly which cells are floor - as opposed to just this room's
+    /// bounding box - should iterate this instead of <see cref="Left"/>/<see cref="Right"/>/
+    /// <see cref="Upper"/>/<see cref="Lower"/>. Defaults to a single area matching the room's own
+    /// bounding box; overridden by room shapes whose footprint isn't just a solid rectangle.
+    /// </summary>
+    internal virtual IEnumerable<Area> FootprintAreas => [new Area(X, X + Width, Y, Y + Height)];
+
+    /// <summary>
+    /// The point corridors should connect to for this room. Defaults to the bounding box's
+    /// geometric center (<see cref="CenterX"/>/<see cref="CenterY"/>), which for a plain
+    /// rectangular room is always on its floor. Room shapes whose footprint isn't just their
+    /// bounding box - so the center might land outside it - should override this with a point
+    /// from <see cref="FootprintAreas"/> instead; it's also a natural hook for shapes that want to
+    /// pick their connector point some other way entirely (off-center, weighted toward one part of
+    /// the room, etc.), not just for guaranteeing floor.
+    /// </summary>
+    internal virtual GridPoint ConnectorPoint => new(CenterX, CenterY);
 }

@@ -29,7 +29,13 @@ public class BspLayoutTests(ITestOutputHelper output)
     /// Builds a plan for a <paramref name="width"/> x <paramref name="height"/> map from a fixed
     /// <paramref name="seed"/>, so every step is deterministic and replayable.
     /// </summary>
-    static Node CarvedPlan(int width, int height, int seed, double chanceOfLeafHavingNoRoom = 0)
+    static Node CarvedPlan(
+        int width,
+        int height,
+        int seed,
+        double chanceOfLeafHavingNoRoom = 0,
+        Func<Node, IRoomCarver, Random, IRoomCarver>? selectCarver = null
+    )
     {
         var root = new Node(new Area(0, width, 0, height));
         root.SplitUntilThreshold(
@@ -46,7 +52,8 @@ public class BspLayoutTests(ITestOutputHelper output)
             MinRoomWidth,
             MinRoomHeight,
             new Random(seed),
-            chanceOfLeafHavingNoRoom
+            chanceOfLeafHavingNoRoom,
+            selectCarver: selectCarver
         );
         var _ = root.ConnectRooms(new Random(seed));
 
@@ -57,7 +64,20 @@ public class BspLayoutTests(ITestOutputHelper output)
     [Fact]
     public void PrintCarvedPlanForManualInspection()
     {
-        var root = CarvedPlan(width: 80, height: 50, seed: 1, chanceOfLeafHavingNoRoom: 0.1);
+        // At this fixed seed/threshold/minSplit, node {16} is the root of a 5-node subtree (16 ->
+        // 33 -> {67, 68}, 16 -> 34) - switching the carver there demonstrates a selectCarver
+        // override applying to a whole subtree rather than a single leaf. Re-run with
+        // DisplayName~PrintCarvedPlan to re-derive the node id if the split parameters change.
+        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+            node.Id == 1 ? OverlaidRectanglesRoomCarver.Instance : inherited;
+
+        var root = CarvedPlan(
+            width: 80,
+            height: 50,
+            seed: 1,
+            chanceOfLeafHavingNoRoom: 0.1,
+            selectCarver: selectCarver
+        );
 
         output.WriteLine(root.ToTreeString());
         // Leading newline: the xUnit console logger indents the first physical line of a
@@ -230,7 +250,7 @@ public class BspLayoutTests(ITestOutputHelper output)
 
         var roomCenters = root.Leaves()
             .Where(leaf => leaf.Room is not null)
-            .Select(leaf => new GridPoint(leaf.Room!.CenterX, leaf.Room!.CenterY))
+            .Select(leaf => leaf.Room!.ConnectorPoint)
             .ToHashSet();
 
         var corridors = root.AllNodes()
@@ -294,7 +314,7 @@ public class BspLayoutTests(ITestOutputHelper output)
             }
         }
 
-        var start = new GridPoint(roomedLeaves[0].Room!.CenterX, roomedLeaves[0].Room!.CenterY);
+        var start = roomedLeaves[0].Room!.ConnectorPoint;
         var reached = new HashSet<GridPoint> { start };
         var frontier = new Queue<GridPoint>();
         frontier.Enqueue(start);
@@ -329,9 +349,6 @@ public class BspLayoutTests(ITestOutputHelper output)
             }
         }
 
-        Assert.All(
-            roomedLeaves,
-            leaf => Assert.Contains(new GridPoint(leaf.Room!.CenterX, leaf.Room!.CenterY), reached)
-        );
+        Assert.All(roomedLeaves, leaf => Assert.Contains(leaf.Room!.ConnectorPoint, reached));
     }
 }
