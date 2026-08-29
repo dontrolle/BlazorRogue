@@ -5,14 +5,16 @@ using System.Text;
 namespace BlazorRogue.World.Generation.BSPGenerator;
 
 /// <summary>
-/// A node in a binary space partition tree: wraps a rectangular <see cref="Generation.Area"/> that
-/// is either a leaf (not yet split) or has been divided into <see cref="Left"/> and
+/// A node in a binary space partition tree: wraps a rectangular <see cref="Generation.Area"/>
+/// that is either a leaf (not yet split) or has been divided into <see cref="Left"/> and
 /// <see cref="Right"/> children covering the same area.
 /// </summary>
 class Node(Area area, int id = 0)
 {
     /// <summary>
-    /// Debug-only identifier for use in tests; assigned via the standard 0-indexed binary heap scheme so expected values can be computed by hand. Not intended as a stable identity for gameplay logic (corridors, persistence, etc.) — use object reference for that.
+    /// Debug-only identifier for use in tests; assigned via the standard 0-indexed binary heap
+    /// scheme so expected values can be computed by hand. Not intended as a stable identity for
+    /// gameplay logic (corridors, persistence, etc.) — use object reference for that.
     /// </summary>
     internal int Id => id;
     internal Room? Room;
