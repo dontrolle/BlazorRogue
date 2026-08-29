@@ -57,7 +57,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     [Fact]
     public void PrintCarvedPlanForManualInspection()
     {
-        var root = CarvedPlan(width: 80, height: 50, seed: 1, chanceOfLeafHavingNoRoom: 0.05);
+        var root = CarvedPlan(width: 80, height: 50, seed: 1, chanceOfLeafHavingNoRoom: 0.1);
 
         output.WriteLine(root.ToTreeString());
         // Leading newline: the xUnit console logger indents the first physical line of a
