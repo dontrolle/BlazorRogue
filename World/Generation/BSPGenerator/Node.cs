@@ -278,6 +278,21 @@ class Node(Area area, int id = 0)
     /// <param name="chanceOfLeafHavingNoRoom">
     /// Raw chance [0,1] that a given leaf is skipped, leaving its <see cref="Room"/> null.
     /// </param>
+    /// <param name="roomCarver">
+    /// Strategy used to size and position each leaf's room within its (margin-adjusted) area.
+    /// Defaults to <see cref="RectangularRoomCarver"/>. Inherited by descendants unless
+    /// <paramref name="selectCarver"/> overrides it for a given node.
+    /// </param>
+    /// <param name="selectCarver">
+    /// Optional per-node hook for varying the carver across the tree. Called for every node -
+    /// leaf or internal - with the node itself and the carver inherited from its parent (the
+    /// root's own <paramref name="roomCarver"/>, at the top of the recursion); returns the carver
+    /// to use for that node and hand down to its children. Returning the carver unchanged keeps
+    /// inheriting the current choice. Overriding it at an internal node makes the whole subtree
+    /// beneath inherit the new carver (e.g. a cave-carved wing); overriding only at individual
+    /// leaves instead gives independent per-room variation (e.g. the occasional two-rectangle
+    /// room among rectangular ones).
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="chanceOfLeafHavingNoRoom"/> is outside <c>[0,1]</c>, or a leaf's area
     /// cannot fit a room satisfying <paramref name="minWidth"/>/<paramref name="minHeight"/>
@@ -288,7 +303,9 @@ class Node(Area area, int id = 0)
         int minWidth,
         int minHeight,
         Random randomSource,
-        double chanceOfLeafHavingNoRoom = 0
+        double chanceOfLeafHavingNoRoom = 0,
+        IRoomCarver? roomCarver = null,
+        Func<Node, IRoomCarver, Random, IRoomCarver>? selectCarver = null
     )
     {
         if (chanceOfLeafHavingNoRoom is < 0 or > 1)
@@ -298,6 +315,12 @@ class Node(Area area, int id = 0)
                 chanceOfLeafHavingNoRoom,
                 "must be a value between 0 and 1."
             );
+        }
+
+        var carver = roomCarver ?? RectangularRoomCarver.Instance;
+        if (selectCarver is not null)
+        {
+            carver = selectCarver(this, carver, randomSource);
         }
 
         if (Left is null && Right is null)
@@ -329,18 +352,7 @@ class Node(Area area, int id = 0)
                 );
             }
 
-            int roomWidth = randomSource.Next(minWidth, innerAreaWithMargin.Width + 1);
-            int roomHeight = randomSource.Next(minHeight, innerAreaWithMargin.Height + 1);
-            int xMin =
-                innerAreaWithMargin.XMin
-                + randomSource.Next(0, innerAreaWithMargin.Width - roomWidth);
-            int yMin =
-                innerAreaWithMargin.YMin
-                + randomSource.Next(0, innerAreaWithMargin.Height - roomHeight);
-
-            int xMax = xMin + roomWidth;
-            int yMax = yMin + roomHeight;
-            Room = new Room(new Area(xMin, xMax, yMin, yMax));
+            Room = carver.CarveRoom(innerAreaWithMargin, minWidth, minHeight, randomSource);
             return;
         }
 
@@ -349,14 +361,18 @@ class Node(Area area, int id = 0)
             minWidth,
             minHeight,
             randomSource,
-            chanceOfLeafHavingNoRoom
+            chanceOfLeafHavingNoRoom,
+            carver,
+            selectCarver
         );
         Right?.CarveRooms(
             minDistanceToDivider,
             minWidth,
             minHeight,
             randomSource,
-            chanceOfLeafHavingNoRoom
+            chanceOfLeafHavingNoRoom,
+            carver,
+            selectCarver
         );
     }
 
