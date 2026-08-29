@@ -37,11 +37,42 @@ class Node(Area area, int id = 0)
     /// <param name="randomSource">
     /// Random source used to pick various properties, e.g. split axis and split positions.+
     /// </param>
+    /// <param name="maxSplitOffsetFromCenterProportion">
+    /// If given, a number between 0 and 0.5 that indicates the maximum proportion from center
+    ///  that the split can be. E.g., =0.05 means the split will be between 0.45 and 0.55 from the
+    /// center.
+    /// </param>
+    /// <param name="earlyExitChance">
+    /// Raw chance [0,1] of returning early, making the current node a leaf.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="threshold"/> is less than <c>2 * minSplit</c>.
     /// </exception>
-    internal void SplitUntilThreshold(int threshold, int minSplit, Random randomSource)
+    internal void SplitUntilThreshold(
+        int threshold,
+        int minSplit,
+        Random randomSource,
+        double? maxSplitOffsetFromCenterProportion = null,
+        double earlyExitChance = 0
+    )
     {
+        if (maxSplitOffsetFromCenterProportion is < 0 or > 0.5)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxSplitOffsetFromCenterProportion),
+                maxSplitOffsetFromCenterProportion,
+                "must be a value between 0 and 0.5."
+            );
+        }
+
+        if (earlyExitChance is < 0 or > 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(earlyExitChance),
+                earlyExitChance,
+                "must be a value between 0 and 1."
+            );
+        }
+
         if (threshold < 2 * minSplit)
         {
             throw new ArgumentOutOfRangeException(
@@ -56,6 +87,9 @@ class Node(Area area, int id = 0)
         bool mayVerticalSplit = area.Width >= threshold;
 
         // are we done?
+        if (randomSource.NextDouble() < earlyExitChance)
+            return;
+
         if (!mayHorizontalSplit && !mayVerticalSplit)
         {
             // we are at a leaf
@@ -78,18 +112,62 @@ class Node(Area area, int id = 0)
 
         if (horizontalSplit)
         {
-            int yPos = randomSource.Next(area.YMin + minSplit, area.YMax - minSplit);
+            int minY = area.YMin + minSplit;
+            int maxY = area.YMax - minSplit;
+            if (maxSplitOffsetFromCenterProportion.HasValue)
+            {
+                int maxYOffset = maxY - minY;
+                int origMinY = minY;
+                minY = (int)
+                    double.Round(
+                        origMinY + (maxYOffset * (0.5 - maxSplitOffsetFromCenterProportion.Value))
+                    );
+                maxY = (int)
+                    double.Round(
+                        origMinY + (maxYOffset * (0.5 + maxSplitOffsetFromCenterProportion.Value))
+                    );
+            }
+
+            int yPos = randomSource.Next(minY, maxY);
             SplitHorizontalAt(yPos);
         }
         else
         {
-            int xPos = randomSource.Next(area.XMin + minSplit, area.XMax - minSplit);
+            int minX = area.XMin + minSplit;
+            int maxX = area.XMax - minSplit;
+            if (maxSplitOffsetFromCenterProportion.HasValue)
+            {
+                int maxXOffset = maxX - minX;
+                int origMinX = minX;
+                minX = (int)
+                    double.Round(
+                        origMinX + (maxXOffset * (0.5 - maxSplitOffsetFromCenterProportion.Value))
+                    );
+                maxX = (int)
+                    double.Round(
+                        origMinX + (maxXOffset * (0.5 + maxSplitOffsetFromCenterProportion.Value))
+                    );
+            }
+
+            int xPos = randomSource.Next(minX, maxX);
             SplitVerticalAt(xPos);
         }
 
         // and now recurse
-        Left!.SplitUntilThreshold(threshold, minSplit, randomSource);
-        Right!.SplitUntilThreshold(threshold, minSplit, randomSource);
+        Left!.SplitUntilThreshold(
+            threshold,
+            minSplit,
+            randomSource,
+            maxSplitOffsetFromCenterProportion,
+            earlyExitChance
+        );
+        Right!.SplitUntilThreshold(
+            threshold,
+            minSplit,
+            randomSource,
+            maxSplitOffsetFromCenterProportion,
+            earlyExitChance
+        );
     }
 
     int NextLeftId => (Id * 2) + 1;

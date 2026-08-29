@@ -23,6 +23,9 @@ public class BspLayoutTests(ITestOutputHelper output)
     const int Margin = 0;
     const int MinRoomWidth = 3;
     const int MinRoomHeight = 3;
+    const double earlyExitChance = 0.05;
+
+    //const double maxSplitOffsetFromCenterProportion = 0.25;
 
     /// <summary>
     /// Builds a plan for a <paramref name="width"/> x <paramref name="height"/> map from a fixed
@@ -31,7 +34,12 @@ public class BspLayoutTests(ITestOutputHelper output)
     static Node CarvedPlan(int width, int height, int seed)
     {
         var root = new Node(new Area(0, width, 0, height));
-        root.SplitUntilThreshold(Threshold, MinSplit, new Random(seed));
+        root.SplitUntilThreshold(
+            Threshold,
+            MinSplit,
+            new Random(seed),
+            earlyExitChance: earlyExitChance
+        );
 
         // Each pass gets its own fresh seeded Random so changing one pass doesn't shift the
         // random stream the next one observes.
