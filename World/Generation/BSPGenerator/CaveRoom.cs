@@ -64,4 +64,6 @@ class CaveRoom : Room
     }
 
     internal override GridPoint ConnectorPoint => connectorPoint;
+
+    internal override RoomType Type => RoomType.Cave;
 }

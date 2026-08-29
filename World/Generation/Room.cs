@@ -47,4 +47,12 @@ class Room(int x, int y, int width, int height)
     /// the room, etc.), not just for guaranteeing floor.
     /// </summary>
     internal virtual GridPoint ConnectorPoint => new(CenterX, CenterY);
+
+    /// <summary>
+    /// What kind of room this is - see <see cref="RoomType"/>. Defaults to
+    /// <see cref="RoomType.Rectangular"/>; overridden by room shapes that aren't a plain
+    /// rectangle. Purely descriptive: carving code sets it, but doesn't interpret it - it's for
+    /// callers that want to make a decision (e.g. picking a tileset) based on room shape.
+    /// </summary>
+    internal virtual RoomType Type => RoomType.Rectangular;
 }

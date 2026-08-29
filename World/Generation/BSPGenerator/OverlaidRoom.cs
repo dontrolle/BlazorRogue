@@ -40,4 +40,6 @@ class OverlaidRoom : Room
     internal override IEnumerable<Area> FootprintAreas => [first, second];
 
     internal override GridPoint ConnectorPoint => connectorPoint;
+
+    internal override RoomType Type => RoomType.Overlaid;
 }
