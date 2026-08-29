@@ -31,7 +31,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     /// Builds a plan for a <paramref name="width"/> x <paramref name="height"/> map from a fixed
     /// <paramref name="seed"/>, so every step is deterministic and replayable.
     /// </summary>
-    static Node CarvedPlan(int width, int height, int seed)
+    static Node CarvedPlan(int width, int height, int seed, double chanceOfLeafHavingNoRoom = 0)
     {
         var root = new Node(new Area(0, width, 0, height));
         root.SplitUntilThreshold(
@@ -43,7 +43,13 @@ public class BspLayoutTests(ITestOutputHelper output)
 
         // Each pass gets its own fresh seeded Random so changing one pass doesn't shift the
         // random stream the next one observes.
-        root.CarveRooms(Margin, MinRoomWidth, MinRoomHeight, new Random(seed));
+        root.CarveRooms(
+            Margin,
+            MinRoomWidth,
+            MinRoomHeight,
+            new Random(seed),
+            chanceOfLeafHavingNoRoom
+        );
         // TODO: uncomment once Node.ConnectRooms exists.
         // root.ConnectRooms(new Random(seed));
 
@@ -104,6 +110,97 @@ public class BspLayoutTests(ITestOutputHelper output)
         var root = CarvedPlan(80, 50, seed: 1);
         var rooms = root.Leaves().Select(leaf => leaf.Room!).ToList();
 
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            for (int j = i + 1; j < rooms.Count; j++)
+            {
+                var a = rooms[i];
+                var b = rooms[j];
+                bool separated =
+                    a.Right + 1 < b.Left
+                    || b.Right + 1 < a.Left
+                    || a.Lower + 1 < b.Upper
+                    || b.Lower + 1 < a.Upper;
+
+                Assert.True(
+                    separated,
+                    $"Rooms touch or overlap: [{a.Left},{a.Upper}]-[{a.Right},{a.Lower}] vs "
+                        + $"[{b.Left},{b.Upper}]-[{b.Right},{b.Lower}]"
+                );
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(1.1)]
+    public void ChanceOfLeafHavingNoRoomOutOfRangeThrows(double chance)
+    {
+        var root = new Node(new Area(0, 20, 0, 20));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            root.CarveRooms(Margin, MinRoomWidth, MinRoomHeight, new Random(1), chance)
+        );
+    }
+
+    [Fact]
+    public void ZeroChanceOfLeafHavingNoRoomStillGivesEveryLeafARoom()
+    {
+        // Regression guard for the default: an explicit 0 must behave identically to omitting
+        // the parameter (as EveryLeafGetsARoom already checks implicitly).
+        var root = CarvedPlan(80, 50, seed: 1, chanceOfLeafHavingNoRoom: 0);
+
+        Assert.All(root.Leaves(), leaf => Assert.NotNull(leaf.Room));
+    }
+
+    [Fact]
+    public void FullChanceOfLeafHavingNoRoomLeavesEveryLeafRoomless()
+    {
+        var root = CarvedPlan(80, 50, seed: 1, chanceOfLeafHavingNoRoom: 1);
+
+        Assert.All(root.Leaves(), leaf => Assert.Null(leaf.Room));
+    }
+
+    [Fact]
+    public void PartialChanceOfLeafHavingNoRoomProducesAMixOfRoomedAndRoomlessLeaves()
+    {
+        // A single seed/layout could plausibly roll all-or-nothing by chance, so pool leaves
+        // across several seeds before asserting both outcomes are actually represented.
+        var allLeaves = Enumerable
+            .Range(0, 20)
+            .SelectMany(seed => CarvedPlan(80, 50, seed, chanceOfLeafHavingNoRoom: 0.5).Leaves())
+            .ToList();
+
+        Assert.Contains(allLeaves, leaf => leaf.Room is not null);
+        Assert.Contains(allLeaves, leaf => leaf.Room is null);
+    }
+
+    [Fact]
+    public void RoomlessLeavesDoNotBreakMarginOrSeparationInvariantsForTheRemainingRooms()
+    {
+        // Same checks as EachRoomLiesInsideItsLeafAreaWithTheRequestedMargin /
+        // RoomsInDifferentLeavesNeverTouch, but with some leaves opted out - carving a room for
+        // one leaf shouldn't depend on, or be affected by, a sibling leaf having none.
+        var root = CarvedPlan(80, 50, seed: 1, chanceOfLeafHavingNoRoom: 0.5);
+        var roomedLeaves = root.Leaves().Where(leaf => leaf.Room is not null).ToList();
+
+        Assert.NotEmpty(roomedLeaves);
+
+        Assert.All(
+            roomedLeaves,
+            leaf =>
+            {
+                var room = leaf.Room!;
+                var area = leaf.Area;
+                // Area coords are half-open [Min, Max); the last owned cell is Max - 1.
+                Assert.True(room.Left >= area.XMin + Margin);
+                Assert.True(room.Right <= area.XMax - 1 - Margin);
+                Assert.True(room.Upper >= area.YMin + Margin);
+                Assert.True(room.Lower <= area.YMax - 1 - Margin);
+            }
+        );
+
+        var rooms = roomedLeaves.Select(leaf => leaf.Room!).ToList();
         for (int i = 0; i < rooms.Count; i++)
         {
             for (int j = i + 1; j < rooms.Count; j++)

@@ -242,15 +242,53 @@ class Node(Area area, int id = 0)
             yield return n;
     }
 
+    /// <summary>
+    /// Recursively carves a randomly sized and positioned <see cref="Room"/> into each leaf of
+    /// the subtree rooted at this node.
+    /// </summary>
+    /// <param name="minDistanceToDivider">
+    /// Minimum gap kept between a leaf's carved room and its area's border (and so the divider
+    /// lines/walls between sibling leaves), via <see cref="Area.CreateInnerAreaWithMargin"/>.
+    /// </param>
+    /// <param name="minWidth">Minimum width of a carved room.</param>
+    /// <param name="minHeight">Minimum height of a carved room.</param>
+    /// <param name="randomSource">
+    /// Random source used to pick each room's size and position, and (if
+    /// <paramref name="chanceOfLeafHavingNoRoom"/> is nonzero) whether a leaf gets a room at all.
+    /// </param>
+    /// <param name="chanceOfLeafHavingNoRoom">
+    /// Raw chance [0,1] that a given leaf is skipped, leaving its <see cref="Room"/> null.
+    /// </param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="chanceOfLeafHavingNoRoom"/> is outside <c>[0,1]</c>, or a leaf's area
+    /// cannot fit a room satisfying <paramref name="minWidth"/>/<paramref name="minHeight"/>
+    /// after <paramref name="minDistanceToDivider"/> is applied.
+    /// </exception>
     internal void CarveRooms(
         int minDistanceToDivider,
         int minWidth,
         int minHeight,
-        Random randomSource
+        Random randomSource,
+        double chanceOfLeafHavingNoRoom = 0
     )
     {
+        if (chanceOfLeafHavingNoRoom is < 0 or > 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(chanceOfLeafHavingNoRoom),
+                chanceOfLeafHavingNoRoom,
+                "must be a value between 0 and 1."
+            );
+        }
+
         if (Left is null && Right is null)
         {
+            // should we bail early, leaving this leaf with no room?
+            if (randomSource.NextDouble() < chanceOfLeafHavingNoRoom)
+            {
+                return;
+            }
+
             var innerAreaWithMargin = Area.CreateInnerAreaWithMargin(minDistanceToDivider);
 
             if (minWidth > innerAreaWithMargin.Width)
@@ -287,8 +325,20 @@ class Node(Area area, int id = 0)
             return;
         }
 
-        Left?.CarveRooms(minDistanceToDivider, minWidth, minHeight, randomSource);
-        Right?.CarveRooms(minDistanceToDivider, minWidth, minHeight, randomSource);
+        Left?.CarveRooms(
+            minDistanceToDivider,
+            minWidth,
+            minHeight,
+            randomSource,
+            chanceOfLeafHavingNoRoom
+        );
+        Right?.CarveRooms(
+            minDistanceToDivider,
+            minWidth,
+            minHeight,
+            randomSource,
+            chanceOfLeafHavingNoRoom
+        );
     }
 
     /// <summary>
@@ -397,7 +447,7 @@ class Node(Area area, int id = 0)
             }
         }
 
-        // TODO(corridors): once ConnectRooms populates a corridor on each internal node, walk
+        // TODO:(corridors): once ConnectRooms populates a corridor on each internal node, walk
         // the tree here and paint corridor cells (suggest '+') on top of the grid.
 
         var sb = new StringBuilder((width + 1) * height);
