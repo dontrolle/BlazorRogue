@@ -50,6 +50,28 @@ public class NodeTests(ITestOutputHelper output)
         Assert.Equal(expectedLeafIds, node.Leaves().Select(n => n.Id).OrderBy(i => i));
     }
 
+    [Fact]
+    public void SelectCarverOverrideAtAnInternalNodePropagatesToTheWholeSubtree()
+    {
+        // Root splits into Left (a further-split internal node with two leaves) and Right (a
+        // single leaf). Overriding the carver at Left should apply to both of its leaves, while
+        // Right - outside that subtree - keeps inheriting the default.
+        var root = new Node(new Area(0, 20, 0, 16));
+        root.SplitVerticalAt(9);
+        root.Left!.SplitHorizontalAt(7);
+
+        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+            node == root.Left ? OverlaidRectanglesRoomCarver.Instance : inherited;
+
+        root.CarveRooms(0, 3, 3, new Random(1), selectCarver: selectCarver);
+
+        Assert.All(root.Left!.Leaves(), leaf => Assert.Equal(RoomType.Overlaid, leaf.Room!.Type));
+        Assert.All(
+            root.Right!.Leaves(),
+            leaf => Assert.Equal(RoomType.Rectangular, leaf.Room!.Type)
+        );
+    }
+
     // Not a real test - run with
     // `dotnet test --filter DisplayName~PrintRandomSplit --logger "console;verbosity=detailed"` to
     // eyeball the tree output for a random split, e.g. while tweaking SplitUntilThreshold's
