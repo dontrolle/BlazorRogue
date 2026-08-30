@@ -21,7 +21,7 @@ public class BspLayoutTests(ITestOutputHelper output)
     const int Margin = 0;
     const int MinRoomWidth = 3;
     const int MinRoomHeight = 3;
-    const double earlyExitChance = 0.05;
+    const double EarlyExitChance = 0.05;
 
     //const double maxSplitOffsetFromCenterProportion = 0.25;
 
@@ -42,7 +42,7 @@ public class BspLayoutTests(ITestOutputHelper output)
             Threshold,
             MinSplit,
             new Random(seed),
-            earlyExitChance: earlyExitChance
+            earlyExitChance: EarlyExitChance
         );
 
         // Each pass gets its own fresh seeded Random so changing one pass doesn't shift the
