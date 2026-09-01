@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BlazorRogue.Entities;
+using BlazorRogue.World.Generation.BSPGenerator;
 
 namespace BlazorRogue.World.Generation;
 
@@ -15,6 +16,7 @@ static class MapGeneratorFactory
     > Factories = new()
     {
         [BasicDungeonGenerator.Id] = (w, h, n, g, s) => new BasicDungeonGenerator(w, h, n, g, s),
+        [BSPMapGenerator.Id] = (w, h, n, g, s) => new BSPMapGenerator(w, h, n, g, s),
         [CaveGenerator.Id] = (w, h, n, g, s) => new CaveGenerator(w, h, n, g, s),
         [TestMapGenerator.Id] = (w, h, n, g, s) => new TestMapGenerator(w, h, n, g, s),
     };

@@ -52,45 +52,14 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
 
     Tuple<int, int> CreateCave()
     {
-        bool[,] genmap = new bool[map.Width, map.Height];
-
-        void InitFill(int x, int y) =>
-            genmap[x, y] = mapGenerationRandomSource.NextDouble() < percentageChanceOfInitialWall;
-
-        map.ForEachTile(InitFill);
-
-        bool[,]? newmap = null;
-        void Generation1Fill(int x, int y) =>
-            newmap[x, y] =
-                SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5
-                || SurroundingWallNumberWithinN(genmap, x, y, 2) <= 1;
-
-        for (int i = 0; i < smoothingPassOneIterations; i++)
-        {
-            newmap = new bool[map.Width, map.Height];
-            map.ForEachTile(Generation1Fill);
-            genmap = newmap;
-        }
-
-        void Generation2Fill(int x, int y) =>
-            newmap[x, y] = SurroundingWallNumberWithinN(genmap, x, y, 1) >= 5;
-
-        for (int i = 0; i < smoothingPassTwoIterations; i++)
-        {
-            newmap = new bool[map.Width, map.Height];
-            map.ForEachTile(Generation2Fill);
-            genmap = newmap;
-        }
-
-        // fill border area
-        for (int x = 0; x < map.Width; x++)
-        {
-            for (int y = 0; y < map.Height; y++)
-            {
-                if (x == 0 || x == map.Width - 1 || y == 0 || y == map.Height - 1)
-                    genmap[x, y] = true;
-            }
-        }
+        bool[,] genmap = CellularAutomatonCave.Generate(
+            map.Width,
+            map.Height,
+            mapGenerationRandomSource,
+            percentageChanceOfInitialWall,
+            smoothingPassOneIterations,
+            smoothingPassTwoIterations
+        );
 
         return FinalizeCaveGen(genmap);
     }
@@ -112,28 +81,4 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
                     PlaceFloor(x, y, floorset);
             }
         );
-
-    int SurroundingWallNumberWithinN(bool[,] genmap, int x, int y, int distance)
-    {
-        int noOfWalls = 0;
-
-        for (int dx = -distance; dx < distance + 1; dx++)
-        {
-            for (int dy = -distance; dy < distance + 1; dy++)
-            {
-                // consider outside of map as walls
-                // TODO: check map - slightly wrong...
-                if (x + dx < 0 || x + dx > map.Width - 1 || y + dy < 0 || y + dy > map.Height - 1)
-                {
-                    noOfWalls++;
-                }
-                else if (genmap[x + dx, y + dy])
-                {
-                    noOfWalls++;
-                }
-            }
-        }
-
-        return noOfWalls;
-    }
 }

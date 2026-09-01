@@ -56,27 +56,6 @@ class BasicDungeonGenerator(int width, int height, int levelNumber, Game game, S
 
     readonly List<Room> rooms = [];
 
-    class Room(int x, int y, int width, int height)
-    {
-        public int X { get; } = x;
-        public int Y { get; } = y;
-        public int Width { get; } = width;
-        public int Height { get; } = height;
-        public int Left => X;
-        public int Right => X + Width - 1;
-        public int Upper => Y;
-        public int Lower => Y + Height - 1;
-        public int CenterX => X + ((Width - 1) / 2);
-        public int CenterY => Y + ((Height - 1) / 2);
-
-        public bool Intersect(Room other)
-        {
-            bool xInter = Left <= other.Right && Right >= other.Left;
-            bool yInter = Lower >= other.Upper && Upper <= other.Lower;
-            return xInter && yInter;
-        }
-    }
-
     protected override Tuple<int, int> CreateLayout()
     {
         var playerPos = CreateFloorPlans();
