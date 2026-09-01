@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using BlazorRogue.Entities;
 
 namespace BlazorRogue.World.Generation.BSPGenerator;
@@ -6,6 +7,22 @@ namespace BlazorRogue.World.Generation.BSPGenerator;
 /// <summary>
 /// Dungeon generator that lays out rooms via binary space partitioning.
 /// </summary>
+/// <remarks>
+/// <para>Data-driven knobs, all under the level's <c>map_generator.parameters.layout</c>:</para>
+/// <list type="bullet">
+/// <item><c>early_exit_chance</c> (double, default 0): per-node chance the partition stops early,
+/// leaving a larger leaf. See <see cref="Node.SplitUntilThreshold"/>.</item>
+/// <item><c>max_split_offset_from_center_proportion</c> (double 0-0.5, default unset): when set,
+/// keeps each split near the middle of its area rather than anywhere in the legal range.</item>
+/// <item><c>chance_of_leaf_having_no_room</c> (double, default 0): chance a given leaf is left
+/// empty. Values must still leave at least one room somewhere.</item>
+/// <item><c>min_room_width</c> / <c>min_room_height</c> (int, default 3): smallest room a carver
+/// may produce.</item>
+/// <item><c>room_carvers</c> (weighted id list, default all rectangular): shapes to pick from,
+/// independently, per room. Ids: <c>rectangular</c>, <c>overlaid</c>, <c>circular</c>,
+/// <c>cave</c>.</item>
+/// </list>
+/// </remarks>
 /// <param name="width">Dungeon width</param>
 /// <param name="height">Dungeon height</param>
 /// <param name="levelNumber">The level's "no" in levels.json, used e.g. to decide which stairs exist</param>
@@ -25,18 +42,46 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     const int AreaThreshold = 15;
     const int MinSplit = 6;
     const int MinMarginBetweenAreaBorderAndRoom = 0;
-    const int MinRoomWidth = 3;
-    const int MinRoomHeight = 3;
+    const int DefaultMinRoomWidth = 3;
+    const int DefaultMinRoomHeight = 3;
+
+    // LayoutSettings() and the Read* helpers are static for the same field-initializer reason
+    // SelectWallSet is - see MapGeneratorBase: a field initializer may only touch static members
+    // and the primary constructor's own parameters.
+    readonly double earlyExitChance = LayoutSettings(settings).GetDouble("early_exit_chance", 0);
+    readonly double? maxSplitOffsetFromCenterProportion = ReadOptionalProportion(settings);
+    readonly double chanceOfLeafHavingNoRoom = LayoutSettings(settings)
+        .GetDouble("chance_of_leaf_having_no_room", 0);
+    readonly int minRoomWidth = LayoutSettings(settings)
+        .GetInt("min_room_width", DefaultMinRoomWidth);
+    readonly int minRoomHeight = LayoutSettings(settings)
+        .GetInt("min_room_height", DefaultMinRoomHeight);
+    readonly (string[] Ids, double[] Weights) roomCarverPool = ReadRoomCarverPool(settings);
 
     // Floor-set pool for rooms and corridors. Resolved once here (like BasicDungeonGenerator); a
-    // fresh set is picked per room and per corridor so the map isn't one flat colour. Static for
-    // the same field-initializer reason SelectWallSet is - see MapGeneratorBase.
+    // fresh set is picked per room and per corridor so the map isn't one flat colour.
     readonly (TileSet[] TileSets, double[] Weights) floorPool = ResolveFloorPool(
         game.Configuration,
         settings,
         "common",
         game.Configuration.FloorSets
     );
+
+    static SettingsMap LayoutSettings(SettingsMap settings) =>
+        settings.GetMap("layout", SettingsMap.Empty);
+
+    static double? ReadOptionalProportion(SettingsMap settings)
+    {
+        double raw = LayoutSettings(settings)
+            .GetDouble("max_split_offset_from_center_proportion", double.NaN);
+        return double.IsNaN(raw) ? null : raw;
+    }
+
+    static (string[] Ids, double[] Weights) ReadRoomCarverPool(SettingsMap settings)
+    {
+        var weighted = LayoutSettings(settings).GetWeightedIds("room_carvers", []);
+        return ([.. weighted.Select(w => w.Id)], [.. weighted.Select(w => w.Weight)]);
+    }
 
     protected override Tuple<int, int> CreateLayout()
     {
@@ -46,12 +91,20 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         var root = new Node(new Area(1, map.Width - 1, 1, map.Height - 1));
 
         // Partition the map, then carve one room per leaf area.
-        root.SplitUntilThreshold(AreaThreshold, MinSplit, mapGenerationRandomSource);
+        root.SplitUntilThreshold(
+            AreaThreshold,
+            MinSplit,
+            mapGenerationRandomSource,
+            maxSplitOffsetFromCenterProportion,
+            earlyExitChance
+        );
         root.CarveRooms(
             MinMarginBetweenAreaBorderAndRoom,
-            MinRoomWidth,
-            MinRoomHeight,
-            mapGenerationRandomSource
+            minRoomWidth,
+            minRoomHeight,
+            mapGenerationRandomSource,
+            chanceOfLeafHavingNoRoom,
+            selectCarver: BuildSelectCarver()
         );
 
         // Connect every room into one component with L-shaped corridors.
@@ -61,6 +114,47 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 
         return PlayerStart(root);
     }
+
+    /// <summary>
+    /// Builds the per-node carver hook for <see cref="Node.CarveRooms"/> from the configured
+    /// <c>room_carvers</c> pool, or <c>null</c> when none is configured (every room then uses the
+    /// default <see cref="RectangularRoomCarver"/>). Each leaf rolls its own shape independently;
+    /// internal nodes just pass the inherited carver through.
+    /// </summary>
+    Func<Node, IRoomCarver, Random, IRoomCarver>? BuildSelectCarver()
+    {
+        if (roomCarverPool.Ids.Length == 0)
+        {
+            return null;
+        }
+
+        return (node, inherited, _) =>
+        {
+            if (node.Left is not null || node.Right is not null)
+            {
+                return inherited;
+            }
+
+            return CarverForId(
+                GetRandomElementWeighted(roomCarverPool.Ids, roomCarverPool.Weights)
+            );
+        };
+    }
+
+    static IRoomCarver CarverForId(string id) =>
+        id switch
+        {
+            "rectangular" => RectangularRoomCarver.Instance,
+            "overlaid" => OverlaidRectanglesRoomCarver.Instance,
+            "circular" => CircularRoomCarver.Instance,
+            // CaveRoomCarver's automaton can wall a small leaf off entirely (it throws when it
+            // does); fall back to a plain rectangle for that leaf rather than aborting the map.
+            "cave" => new FallbackRoomCarver(new CaveRoomCarver(), RectangularRoomCarver.Instance),
+            _ => throw new InvalidOperationException(
+                $"Unknown room carver id '{id}' in the bsp_map_generator 'room_carvers' setting; "
+                    + "expected one of: rectangular, overlaid, circular, cave."
+            ),
+        };
 
     /// <summary>
     /// Paints the finished BSP plan - room footprints, corridor paths, and a wall ring around them

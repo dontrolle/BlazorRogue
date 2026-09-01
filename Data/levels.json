@@ -29,6 +29,19 @@
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02
+          },
+          "layout": {
+            "early_exit_chance": 0.06,
+            "max_split_offset_from_center_proportion": 0.35,
+            "chance_of_leaf_having_no_room": 0.08,
+            "min_room_width": 3,
+            "min_room_height": 3,
+            "room_carvers": [
+              [ "rectangular", 6 ],
+              [ "overlaid", 2 ],
+              [ "circular", 2 ],
+              [ "cave", 1 ]
+            ]
           }
         }
       }
