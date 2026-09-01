@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World.Generation.BSPGenerator;
 
@@ -113,8 +114,129 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 
         TransferPlanToMap(root);
         RecordDoorCandidates(root);
+        ChooseKeyRooms(root);
 
-        return PlayerStart(root);
+        return PlayerStart();
+    }
+
+    // The two rooms whose connector points are farthest apart: the player spawns in one (and, on
+    // a level that has an up-stair, so does that stair), the down-stair goes in the other - so
+    // there's always a traversal between where you come in and where you leave. Null only when the
+    // plan produced no rooms at all, in which case the base fallbacks kick in.
+    Room? playerRoom;
+    Room? downStairRoom;
+
+    /// <summary>
+    /// Picks <see cref="playerRoom"/> / <see cref="downStairRoom"/> as the farthest-apart pair of
+    /// carved rooms, so stairs and spawn end up in real rooms (never a corridor or an unreachable
+    /// cave pocket) with distance between them.
+    /// </summary>
+    void ChooseKeyRooms(Node root)
+    {
+        var rooms = new List<Room>();
+        foreach (var leaf in root.Leaves())
+        {
+            if (leaf.Room is { } room)
+            {
+                rooms.Add(room);
+            }
+        }
+
+        if (rooms.Count == 0)
+        {
+            return;
+        }
+        if (rooms.Count == 1)
+        {
+            playerRoom = downStairRoom = rooms[0];
+            return;
+        }
+
+        int bestDistanceSquared = -1;
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            for (int j = i + 1; j < rooms.Count; j++)
+            {
+                var a = rooms[i].ConnectorPoint;
+                var b = rooms[j].ConnectorPoint;
+                int dx = a.X - b.X;
+                int dy = a.Y - b.Y;
+                int distanceSquared = (dx * dx) + (dy * dy);
+                if (distanceSquared > bestDistanceSquared)
+                {
+                    bestDistanceSquared = distanceSquared;
+                    playerRoom = rooms[i];
+                    downStairRoom = rooms[j];
+                }
+            }
+        }
+    }
+
+    Tuple<int, int> PlayerStart()
+    {
+        if (playerRoom is not { } room)
+        {
+            return GetRandomUnblockedMapTile();
+        }
+
+        var start = room.ConnectorPoint;
+        return Tuple.Create(start.X, start.Y);
+    }
+
+    /// <summary>
+    /// Places the up/down stairs (when the neighbouring levels exist) at the centre of
+    /// <see cref="playerRoom"/> / <see cref="downStairRoom"/> rather than the base class's random
+    /// unblocked tile - keeping them in rooms and, since every room connector is reachable, never
+    /// stranded. Falls back to <see cref="MapGeneratorBase.AddStairs"/> if no rooms were carved.
+    /// </summary>
+    protected override void AddStairs()
+    {
+        if (playerRoom is null || downStairRoom is null)
+        {
+            base.AddStairs();
+            return;
+        }
+
+        if (configuration.Levels.ContainsKey(levelNumber + 1))
+        {
+            var down = UnblockedFloorCellIn(downStairRoom);
+            map.AddGameObject(new Stair(down.X, down.Y, StairDirection.Down));
+        }
+
+        if (configuration.Levels.ContainsKey(levelNumber - 1))
+        {
+            var up = UnblockedFloorCellIn(playerRoom);
+            map.AddGameObject(new Stair(up.X, up.Y, StairDirection.Up));
+        }
+    }
+
+    /// <summary>
+    /// The room's connector point if nothing blocks it, otherwise the first unblocked cell in its
+    /// footprint - AddStairs runs after the decoration passes, so a chest/altar could sit on the
+    /// connector by the time a stair needs the cell.
+    /// </summary>
+    GridPoint UnblockedFloorCellIn(Room room)
+    {
+        if (!map.IsBlocked(room.ConnectorPoint.X, room.ConnectorPoint.Y))
+        {
+            return room.ConnectorPoint;
+        }
+
+        foreach (var footprint in room.FootprintAreas)
+        {
+            for (int x = footprint.XMin; x < footprint.XMax; x++)
+            {
+                for (int y = footprint.YMin; y < footprint.YMax; y++)
+                {
+                    if (!map.IsBlocked(x, y))
+                    {
+                        return new GridPoint(x, y);
+                    }
+                }
+            }
+        }
+
+        return room.ConnectorPoint;
     }
 
     /// <summary>
@@ -297,22 +419,5 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
                 }
             }
         }
-    }
-
-    Tuple<int, int> PlayerStart(Node root)
-    {
-        // Drop the player on the connector point of the first room in the plan; that cell is
-        // guaranteed to be on the room's floor. Fall back to a random open tile if the plan
-        // somehow produced no rooms at all.
-        foreach (var leaf in root.Leaves())
-        {
-            if (leaf.Room is { } room)
-            {
-                var connector = room.ConnectorPoint;
-                return Tuple.Create(connector.X, connector.Y);
-            }
-        }
-
-        return GetRandomUnblockedMapTile();
     }
 }

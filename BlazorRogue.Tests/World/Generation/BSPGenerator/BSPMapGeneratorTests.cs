@@ -16,9 +16,9 @@ public class BSPMapGeneratorTests
 {
     const string BspId = "bsp_map_generator";
 
-    static LevelConfiguration Level(int width, int height, SettingsMap settings) =>
+    static LevelConfiguration Level(int width, int height, SettingsMap settings, int number) =>
         new(
-            number: 0,
+            number: number,
             id: "test-level",
             name: "Test Level",
             height: height,
@@ -31,8 +31,10 @@ public class BSPMapGeneratorTests
     static Map GenerateMap(int width = 60, int height = 40) =>
         GenerateMap(SettingsMap.Empty, width, height);
 
-    static Map GenerateMap(SettingsMap settings, int width = 60, int height = 40) =>
-        MapGeneratorFactory.Create(Level(width, height, settings), new Game()).GenerateMap();
+    static Map GenerateMap(SettingsMap settings, int width = 60, int height = 40, int number = 0) =>
+        MapGeneratorFactory
+            .Create(Level(width, height, settings, number), new Game())
+            .GenerateMap();
 
     /// <summary>Wraps a <c>layout</c> parameter block the way levels.json nests it.</summary>
     static SettingsMap LayoutSettings(Dictionary<string, object> layout) =>
@@ -74,12 +76,15 @@ public class BSPMapGeneratorTests
             }
         );
 
-    static void AssertEveryFloorTileReachableFromPlayer(Map map)
+    static HashSet<(int X, int Y)> FloodFillFloorFrom(Map map, (int X, int Y) start)
     {
-        var start = (map.Player.X, map.Player.Y);
-        Assert.True(IsFloor(map, start.Item1, start.Item2));
+        var reached = new HashSet<(int X, int Y)>();
+        if (!IsFloor(map, start.X, start.Y))
+        {
+            return reached;
+        }
 
-        var reached = new HashSet<(int X, int Y)> { start };
+        _ = reached.Add(start);
         var frontier = new Queue<(int X, int Y)>();
         frontier.Enqueue(start);
         while (frontier.Count > 0)
@@ -94,7 +99,14 @@ public class BSPMapGeneratorTests
                 }
             }
         }
+        return reached;
+    }
 
+    static void AssertEveryFloorTileReachableFromPlayer(Map map)
+    {
+        Assert.True(IsFloor(map, map.Player.X, map.Player.Y));
+
+        var reached = FloodFillFloorFrom(map, (map.Player.X, map.Player.Y));
         foreach (var cell in FloorCells(map))
         {
             Assert.Contains(cell, reached);
@@ -156,13 +168,76 @@ public class BSPMapGeneratorTests
     [Fact]
     public void PlacesStairsOnFloorTiles()
     {
-        // level 0's only neighbour here is level 1, so AddStairs adds a single down stair; the
-        // base class guarantees it lands on an unblocked tile, which here means floor.
+        // number 0's only neighbour in levels.json is level 1, so AddStairs adds a single down
+        // stair; it must land on floor (a room connector).
         var map = GenerateMap();
 
         var stairs = map.GameObjects.OfType<Stair>().ToList();
         Assert.NotEmpty(stairs);
         Assert.All(stairs, stair => Assert.True(IsFloor(map, stair.X, stair.Y)));
+    }
+
+    [Fact]
+    public void PlayerSpawnsFarFromTheDownStair()
+    {
+        // ChooseKeyRooms puts the player and the down-stair in the farthest-apart pair of rooms,
+        // so a fresh level always has a real traversal from entrance to exit.
+        for (int i = 0; i < 5; i++)
+        {
+            var map = GenerateMap(width: 72, height: 48);
+            var down = map.GetStair(StairDirection.Down);
+
+            int dx = map.Player.X - down.X;
+            int dy = map.Player.Y - down.Y;
+            Assert.True(
+                (dx * dx) + (dy * dy) > 20 * 20,
+                $"player ({map.Player.X},{map.Player.Y}) too close to down-stair ({down.X},{down.Y})"
+            );
+        }
+    }
+
+    [Fact]
+    public void UpAndDownStairsLandInDifferentRoomsFarApart()
+    {
+        // number 1 in levels.json has both a level 0 and a level 2, so both stairs are placed -
+        // in the two farthest-apart rooms.
+        for (int i = 0; i < 5; i++)
+        {
+            var map = GenerateMap(SettingsMap.Empty, width: 72, height: 48, number: 1);
+            var up = map.GetStair(StairDirection.Up);
+            var down = map.GetStair(StairDirection.Down);
+
+            Assert.True(IsFloor(map, up.X, up.Y));
+            Assert.True(IsFloor(map, down.X, down.Y));
+            Assert.False(up.X == down.X && up.Y == down.Y);
+
+            int dx = up.X - down.X;
+            int dy = up.Y - down.Y;
+            Assert.True((dx * dx) + (dy * dy) > 20 * 20);
+        }
+    }
+
+    [Fact]
+    public void StairsStayReachableWithCaveHeavyRooms()
+    {
+        // Regression guard for the Phase 1.5 soft-lock note: stairs go in room connectors, every
+        // room connector is on the single connected component, and CaveRoomCarver now walls off
+        // disconnected pockets - so a stair can never end up stranded, even in an all-cave pool.
+        var settings = LayoutSettings(
+            new Dictionary<string, object>
+            {
+                ["room_carvers"] = new List<(string, double)> { ("cave", 1), ("rectangular", 1) },
+            }
+        );
+
+        for (int i = 0; i < 6; i++)
+        {
+            var map = GenerateMap(settings, width: 72, height: 48);
+            var down = map.GetStair(StairDirection.Down);
+
+            var reached = FloodFillFloorFrom(map, (map.Player.X, map.Player.Y));
+            Assert.Contains((down.X, down.Y), reached);
+        }
     }
 
     [Fact]
