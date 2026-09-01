@@ -57,7 +57,9 @@ abstract class MapGeneratorBase(
     protected readonly double percentageChanceOfDoor = CommonSettings(settings)
         .GetDouble("percentage_chance_of_door", 1.0);
 
-    static SettingsMap CommonSettings(SettingsMap settings) =>
+    // protected so a subclass can read its own extra "common" content knobs (e.g. BSPMapGenerator's
+    // monster density) in a field initializer; still static for the CS0236 reason above.
+    protected static SettingsMap CommonSettings(SettingsMap settings) =>
         settings.GetMap("common", SettingsMap.Empty);
 
     protected readonly string[] doorTypes = ["metal", "stone", "wood", "ruin"];
@@ -203,27 +205,40 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Basic simple method for placing some random monsters in a generated map.
+    /// Basic simple method for placing some random monsters in a generated map. Subclasses with a
+    /// room structure typically override this to distribute monsters room-by-room (see
+    /// <c>BSPMapGenerator</c>); <see cref="AddMonsterAt"/> is the shared spawn helper.
     /// </summary>
     protected virtual void AddMonsters()
     {
-        int noOfRandomMonsters = 10;
+        const int noOfRandomMonsters = 10;
 
         for (int i = 0; i < noOfRandomMonsters; i++)
         {
             var pos = GetRandomUnblockedMapTile();
-            var monsterType = GetRandomElement(configuration.MonsterTypes).Value;
-            var monster = new Moveable(
-                pos,
-                AIComponentFactory.Create(
-                    monsterType.AIComponentId,
-                    map,
-                    monsterType.AIComponentSettings
-                ),
-                monsterType
-            );
-            map.AddMonster(monster);
+            _ = AddMonsterAt(pos.Item1, pos.Item2);
         }
+    }
+
+    /// <summary>
+    /// Creates a monster of a uniformly-random configured type at
+    /// (<paramref name="x"/>, <paramref name="y"/>), wires up its AI component, and registers it
+    /// with the map. Does not check whether the tile is free - the caller owns that.
+    /// </summary>
+    protected Moveable AddMonsterAt(int x, int y)
+    {
+        var monsterType = GetRandomElement(configuration.MonsterTypes).Value;
+        var monster = new Moveable(
+            Tuple.Create(x, y),
+            AIComponentFactory.Create(
+                monsterType.AIComponentId,
+                map,
+                monsterType.AIComponentSettings
+            ),
+            monsterType
+        );
+        map.AddMonster(monster);
+        return monster;
     }
 
     /// <summary>
@@ -554,6 +569,19 @@ abstract class MapGeneratorBase(
     }
 
     protected bool GetRandomBool() => mapGenerationRandomSource.Next(0, 2) == 0;
+
+    /// <summary>
+    /// In-place Fisher-Yates shuffle of <paramref name="list"/> using the seedable
+    /// map-generation random source.
+    /// </summary>
+    protected void Shuffle<T>(IList<T> list)
+    {
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = mapGenerationRandomSource.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
 
     /// <summary>
     /// Update the map to have a wall tile at (<paramref name="x"/>,<paramref name="y"/>).

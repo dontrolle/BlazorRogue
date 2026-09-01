@@ -2,6 +2,7 @@ using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;
 using BlazorRogue.World.Generation;
+using BlazorRogue.World.Generation.BSPGenerator;
 
 namespace BlazorRogue.Tests.World.Generation.BSPGenerator;
 
@@ -39,6 +40,47 @@ public class BSPMapGeneratorTests
     /// <summary>Wraps a <c>layout</c> parameter block the way levels.json nests it.</summary>
     static SettingsMap LayoutSettings(Dictionary<string, object> layout) =>
         new(new Dictionary<string, object> { ["layout"] = new SettingsMap(layout) });
+
+    /// <summary>Wraps a <c>common</c> and/or <c>layout</c> block the way levels.json nests them.</summary>
+    static SettingsMap Settings(
+        Dictionary<string, object>? common = null,
+        Dictionary<string, object>? layout = null
+    )
+    {
+        var root = new Dictionary<string, object>();
+        if (common is not null)
+        {
+            root["common"] = new SettingsMap(common);
+        }
+        if (layout is not null)
+        {
+            root["layout"] = new SettingsMap(layout);
+        }
+        return new SettingsMap(root);
+    }
+
+    /// <summary>Like <see cref="GenerateMap(SettingsMap, int, int, int)"/> but also hands back the
+    /// concrete generator, for assertions against its carved rooms / player room.</summary>
+    static (BSPMapGenerator Gen, Map Map) GenerateWithGen(
+        SettingsMap settings,
+        int width = 72,
+        int height = 48,
+        int number = 0
+    )
+    {
+        var generator = MapGeneratorFactory.Create(
+            Level(width, height, settings, number),
+            new Game()
+        );
+        var map = generator.GenerateMap();
+        return ((BSPMapGenerator)generator, map);
+    }
+
+    static bool RoomCovers(Room room, int x, int y) =>
+        room.FootprintAreas.Any(a => x >= a.XMin && x < a.XMax && y >= a.YMin && y < a.YMax);
+
+    static bool InAnyCarvedRoom(BSPMapGenerator gen, int x, int y) =>
+        gen.CarvedRooms.Any(r => RoomCovers(r, x, y));
 
     static bool IsFloor(Map map, int x, int y) => map.Tiles[x, y].TileType == TileType.Floor;
 
@@ -439,6 +481,129 @@ public class BSPMapGeneratorTests
         for (int i = 0; i < 5; i++)
         {
             AssertEveryFloorTileReachableFromPlayer(GenerateMap(settings, width: 72, height: 48));
+        }
+    }
+
+    // ---- Track A1: room-aware AddMonsters ----
+
+    [Fact]
+    public void MonstersSpawnOnFloorInsideRoomsAndNeverOnBlockingObjects()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            var (gen, map) = GenerateWithGen(SettingsMap.Empty, width: 72, height: 48);
+
+            Assert.NotEmpty(map.Monsters);
+            foreach (var monster in map.Monsters)
+            {
+                Assert.True(
+                    IsFloor(map, monster.X, monster.Y),
+                    $"monster at ({monster.X},{monster.Y}) is not on a floor tile"
+                );
+                Assert.True(
+                    InAnyCarvedRoom(gen, monster.X, monster.Y),
+                    $"monster at ({monster.X},{monster.Y}) is outside every carved room footprint"
+                );
+
+                var here = map.GameObjectByCoord[monster.X, monster.Y];
+                Assert.DoesNotContain(here, o => o is Door);
+                Assert.DoesNotContain(here, o => o.Blocking);
+            }
+        }
+    }
+
+    [Fact]
+    public void NoTwoMonstersShareATile()
+    {
+        var map = GenerateMap(width: 72, height: 48);
+
+        var cells = map.Monsters.Select(m => (m.X, m.Y)).ToList();
+
+        Assert.Equal(cells.Count, cells.Distinct().Count());
+    }
+
+    [Fact]
+    public void MonsterCountScalesWithMapSize()
+    {
+        // Budget is per-room floor area * density, so a bigger map (more / larger rooms) carries
+        // strictly more monsters. Pooled over a few layouts so the ordering isn't a coin-flip.
+        int TotalOver(int width, int height)
+        {
+            int total = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                total += GenerateMap(width: width, height: height).Monsters.Count();
+            }
+            return total;
+        }
+
+        Assert.True(
+            TotalOver(96, 64) > TotalOver(44, 30),
+            "a larger map should carry more monsters than a small one"
+        );
+    }
+
+    [Fact]
+    public void ZeroDensityProducesNoMonsters()
+    {
+        var settings = Settings(common: new() { ["monsters_per_100_tiles"] = 0.0 });
+
+        for (int i = 0; i < 3; i++)
+        {
+            Assert.Empty(GenerateMap(settings, width: 72, height: 48).Monsters);
+        }
+    }
+
+    [Fact]
+    public void EmptyRoomChanceOfOneLeavesEveryRoomEmpty()
+    {
+        var settings = Settings(layout: new() { ["empty_room_chance"] = 1.0 });
+
+        for (int i = 0; i < 3; i++)
+        {
+            Assert.Empty(GenerateMap(settings, width: 72, height: 48).Monsters);
+        }
+    }
+
+    [Fact]
+    public void HighDensityBeatsTheBaseFlatCountAndKeepsEveryMonsterInARoom()
+    {
+        var settings = Settings(
+            common: new() { ["monsters_per_100_tiles"] = 40.0 },
+            layout: new() { ["empty_room_chance"] = 0.0, ["player_room_monster_multiplier"] = 1.0 }
+        );
+
+        var (gen, map) = GenerateWithGen(settings, width: 72, height: 48);
+
+        Assert.True(
+            map.Monsters.Count() > 10,
+            "high density should place more than the base generator's flat 10"
+        );
+        foreach (var monster in map.Monsters)
+        {
+            Assert.True(
+                InAnyCarvedRoom(gen, monster.X, monster.Y),
+                $"monster at ({monster.X},{monster.Y}) spawned outside any room"
+            );
+        }
+    }
+
+    [Fact]
+    public void PlayerStartRoomStaysMonsterFreeByDefault()
+    {
+        // Default player_room_monster_multiplier is 0 - the room you spawn in never gets monsters.
+        for (int i = 0; i < 4; i++)
+        {
+            var (gen, map) = GenerateWithGen(SettingsMap.Empty, width: 72, height: 48);
+
+            Assert.NotNull(gen.PlayerRoom);
+            foreach (var monster in map.Monsters)
+            {
+                Assert.False(
+                    RoomCovers(gen.PlayerRoom!, monster.X, monster.Y),
+                    $"monster at ({monster.X},{monster.Y}) spawned in the player's start room"
+                );
+            }
         }
     }
 }
