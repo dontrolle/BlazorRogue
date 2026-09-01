@@ -129,8 +129,9 @@ how to test changes in these areas.
   of the same type being constructed (`CS0236`) — only static members and the primary constructor's
   own parameters are visible at that point. That's why each generator that reads `SettingsMap`
   values in a field initializer (e.g. `BasicDungeonGenerator.LayoutSettings`,
-  `MapGeneratorBase.CommonSettings`) does so via a `private static` helper method rather than an
-  intermediate instance field.
+  `MapGeneratorBase.CommonSettings`) does so via a `static` helper method rather than an
+  intermediate instance field (`private`, or `protected` where a subclass reads the same group —
+  as `BSPMapGenerator` does for its extra `common` monster-density knob).
 - **AI components**: a monster's AI is chosen the same way map generators are — `monsters.json` (and
   `heroes.json`, though it's unused there since the player's `AIComponent` is always `null`) names it
   by an optional `ai_component.id` string, parsed into `MoveableType.AIComponentId` /

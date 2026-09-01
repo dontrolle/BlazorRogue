@@ -29,7 +29,8 @@
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
-            "percentage_chance_of_door": 0.4
+            "percentage_chance_of_door": 0.4,
+            "monsters_per_100_tiles": 5
           },
           "layout": {
             "early_exit_chance": 0.06,
@@ -42,7 +43,13 @@
               [ "overlaid", 2 ],
               [ "circular", 2 ],
               [ "cave", 1 ]
-            ]
+            ],
+            "empty_room_chance": 0.1,
+            "player_room_monster_multiplier": 0,
+            "monster_room_type_multipliers": {
+              "cave": 1.5,
+              "circular": 0.6
+            }
           }
         }
       }

@@ -23,6 +23,17 @@ namespace BlazorRogue.World.Generation.BSPGenerator;
 /// <item><c>room_carvers</c> (weighted id list, default all rectangular): shapes to pick from,
 /// independently, per room. Ids: <c>rectangular</c>, <c>overlaid</c>, <c>circular</c>,
 /// <c>cave</c>.</item>
+/// <item><c>empty_room_chance</c> (double, default 0.15): chance a given room gets no monsters in
+/// the room-aware <see cref="AddMonsters"/> pass.</item>
+/// <item><c>player_room_monster_multiplier</c> (double, default 0): scales the monster budget of
+/// the player's start room; 0 leaves it empty.</item>
+/// <item><c>monster_room_type_multipliers</c> (map of room-type id -&gt; double, default all 1):
+/// per-<see cref="RoomType"/> scaling of the monster budget. Ids as for <c>room_carvers</c>.</item>
+/// </list>
+/// <para>Plus, under <c>map_generator.parameters.common</c>:</para>
+/// <list type="bullet">
+/// <item><c>monsters_per_100_tiles</c> (double, default 2): monster budget per 100 cells of room
+/// floor area, before the multipliers above.</item>
 /// </list>
 /// </remarks>
 /// <param name="width">Dungeon width</param>
@@ -68,6 +79,17 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         "common",
         game.Configuration.FloorSets
     );
+
+    // Monster placement (Track A1). Density is phrased as a "common" content knob - the same
+    // concept other generators would share - while the room-distribution tuning is BSP-structural
+    // and lives under "layout".
+    readonly double monstersPer100Tiles = CommonSettings(settings)
+        .GetDouble("monsters_per_100_tiles", 2.0);
+    readonly double emptyRoomChance = LayoutSettings(settings).GetDouble("empty_room_chance", 0.15);
+    readonly double playerRoomMonsterMultiplier = LayoutSettings(settings)
+        .GetDouble("player_room_monster_multiplier", 0.0);
+    readonly SettingsMap monsterRoomTypeMultipliers = LayoutSettings(settings)
+        .GetMap("monster_room_type_multipliers", SettingsMap.Empty);
 
     static SettingsMap LayoutSettings(SettingsMap settings) =>
         settings.GetMap("layout", SettingsMap.Empty);
@@ -123,50 +145,61 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     // a level that has an up-stair, so does that stair), the down-stair goes in the other - so
     // there's always a traversal between where you come in and where you leave. Null only when the
     // plan produced no rooms at all, in which case the base fallbacks kick in.
-    Room? playerRoom;
-    Room? downStairRoom;
 
     /// <summary>
-    /// Picks <see cref="playerRoom"/> / <see cref="downStairRoom"/> as the farthest-apart pair of
-    /// carved rooms, so stairs and spawn end up in real rooms (never a corridor or an unreachable
-    /// cave pocket) with distance between them.
+    /// The room the player spawns in (and the up-stair, when present). Also a test seam. Null only
+    /// when no rooms were carved.
+    /// </summary>
+    internal Room? PlayerRoom { get; private set; }
+
+    Room? downStairRoom;
+    readonly List<Room> carvedRooms = [];
+
+    /// <summary>Test seam: every room <see cref="CreateLayout"/> carved, in no particular order.</summary>
+    internal IReadOnlyList<Room> CarvedRooms => carvedRooms;
+
+    /// <summary>
+    /// Collects every carved room into <see cref="carvedRooms"/> and picks
+    /// <see cref="PlayerRoom"/> / <see cref="downStairRoom"/> as the farthest-apart pair, so stairs
+    /// and spawn end up in real rooms (never a corridor or an unreachable cave pocket) with
+    /// distance between them.
     /// </summary>
     void ChooseKeyRooms(Node root)
     {
-        var rooms = new List<Room>();
+        carvedRooms.Clear();
         foreach (var leaf in root.Leaves())
         {
             if (leaf.Room is { } room)
             {
-                rooms.Add(room);
+                carvedRooms.Add(room);
             }
         }
 
-        if (rooms.Count == 0)
+        if (carvedRooms.Count == 0)
         {
             return;
         }
-        if (rooms.Count == 1)
+        if (carvedRooms.Count == 1)
         {
-            playerRoom = downStairRoom = rooms[0];
+            PlayerRoom = downStairRoom = carvedRooms[0];
             return;
         }
 
         int bestDistanceSquared = -1;
-        for (int i = 0; i < rooms.Count; i++)
+        for (int i = 0; i < carvedRooms.Count; i++)
         {
-            for (int j = i + 1; j < rooms.Count; j++)
+            for (int j = i + 1; j < carvedRooms.Count; j++)
             {
-                var a = rooms[i].ConnectorPoint;
-                var b = rooms[j].ConnectorPoint;
+                var a = carvedRooms[i].ConnectorPoint;
+                var b = carvedRooms[j].ConnectorPoint;
                 int dx = a.X - b.X;
                 int dy = a.Y - b.Y;
                 int distanceSquared = (dx * dx) + (dy * dy);
                 if (distanceSquared > bestDistanceSquared)
                 {
                     bestDistanceSquared = distanceSquared;
-                    playerRoom = rooms[i];
-                    downStairRoom = rooms[j];
+                    PlayerRoom = carvedRooms[i];
+                    downStairRoom = carvedRooms[j];
                 }
             }
         }
@@ -174,7 +207,7 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 
     Tuple<int, int> PlayerStart()
     {
-        if (playerRoom is not { } room)
+        if (PlayerRoom is not { } room)
         {
             return GetRandomUnblockedMapTile();
         }
@@ -185,13 +218,13 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 
     /// <summary>
     /// Places the up/down stairs (when the neighbouring levels exist) at the centre of
-    /// <see cref="playerRoom"/> / <see cref="downStairRoom"/> rather than the base class's random
+    /// <see cref="PlayerRoom"/> / <see cref="downStairRoom"/> rather than the base class's random
     /// unblocked tile - keeping them in rooms and, since every room connector is reachable, never
     /// stranded. Falls back to <see cref="MapGeneratorBase.AddStairs"/> if no rooms were carved.
     /// </summary>
     protected override void AddStairs()
     {
-        if (playerRoom is null || downStairRoom is null)
+        if (PlayerRoom is null || downStairRoom is null)
         {
             base.AddStairs();
             return;
@@ -205,7 +238,7 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
 
         if (configuration.Levels.ContainsKey(levelNumber - 1))
         {
-            var up = UnblockedFloorCellIn(playerRoom);
+            var up = UnblockedFloorCellIn(PlayerRoom);
             map.AddGameObject(new Stair(up.X, up.Y, StairDirection.Up));
         }
     }
@@ -237,6 +270,109 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         }
 
         return room.ConnectorPoint;
+    }
+
+    /// <summary>
+    /// Room-aware replacement for the base class's flat "10 monsters at random unblocked tiles":
+    /// walks the carved rooms and drops a per-room budget of monsters onto unblocked floor inside
+    /// each room's footprint. Budget scales with room floor area
+    /// (<c>common.monsters_per_100_tiles</c>); <c>layout.empty_room_chance</c> of rooms are left
+    /// empty; the player's start room is spawned lighter or not at all
+    /// (<c>layout.player_room_monster_multiplier</c>, default 0); and
+    /// <c>layout.monster_room_type_multipliers</c> gives per-<see cref="RoomType"/> tuning. Falls
+    /// back to <see cref="MapGeneratorBase.AddMonsters"/> when no rooms were carved.
+    /// </summary>
+    protected override void AddMonsters()
+    {
+        if (carvedRooms.Count == 0)
+        {
+            base.AddMonsters();
+            return;
+        }
+
+        foreach (var room in carvedRooms)
+        {
+            PopulateRoomWithMonsters(room);
+        }
+    }
+
+    // The room-type keys used in layout.monster_room_type_multipliers - the same vocabulary as the
+    // room_carvers pool ids (see CarverForId).
+    static string RoomTypeKey(RoomType type) =>
+        type switch
+        {
+            RoomType.Rectangular => "rectangular",
+            RoomType.Overlaid => "overlaid",
+            RoomType.Circular => "circular",
+            RoomType.Cave => "cave",
+            _ => throw new InvalidOperationException($"Unhandled room type '{type}'."),
+        };
+
+    void PopulateRoomWithMonsters(Room room)
+    {
+        double multiplier = monsterRoomTypeMultipliers.GetDouble(RoomTypeKey(room.Type), 1.0);
+        if (ReferenceEquals(room, PlayerRoom))
+        {
+            multiplier *= playerRoomMonsterMultiplier;
+        }
+
+        if (multiplier <= 0)
+        {
+            return;
+        }
+
+        if (mapGenerationRandomSource.NextDouble() < emptyRoomChance)
+        {
+            return;
+        }
+
+        int footprintCells = 0;
+        foreach (var area in room.FootprintAreas)
+        {
+            footprintCells += area.Width * area.Height;
+        }
+
+        int budget = (int)Math.Round(footprintCells * monstersPer100Tiles * multiplier / 100.0);
+        if (budget <= 0)
+        {
+            return;
+        }
+
+        var free = UnblockedFootprintCells(room);
+        Shuffle(free);
+        int toPlace = Math.Min(budget, free.Count);
+        for (int i = 0; i < toPlace; i++)
+        {
+            _ = AddMonsterAt(free[i].X, free[i].Y);
+        }
+    }
+
+    /// <summary>
+    /// The distinct cells of <paramref name="room"/>'s footprint (de-duplicated across overlapping
+    /// <see cref="Room.FootprintAreas"/>) that nothing currently blocks - so monster placement
+    /// steers clear of walls, blocking decorations, the player, and monsters already placed this
+    /// pass.
+    /// </summary>
+    List<GridPoint> UnblockedFootprintCells(Room room)
+    {
+        var seen = new HashSet<GridPoint>();
+        var cells = new List<GridPoint>();
+        foreach (var area in room.FootprintAreas)
+        {
+            for (int x = area.XMin; x < area.XMax; x++)
+            {
+                for (int y = area.YMin; y < area.YMax; y++)
+                {
+                    var point = new GridPoint(x, y);
+                    if (seen.Add(point) && !map.IsBlocked(x, y))
+                    {
+                        cells.Add(point);
+                    }
+                }
+            }
+        }
+
+        return cells;
     }
 
     /// <summary>
