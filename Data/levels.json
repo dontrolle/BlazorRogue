@@ -28,7 +28,8 @@
             "percentage_chance_of_altars": 0.04,
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
-            "percentage_chance_of_chests": 0.02
+            "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_door": 0.4
           },
           "layout": {
             "early_exit_chance": 0.06,

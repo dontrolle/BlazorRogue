@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.Entities;
 
@@ -111,8 +112,67 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         _ = root.ConnectRooms(mapGenerationRandomSource);
 
         TransferPlanToMap(root);
+        RecordDoorCandidates(root);
 
         return PlayerStart(root);
+    }
+
+    /// <summary>
+    /// Flags the cell where each corridor crosses out of a room it connects as a candidate door
+    /// spot, for the base <see cref="MapGeneratorBase.AddDoors"/> pass to fill. A corridor
+    /// piercing a room's wall ring always leaves a clean one-tile gap there - the geometry
+    /// <see cref="MapGeneratorBase.AddDoors"/> looks for - except where the crossing happens to
+    /// coincide with the corridor's own elbow, which it then simply skips.
+    /// </summary>
+    void RecordDoorCandidates(Node root)
+    {
+        var roomFootprintCells = new HashSet<GridPoint>();
+        foreach (var leaf in root.Leaves())
+        {
+            if (leaf.Room is not { } room)
+            {
+                continue;
+            }
+
+            foreach (var footprint in room.FootprintAreas)
+            {
+                for (int x = footprint.XMin; x < footprint.XMax; x++)
+                {
+                    for (int y = footprint.YMin; y < footprint.YMax; y++)
+                    {
+                        _ = roomFootprintCells.Add(new GridPoint(x, y));
+                    }
+                }
+            }
+        }
+
+        var recorded = new HashSet<GridPoint>();
+        foreach (var node in root.AllNodes())
+        {
+            if (node.Corridor is not { } corridor)
+            {
+                continue;
+            }
+
+            GridPoint? previous = null;
+            foreach (var point in corridor.Points())
+            {
+                if (
+                    previous is { } prev
+                    && roomFootprintCells.Contains(prev) != roomFootprintCells.Contains(point)
+                )
+                {
+                    // The cell on the corridor side of the boundary is the doorway.
+                    var doorway = roomFootprintCells.Contains(prev) ? point : prev;
+                    if (recorded.Add(doorway))
+                    {
+                        candidateDoors.Add(Tuple.Create(doorway.X, doorway.Y));
+                    }
+                }
+
+                previous = point;
+            }
+        }
     }
 
     /// <summary>

@@ -51,6 +51,12 @@ abstract class MapGeneratorBase(
     protected readonly double percentageChanceOfChests = CommonSettings(settings)
         .GetDouble("percentage_chance_of_chests", 0.02);
 
+    // Independent chance each entry in candidateDoors actually becomes a door in AddDoors. Default
+    // 1.0 keeps the historical "a door at every candidate" behaviour; a generator that records a
+    // lot of candidates (e.g. BSPMapGenerator, one per room a corridor touches) can dial it down.
+    protected readonly double percentageChanceOfDoor = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_door", 1.0);
+
     static SettingsMap CommonSettings(SettingsMap settings) =>
         settings.GetMap("common", SettingsMap.Empty);
 
@@ -233,6 +239,11 @@ abstract class MapGeneratorBase(
     {
         foreach (var candidateDoor in candidateDoors)
         {
+            if (mapGenerationRandomSource.NextDouble() >= percentageChanceOfDoor)
+            {
+                continue;
+            }
+
             int x = candidateDoor.Item1;
             int y = candidateDoor.Item2;
             if (map.Tiles[x, y].TileType == TileType.Floor)

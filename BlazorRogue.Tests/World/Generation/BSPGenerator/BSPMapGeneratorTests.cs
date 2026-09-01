@@ -166,6 +166,101 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
+    public void PlacesDoorsWhereCorridorsPierceRooms()
+    {
+        // Every corridor crossing a room's wall ring leaves a one-tile gap; RecordDoorCandidates
+        // flags it and the base AddDoors pass fills it. A multi-room BSP map always has some.
+        for (int i = 0; i < 5; i++)
+        {
+            var map = GenerateMap(width: 72, height: 48);
+
+            Assert.NotEmpty(map.GameObjects.OfType<Door>());
+        }
+    }
+
+    [Fact]
+    public void EveryDoorSitsInAOneTileGapInAWall()
+    {
+        // A door must be on floor with wall on exactly one axis and open passage on the other -
+        // a real threshold, never mid-room or mid-corridor.
+        var map = GenerateMap(width: 72, height: 48);
+        var doors = map.GameObjects.OfType<Door>().ToList();
+
+        Assert.NotEmpty(doors);
+        foreach (var door in doors)
+        {
+            Assert.True(IsFloor(map, door.X, door.Y));
+
+            bool wallOnXAxis =
+                map.Tiles[door.X - 1, door.Y].TileType == TileType.Wall
+                && map.Tiles[door.X + 1, door.Y].TileType == TileType.Wall;
+            bool wallOnYAxis =
+                map.Tiles[door.X, door.Y - 1].TileType == TileType.Wall
+                && map.Tiles[door.X, door.Y + 1].TileType == TileType.Wall;
+
+            Assert.True(
+                wallOnXAxis ^ wallOnYAxis,
+                $"Door at ({door.X},{door.Y}) is not in a clean one-tile wall gap."
+            );
+        }
+    }
+
+    [Fact]
+    public void NoTwoDoorsShareATile()
+    {
+        var map = GenerateMap(width: 72, height: 48);
+
+        var doorCells = map.GameObjects.OfType<Door>().Select(d => (d.X, d.Y)).ToList();
+
+        Assert.Equal(doorCells.Count, doorCells.Distinct().Count());
+    }
+
+    [Fact]
+    public void DoorsLeaveEveryFloorTileReachable()
+    {
+        // Doors are game objects on floor tiles - TileType stays Floor - so a closed door never
+        // severs the map even though it blocks movement until opened.
+        AssertEveryFloorTileReachableFromPlayer(GenerateMap(width: 72, height: 48));
+    }
+
+    [Fact]
+    public void PercentageChanceOfDoorGatesHowManyCandidatesBecomeDoors()
+    {
+        // common.percentage_chance_of_door is an independent per-candidate roll in the base
+        // AddDoors pass. 0 => no doors at all; a fraction => strictly fewer than the "every
+        // candidate" default. Pooled over several fresh layouts so the ordering is not a
+        // coin-flip (it's not a proportionality assertion - candidate counts vary between maps).
+        int DoorsAcrossMaps(double chance)
+        {
+            var settings = new SettingsMap(
+                new Dictionary<string, object>
+                {
+                    ["common"] = new SettingsMap(
+                        new Dictionary<string, object> { ["percentage_chance_of_door"] = chance }
+                    ),
+                }
+            );
+
+            int total = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                total += GenerateMap(settings, width: 72, height: 48)
+                    .GameObjects.OfType<Door>()
+                    .Count();
+            }
+            return total;
+        }
+
+        Assert.Equal(0, DoorsAcrossMaps(0.0));
+
+        int every = DoorsAcrossMaps(1.0);
+        int some = DoorsAcrossMaps(0.3);
+
+        Assert.True(every > 0);
+        Assert.InRange(some, 1, every - 1);
+    }
+
+    [Fact]
     public void AllRoomCarverShapesStayFullyConnected()
     {
         // Every shape - rectangular, overlaid, circular, and cave (whose carver now walls off any
