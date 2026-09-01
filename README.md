@@ -133,9 +133,9 @@ docker/                           Dockerfile and Dockerfile.graphics (see Docker
 
 ## Architecture
 
-One playthrough is rooted in a `Game` (`Game.cs`), which owns the map generator, `Map`, combat system, and `Configuration`. A `Game` is created and held by a `GameSession` for it to survive page reloads (each reload is a fresh Blazor circuit). `GameSessionStore` keeps sessions in memory, keyed by an id the browser holds in `localStorage`. Cross-cutting services (`Map`, `Configuration`, `SoundManager`, `EffectsSystem`) are reached through static holders in `References.cs`. `GameSession.Activate()` re-points them at the active game before any handler runs.
+One playthrough is rooted in a `Game`, which owns the map generator, `Map`, combat system, and `Configuration`. A `Game` is created and held by a `GameSession` for it to survive page reloads (each reload is a fresh Blazor circuit). `GameSessionStore` keeps sessions in memory, keyed by an id the browser holds in `localStorage`. Cross-cutting services (`Map`, `Configuration`, `SoundManager`, `EffectsSystem`) are reached through static holders in `References.cs`. `GameSession.Activate()` re-points them at the active game before any handler runs.
 
-Everything placed on the map is a `GameObject` (`Moveable`, `Door`, `Chest`, …). Inspired by ECS `GameObject`'s have optional `Component`s added at construction. `World/Map.cs` holds the `Tile` grid a map generator builds. `Vision/` does field-of-view. `GameObject`'s are rendered to `Decoration`'s. Rendering has a tileset path and an ASCII path, chosen client-side.
+Everything placed on the map is a `GameObject` (`Moveable`, `Door`, `Chest`, …). Inspired by ECS `GameObject`'s have optional `Component`'s added at construction. The `Map` holds the `Tile` grid a map generator builds. `Vision/` does field-of-view. `GameObject`'s are rendered to `Decoration`'s. Rendering has a tileset path and an ASCII path, chosen client-side.
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full picture — engine internals, the map-generation and rendering pipelines, and the gotchas worth knowing before a structural change.
 
