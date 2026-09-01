@@ -404,8 +404,16 @@ public class BSPMapGeneratorTests
     {
         // early_exit_chance 1.0 stops the partition at the root, so the plan is one leaf: a single
         // rectangular room, no corridors. Its footprint must therefore be a filled rectangle.
+        // min_room_width/height are pinned large so the lone room fills enough of the map for the
+        // base AddMonsters pass (which brute-forces random unblocked tiles) not to time out - a
+        // pre-existing fragility that Track A1's room-aware AddMonsters override will remove.
         var settings = LayoutSettings(
-            new Dictionary<string, object> { ["early_exit_chance"] = 1.0 }
+            new Dictionary<string, object>
+            {
+                ["early_exit_chance"] = 1.0,
+                ["min_room_width"] = 40,
+                ["min_room_height"] = 28,
+            }
         );
 
         var map = GenerateMap(settings);
