@@ -166,11 +166,11 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void RectangularOverlaidAndCircularPoolStaysFullyConnected()
+    public void AllRoomCarverShapesStayFullyConnected()
     {
-        // These three carvers all produce a contiguous footprint with the connector point on it,
-        // so a plan built from any mix of them must come out fully connected. (Cave is excluded
-        // here - its automaton can leave disconnected floor pockets; see the cave test below.)
+        // Every shape - rectangular, overlaid, circular, and cave (whose carver now walls off any
+        // pocket cut off from its connector) - produces a contiguous footprint, so a plan mixing
+        // them freely still comes out fully reachable once painted.
         var settings = LayoutSettings(
             new Dictionary<string, object>
             {
@@ -179,11 +179,12 @@ public class BSPMapGeneratorTests
                     ("rectangular", 1),
                     ("overlaid", 1),
                     ("circular", 1),
+                    ("cave", 1),
                 },
             }
         );
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             var map = GenerateMap(settings, width: 72, height: 48);
             AssertEveryFloorTileIsEnclosed(map);
@@ -192,12 +193,11 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void CaveOnlyPoolGeneratesWithoutThrowingAndStaysEnclosed()
+    public void CaveOnlyPoolStaysFullyConnectedAndNeverAbortsGeneration()
     {
-        // CaveRoomCarver can wall a small leaf off entirely - BSPMapGenerator wraps it in a
-        // rectangle fallback (FallbackRoomCarver) so that never aborts generation. Repeated over
-        // fresh unseeded layouts. Full connectivity isn't asserted: a cave can also leave a
-        // reachable-looking but disconnected pocket, which is inherent to the shape.
+        // Pushes the cave path hard: every leaf rolls cave, so both the small-leaf rectangle
+        // fallback (FallbackRoomCarver) and the pocket wall-off run on essentially every map. If
+        // the carver ever threw, this test would error rather than fail.
         var settings = LayoutSettings(
             new Dictionary<string, object>
             {
@@ -209,8 +209,8 @@ public class BSPMapGeneratorTests
         {
             var map = GenerateMap(settings, width: 72, height: 48);
             Assert.True(FloorCells(map).Count > 50);
-            Assert.True(IsFloor(map, map.Player.X, map.Player.Y));
             AssertEveryFloorTileIsEnclosed(map);
+            AssertEveryFloorTileReachableFromPlayer(map);
         }
     }
 

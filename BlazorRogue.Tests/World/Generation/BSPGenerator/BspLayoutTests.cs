@@ -385,4 +385,59 @@ public class BspLayoutTests(ITestOutputHelper output)
 
         Assert.All(roomedLeaves, leaf => Assert.Contains(leaf.Room!.ConnectorPoint, reached));
     }
+
+    [Fact]
+    public void IsFullyConnectedHoldsForEveryCarvedPlan()
+    {
+        // Node.IsFullyConnected is the plan-level guard: every footprint cell + corridor cell in
+        // one 4-connected component. Rectangular rooms only here; the mixed-shape case is below.
+        for (int seed = 0; seed < 25; seed++)
+        {
+            var root = CarvedPlan(80, 50, seed);
+
+            Assert.True(root.IsFullyConnected(), $"seed {seed}: plan floor is disconnected.");
+        }
+    }
+
+    [Fact]
+    public void IsFullyConnectedHoldsWhenEveryRoomShapeIsInPlay()
+    {
+        // Each leaf independently rolls one of the four carvers - cave wrapped the way
+        // BSPMapGenerator wraps it, so a walled-off small leaf falls back to a rectangle rather
+        // than throwing. CaveRoomCarver's own pocket wall-off keeps each cave footprint
+        // contiguous, so the whole plan must still come out connected.
+        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, rng) =>
+            node.Left is null && node.Right is null
+                ? rng.Next(0, 4) switch
+                {
+                    0 => OverlaidRectanglesRoomCarver.Instance,
+                    1 => CircularRoomCarver.Instance,
+                    2 => new FallbackRoomCarver(
+                        new CaveRoomCarver(),
+                        RectangularRoomCarver.Instance
+                    ),
+                    _ => RectangularRoomCarver.Instance,
+                }
+                : inherited;
+
+        for (int seed = 0; seed < 25; seed++)
+        {
+            var root = CarvedPlan(80, 50, seed, selectCarver: selectCarver);
+
+            Assert.True(root.IsFullyConnected(), $"seed {seed}: plan floor is disconnected.");
+        }
+    }
+
+    [Fact]
+    public void IsFullyConnectedIsFalseForAPlanWithTwoUnconnectedRooms()
+    {
+        // Guard the guard: two carved leaves with no ConnectRooms pass between them must read as
+        // disconnected.
+        var root = new Node(new Area(0, 40, 0, 20));
+        root.SplitVerticalAt(20);
+        root.CarveRooms(1, 3, 3, new Random(1));
+        // deliberately skip root.ConnectRooms
+
+        Assert.False(root.IsFullyConnected());
+    }
 }

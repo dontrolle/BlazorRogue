@@ -178,6 +178,60 @@ public class RoomCarverTests
     }
 
     [Fact]
+    public void CaveRoomCarverFootprintIsASingleConnectedRegion()
+    {
+        // CaveRoomCarver walls off any cavern disconnected from its connector point, so the
+        // footprint it returns is always one 4-connected blob regardless of what the raw automaton
+        // produced. Area kept large enough that the automaton reliably leaves some floor.
+        var area = new Area(0, 24, 0, 20);
+        var carver = new CaveRoomCarver();
+
+        for (int seed = 0; seed < 30; seed++)
+        {
+            var room = carver.CarveRoom(area, 3, 3, new Random(seed));
+            var cells = FootprintCells(room);
+
+            Assert.NotEmpty(cells);
+
+            var reached = new HashSet<GridPoint> { room.ConnectorPoint };
+            var frontier = new Queue<GridPoint>();
+            frontier.Enqueue(room.ConnectorPoint);
+            while (frontier.Count > 0)
+            {
+                var c = frontier.Dequeue();
+                GridPoint[] neighbours =
+                [
+                    c with
+                    {
+                        X = c.X + 1,
+                    },
+                    c with
+                    {
+                        X = c.X - 1,
+                    },
+                    c with
+                    {
+                        Y = c.Y + 1,
+                    },
+                    c with
+                    {
+                        Y = c.Y - 1,
+                    },
+                ];
+                foreach (var n in neighbours)
+                {
+                    if (cells.Contains(n) && reached.Add(n))
+                    {
+                        frontier.Enqueue(n);
+                    }
+                }
+            }
+
+            Assert.Equal(cells.Count, reached.Count);
+        }
+    }
+
+    [Fact]
     public void CaveRoomCarverThrowsWhenTheInitialWallChanceGuaranteesNoFloor()
     {
         // Random.NextDouble() never returns exactly 1.0, so a chance of 1.0 seeds every cell as

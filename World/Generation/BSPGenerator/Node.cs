@@ -427,6 +427,93 @@ class Node(Area area, int id = 0)
     }
 
     /// <summary>
+    /// Verification helper (for tests, not generation): whether every floor cell in the finished
+    /// plan - the cells of every leaf's <see cref="Room.FootprintAreas"/> plus every
+    /// <see cref="Corridor"/> laid down by <see cref="ConnectRooms"/> - is 4-connected into a
+    /// single component. A plan with no floor cells at all counts as connected.
+    /// </summary>
+    internal bool IsFullyConnected()
+    {
+        var floor = new HashSet<GridPoint>();
+        foreach (var leaf in Leaves())
+        {
+            if (leaf.Room is not { } room)
+            {
+                continue;
+            }
+
+            foreach (var footprint in room.FootprintAreas)
+            {
+                for (int x = footprint.XMin; x < footprint.XMax; x++)
+                {
+                    for (int y = footprint.YMin; y < footprint.YMax; y++)
+                    {
+                        _ = floor.Add(new GridPoint(x, y));
+                    }
+                }
+            }
+        }
+        foreach (var node in AllNodes())
+        {
+            if (node.Corridor is { } corridor)
+            {
+                foreach (var point in corridor.Points())
+                {
+                    _ = floor.Add(point);
+                }
+            }
+        }
+
+        if (floor.Count == 0)
+        {
+            return true;
+        }
+
+        GridPoint start = default;
+        foreach (var point in floor)
+        {
+            start = point;
+            break;
+        }
+
+        var reached = new HashSet<GridPoint> { start };
+        var frontier = new Queue<GridPoint>();
+        frontier.Enqueue(start);
+        while (frontier.Count > 0)
+        {
+            var current = frontier.Dequeue();
+            GridPoint[] neighbours =
+            [
+                current with
+                {
+                    X = current.X + 1,
+                },
+                current with
+                {
+                    X = current.X - 1,
+                },
+                current with
+                {
+                    Y = current.Y + 1,
+                },
+                current with
+                {
+                    Y = current.Y - 1,
+                },
+            ];
+            foreach (var neighbour in neighbours)
+            {
+                if (floor.Contains(neighbour) && reached.Add(neighbour))
+                {
+                    frontier.Enqueue(neighbour);
+                }
+            }
+        }
+
+        return reached.Count == floor.Count;
+    }
+
+    /// <summary>
     /// Renders the subtree rooted at this node as an indented ASCII tree, for debugging.
     /// </summary>
     internal string ToTreeString()
