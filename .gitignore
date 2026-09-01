@@ -8,3 +8,5 @@ artifacts/
 internal_backlog.md
 wwwroot/img/uf_*
 .idea
+.claude/settings.local.json
+.claude/worktrees/
