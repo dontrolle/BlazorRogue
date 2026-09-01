@@ -99,13 +99,16 @@ how to test changes in these areas.
   `Game`'s constructor resolves the generator via `MapGeneratorFactory.Create(level, this)` and
   exposes it as `Game.MapGenerator` (`IMapGenerator`), not a hardcoded concrete type.
   `World/Generation/MapGeneratorBase.cs` is the shared abstract base for room-and-corridor-style
-  generators (rendering/decoration helpers, door placement, `GenerateMap()`'s overall flow);
-  `World/Generation/BasicDungeonGenerator.cs` (rooms + corridors) and
-  `World/Generation/CaveGenerator.cs` (cellular automaton) are its two concrete subclasses, each
-  implementing `CreateLayout()`. All of `World/Generation/` (plus its types' use of `Map`/`Tile`/
-  `TileType`/`Orientation` from the parent `World` namespace, visible without a `using` since C#
-  namespace lookup searches enclosing namespaces) lives in the `BlazorRogue.World.Generation`
-  namespace, one level under `BlazorRogue.World`.
+  generators (rendering/decoration helpers, door placement, `GenerateMap()`'s overall flow), each
+  concrete generator implementing `CreateLayout()`.
+  `World/Generation/BSPGenerator/BSPMapGenerator.cs` (binary space partitioning) is the primary
+  generator going forward; `World/Generation/BasicDungeonGenerator.cs` (rooms + corridors) and
+  `World/Generation/CaveGenerator.cs` (cellular automaton) are earlier prototypes, and
+  `World/Generation/TestMapGenerator.cs` is a fixed layout used by tests.
+  All of `World/Generation/` (plus its types' use of `Map`/`Tile`/`TileType`/`Orientation` from the
+  parent `World` namespace, visible without a `using` since C# namespace lookup searches enclosing
+  namespaces) lives in the `BlazorRogue.World.Generation` namespace, one level under
+  `BlazorRogue.World`.
 - **`SettingsMap` / component parameters**: `SettingsMap` (`Entities/SettingsMap.cs`) is the general
   mechanism for a data-driven component's free-form `parameters` JSON — a small recursive value tree
   restricted to int, double, string, and nested maps of the same. It's not specific to map
