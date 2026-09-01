@@ -66,15 +66,17 @@ public class BspLayoutTests(ITestOutputHelper output)
     {
         // At this fixed seed/threshold/minSplit: node {1} is the whole left half of the map, given
         // OverlaidRectanglesRoomCarver throughout; node {14} is a 9-node/5-leaf subtree on the
-        // right given CaveRoomCarver. CaveRoomCarver needs leaves with a bit of room to work with -
-        // its cellular automaton can wall a leaf off entirely if both dimensions are small (under
-        // ~8), which is why it's pointed at {14} rather than a leafier, smaller subtree. Re-run
-        // with DisplayName~PrintCarvedPlan to re-derive node ids if the split parameters change.
+        // right given CaveRoomCarver; node {58} is a 3-leaf subtree in the top-right corner given
+        // CircularRoomCarver. CaveRoomCarver needs leaves with a bit of room to work with - its
+        // cellular automaton can wall a leaf off entirely if both dimensions are small (under ~8),
+        // which is why it's pointed at {14} rather than a leafier, smaller subtree. Re-run with
+        // DisplayName~PrintCarvedPlan to re-derive node ids if the split parameters change.
         Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
             node.Id switch
             {
                 1 => OverlaidRectanglesRoomCarver.Instance,
                 14 => new CaveRoomCarver(),
+                58 => CircularRoomCarver.Instance,
                 _ => inherited,
             };
 
@@ -99,6 +101,31 @@ public class BspLayoutTests(ITestOutputHelper output)
         var root = CarvedPlan(80, 50, seed: 1);
 
         Assert.All(root.Leaves(), leaf => Assert.NotNull(leaf.Room));
+    }
+
+    [Fact]
+    public void CircularRoomCarverCanBeAimedAtASmallSubtreeOfThePlan()
+    {
+        // node {58} is a 3-leaf subtree in the top-right of the seed-1 plan (see
+        // PrintCarvedPlanForManualInspection). Aiming CircularRoomCarver at that internal node
+        // should give its whole subtree circular rooms and leave every other leaf on the
+        // inherited default carver.
+        var subtreeLeafIds = new HashSet<int> { 235, 236, 118 };
+        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+            node.Id == 58 ? CircularRoomCarver.Instance : inherited;
+
+        var root = CarvedPlan(80, 50, seed: 1, selectCarver: selectCarver);
+
+        var circularLeaves = root.Leaves()
+            .Where(leaf => leaf.Room!.Type == RoomType.Circular)
+            .ToList();
+
+        Assert.InRange(circularLeaves.Count, 2, 4);
+        Assert.Equal(subtreeLeafIds, circularLeaves.Select(leaf => leaf.Id).ToHashSet());
+        Assert.All(
+            root.Leaves().Where(leaf => !subtreeLeafIds.Contains(leaf.Id)),
+            leaf => Assert.NotEqual(RoomType.Circular, leaf.Room!.Type)
+        );
     }
 
     [Fact]

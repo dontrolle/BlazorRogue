@@ -18,6 +18,22 @@ public class RoomCarverTests
             && point.Y < footprint.YMax
         );
 
+    static HashSet<GridPoint> FootprintCells(Room room)
+    {
+        var cells = new HashSet<GridPoint>();
+        foreach (var footprint in room.FootprintAreas)
+        {
+            for (int x = footprint.XMin; x < footprint.XMax; x++)
+            {
+                for (int y = footprint.YMin; y < footprint.YMax; y++)
+                {
+                    _ = cells.Add(new GridPoint(x, y));
+                }
+            }
+        }
+        return cells;
+    }
+
     [Fact]
     public void RectangularRoomCarverFitsWithinTheGivenAreaAndRespectsMinimumSize()
     {
@@ -174,6 +190,111 @@ public class RoomCarverTests
     }
 
     [Fact]
+    public void CircularRoomCarverFitsWithinTheGivenAreaAndRespectsMinimumSize()
+    {
+        var area = new Area(0, 12, 0, 10);
+
+        for (int seed = 0; seed < 20; seed++)
+        {
+            var room = CircularRoomCarver.Instance.CarveRoom(area, 3, 4, new Random(seed));
+
+            Assert.True(room.Left >= area.XMin);
+            Assert.True(room.Right <= area.XMax - 1);
+            Assert.True(room.Upper >= area.YMin);
+            Assert.True(room.Lower <= area.YMax - 1);
+            Assert.True(room.Width >= 3 && room.Width <= area.Width);
+            Assert.True(room.Height >= 4 && room.Height <= area.Height);
+        }
+    }
+
+    [Fact]
+    public void CircularRoomCarverProducesACircularRoomType()
+    {
+        var room = CircularRoomCarver.Instance.CarveRoom(
+            new Area(0, 14, 0, 12),
+            3,
+            3,
+            new Random(1)
+        );
+
+        Assert.Equal(RoomType.Circular, room.Type);
+    }
+
+    [Fact]
+    public void CircularRoomCarverRoundsOffItsBoundingBoxCornersButStillReachesEverySide()
+    {
+        // minWidth/minHeight of 4 keeps the carved box off the single degenerate 3x3 case, where
+        // the inscribed "ellipse" is just a filled square and has no rounded corners to check.
+        var area = new Area(0, 30, 0, 24);
+
+        for (int seed = 0; seed < 20; seed++)
+        {
+            var room = CircularRoomCarver.Instance.CarveRoom(area, 4, 4, new Random(seed));
+            var cells = FootprintCells(room);
+
+            Assert.DoesNotContain(new GridPoint(room.Left, room.Upper), cells);
+            Assert.DoesNotContain(new GridPoint(room.Right, room.Upper), cells);
+            Assert.DoesNotContain(new GridPoint(room.Left, room.Lower), cells);
+            Assert.DoesNotContain(new GridPoint(room.Right, room.Lower), cells);
+
+            Assert.Contains(cells, c => c.X == room.Left);
+            Assert.Contains(cells, c => c.X == room.Right);
+            Assert.Contains(cells, c => c.Y == room.Upper);
+            Assert.Contains(cells, c => c.Y == room.Lower);
+        }
+    }
+
+    [Fact]
+    public void CircularRoomCarverFootprintIsASingleContiguousRunPerRow()
+    {
+        var room = CircularRoomCarver.Instance.CarveRoom(
+            new Area(0, 30, 0, 24),
+            4,
+            4,
+            new Random(3)
+        );
+
+        Assert.All(room.FootprintAreas, footprint => Assert.Equal(1, footprint.Height));
+        Assert.All(
+            room.FootprintAreas.GroupBy(footprint => footprint.YMin),
+            rowGroup => Assert.Single(rowGroup)
+        );
+    }
+
+    [Fact]
+    public void CircularRoomFootprintIsSymmetricAboutBothAxes()
+    {
+        var room = new CircularRoom(new Area(0, 15, 0, 11));
+        var cells = FootprintCells(room);
+
+        Assert.NotEmpty(cells);
+        foreach (var cell in cells)
+        {
+            Assert.Contains(new GridPoint(14 - cell.X, cell.Y), cells);
+            Assert.Contains(new GridPoint(cell.X, 10 - cell.Y), cells);
+        }
+    }
+
+    [Fact]
+    public void CircularRoomCanFillItsWholeAreaEdgeToEdge()
+    {
+        // A CircularRoom given the full area (as CircularRoomCarver does at its maximum rolled
+        // size) touches every side, and its footprint covers roughly pi/4 of the bounding box -
+        // clearly rounder than a full rectangle (ratio 1.0) but far more than a thin diamond (0.5).
+        var area = new Area(2, 22, 3, 23);
+        var room = new CircularRoom(area);
+        var cells = FootprintCells(room);
+
+        Assert.Contains(cells, c => c.X == area.XMin);
+        Assert.Contains(cells, c => c.X == area.XMax - 1);
+        Assert.Contains(cells, c => c.Y == area.YMin);
+        Assert.Contains(cells, c => c.Y == area.YMax - 1);
+
+        double fillRatio = (double)cells.Count / (room.Width * room.Height);
+        Assert.InRange(fillRatio, 0.7, 0.92);
+    }
+
+    [Fact]
     public void ConnectorPointAlwaysLiesOnTheCarvedFootprint()
     {
         // Regression guard: OverlaidRoom originally derived its connector point from its bounding
@@ -184,6 +305,7 @@ public class RoomCarverTests
             ("Rectangular", RectangularRoomCarver.Instance),
             ("Overlaid", OverlaidRectanglesRoomCarver.Instance),
             ("Cave", new CaveRoomCarver()),
+            ("Circular", CircularRoomCarver.Instance),
         ];
         var area = new Area(0, 30, 0, 24);
 

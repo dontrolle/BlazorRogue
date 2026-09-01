@@ -10,4 +10,5 @@ enum RoomType
     Rectangular,
     Overlaid,
     Cave,
+    Circular,
 }
