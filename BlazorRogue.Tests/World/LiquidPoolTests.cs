@@ -83,6 +83,19 @@ public class LiquidPoolTests
     }
 
     [Fact]
+    public void AssigningARealTileSetClearsTheLiquidSoTheTileStopsBeingAPool()
+    {
+        var map = BareFloorMap();
+        map.SetLiquidTile(3, 3, Liquid(LiquidEffectKind.Acid, 5));
+        Assert.Equal(TileType.Liquid, map.Tiles[3, 3].TileType);
+
+        map.Tiles[3, 3].TileSet = new TileSet("f", TileType.Floor, "f", [0]);
+
+        Assert.Null(map.Tiles[3, 3].Liquid);
+        Assert.Equal(TileType.Floor, map.Tiles[3, 3].TileType);
+    }
+
+    [Fact]
     public void IsLethalLiquidIsTrueOnlyForInstakillTiles()
     {
         var map = BareFloorMap();

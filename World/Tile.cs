@@ -9,12 +9,25 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
 {
     public int X { get; } = x;
     public int Y { get; } = y;
-    public TileSet TileSet { get; set; } = tileSet;
+
+    public TileSet TileSet
+    {
+        get;
+        // A liquid pool tile keeps a plain black substrate TileSet with its LiquidType carried
+        // alongside (see Map.SetLiquidTile), so assigning a real TileSet means this is no longer
+        // that pool - clear Liquid. SetLiquidTile sets Liquid *after* the TileSet, so it's fine.
+        set
+        {
+            field = value;
+            Liquid = null;
+        }
+    } = tileSet;
+
     public int TileIndex { get; set; } = tileIndex;
 
     // When set, this tile is a walkable pool of the given liquid (see Map.SetLiquidTile). TileSet
-    // is swapped to a plain black substrate; the animated surface plus shoreline dressing are
-    // emitted as decorations by RenderLiquid below.
+    // is a plain black substrate; the animated surface plus shoreline dressing are emitted as
+    // decorations by RenderLiquid below.
     public LiquidType? Liquid { get; set; }
 
     // Set (and reset) each Render() call for a freestanding wall tile (see Render below) - the
