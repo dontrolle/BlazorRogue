@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.Combat;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Vision;
@@ -52,6 +53,10 @@ class Map
     readonly Visibility visibilityAlgorithm;
     bool postGenInitialized;
 
+    // The all-black substrate a liquid pool tile sits on, under its animated surface decoration
+    // (see SetLiquidTile). Same art the map is initialised with below.
+    readonly TileSet blackTileSet;
+
     public IEnumerable<Decoration> AllDecorations(int x, int y) =>
         Decorations[x, y].Concat(MoveableDecorations[x, y]);
 
@@ -78,8 +83,7 @@ class Map
         BlocksLightMap = new bool[width, height];
         BlocksMovementMap = new bool[width, height];
 
-        // A field, if necessary?
-        var blackTileSet = new TileSet(
+        blackTileSet = new TileSet(
             "black",
             TileType.Black,
             "floor_extra",
@@ -134,6 +138,134 @@ class Map
         {
             monster.AIComponent?.TakeTurn();
         }
+
+        ApplyLiquidTickEffects();
+    }
+
+    /// <summary>
+    /// Marks (<paramref name="x"/>, <paramref name="y"/>) as a walkable pool of
+    /// <paramref name="liquid"/>: swaps the tile to the black substrate, keeps it non-blocking, and
+    /// records the liquid so <see cref="Tile.Render"/> draws the animated surface + shoreline.
+    /// </summary>
+    public void SetLiquidTile(int x, int y, LiquidType liquid)
+    {
+        var tile = Tiles[x, y];
+        tile.TileSet = blackTileSet;
+        tile.TileIndex = 11;
+        tile.Blocking = false;
+        tile.Liquid = liquid;
+    }
+
+    /// <summary>True if (x, y) is on the map and holds a liquid that kills anything entering it.</summary>
+    public bool IsLethalLiquid(int x, int y) =>
+        x >= 0
+        && y >= 0
+        && x < Width
+        && y < Height
+        && Tiles[x, y].Liquid is { EffectKind: LiquidEffectKind.Instakill };
+
+    /// <summary>
+    /// Called right after a <see cref="Moveable"/> moves onto a tile. Instakill liquids (lava)
+    /// take effect here; acid is a per-turn tick (see <see cref="ApplyLiquidTickEffects"/>) and the
+    /// slow effect is rolled when trying to leave (see <see cref="LiquidStumble"/>).
+    /// </summary>
+    public void OnMoveableEnteredTile(Moveable moveable)
+    {
+        if (Tiles[moveable.X, moveable.Y].Liquid is { EffectKind: LiquidEffectKind.Instakill })
+        {
+            moveable.Kill();
+        }
+    }
+
+    /// <summary>
+    /// End-of-turn damage tick: every moveable standing on an acid pool loses wounds. Iterates a
+    /// copy since a lethal tick raises GameObjectKilled, which removes the monster from the lists.
+    /// </summary>
+    void ApplyLiquidTickEffects()
+    {
+        if (IsGameOver)
+        {
+            return;
+        }
+
+        foreach (var moveable in moveables.ToList())
+        {
+            if (
+                Tiles[moveable.X, moveable.Y].Liquid
+                    is not { EffectKind: LiquidEffectKind.Acid } acid
+                || moveable.CombatComponent is not { } combat
+            )
+            {
+                continue;
+            }
+
+            int woundsBefore = combat.Wounds;
+            combat.ApplyDamage(acid.EffectMagnitude);
+
+            int dealt = woundsBefore - combat.Wounds;
+            if (dealt > 0)
+            {
+                Game.AddMessage(
+                    ReferenceEquals(moveable, Player)
+                        ? $"You take {dealt} damage from the {acid.Name}!"
+                        : $"{moveable.Name} takes {dealt} damage from the {acid.Name}!"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rolls the slow effect for a moveable attempting to move out of the tile it is standing on.
+    /// Returns true (and emits a message) when the move should be cancelled - the turn is still
+    /// spent. A no-op for non-slow tiles.
+    /// </summary>
+    public bool LiquidStumble(GameObject moveable)
+    {
+        if (Tiles[moveable.X, moveable.Y].Liquid is not { EffectKind: LiquidEffectKind.Slow } slow)
+        {
+            return false;
+        }
+
+        if (Dice.RollD100() > slow.EffectMagnitude)
+        {
+            return false;
+        }
+
+        Game.AddMessage(
+            ReferenceEquals(moveable, Player)
+                ? $"You stumble in the {slow.Name} and fail to move."
+                : $"{moveable.Name} stumbles in the {slow.Name} and fails to move."
+        );
+        return true;
+    }
+
+    /// <summary>
+    /// Peeks whether a player move in the <paramref name="numKey"/> direction would step onto an
+    /// empty instakill-liquid tile (lava) - the case that warrants a confirmation prompt. A move
+    /// into an occupied lava tile is an attack, not a walk-in, so returns false.
+    /// </summary>
+    public bool PeekLethalLiquidStep(char numKey, out string liquidName)
+    {
+        liquidName = "";
+        CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
+
+        if (xDelta == 0 && yDelta == 0)
+        {
+            return false;
+        }
+
+        if (!IsLethalLiquid(destX, destY))
+        {
+            return false;
+        }
+
+        if (IsBlocked(destX, destY) || moveables.Any(m => m.X == destX && m.Y == destY))
+        {
+            return false;
+        }
+
+        liquidName = Tiles[destX, destY].Liquid!.Name;
+        return true;
     }
 
     public void UpdateBlocksLight(int x, int y, bool recomputeVisibility = false)
@@ -306,6 +438,12 @@ class Map
 
     void PlaceBloodPuddle(Moveable killed)
     {
+        // Blood doesn't pool on the surface of a water/acid/lava tile.
+        if (Tiles[killed.X, killed.Y].Liquid is not null)
+        {
+            return;
+        }
+
         var puddleType = Game.Configuration.StaticDecorativeObjectTypes["puddle"];
         var puddleObject = new StaticDecorativeObject(
             killed.X,
@@ -392,8 +530,8 @@ class Map
         }
         else
         {
-            stateChanged = HandlePlayerMove(numKey, out playerAttacked);
-            playerMoved = stateChanged;
+            stateChanged = HandlePlayerMove(numKey, out playerAttacked, out bool playerStumbled);
+            playerMoved = stateChanged && !playerStumbled;
         }
 
         if (stateChanged)
@@ -405,7 +543,7 @@ class Map
             WakeVisibleMonsters(Player.X, Player.Y, PlayerSightRadius);
         }
 
-        if (playerMoved && !playerAttacked && !Player.CombatComponent!.IsStarving)
+        if (playerMoved && !playerAttacked && !IsGameOver && !Player.CombatComponent!.IsStarving)
         {
             Player.CombatComponent.HealByMove();
         }
@@ -439,17 +577,25 @@ class Map
         return stateChanged;
     }
 
-    bool HandlePlayerMove(char numKey, out bool playerAttacked)
+    bool HandlePlayerMove(char numKey, out bool playerAttacked, out bool playerStumbled)
     {
         // Handle basic player movement
         CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
 
         bool stateChanged = false;
         playerAttacked = false;
+        playerStumbled = false;
 
         // Check for blocking Walls or GameObject's
         if (!IsBlocked(destX, destY))
         {
+            // Trying to leave a slow liquid (mud/water) can fail - the turn is still spent.
+            if ((xDelta != 0 || yDelta != 0) && LiquidStumble(Player))
+            {
+                playerStumbled = true;
+                return true;
+            }
+
             // where we came from is definetely not blocking anymore, since we just vacated the tile
             BlocksMovementMap[Player.X, Player.Y] = false;
             // do the move

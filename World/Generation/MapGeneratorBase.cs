@@ -142,6 +142,10 @@ abstract class MapGeneratorBase(
     {
         var playerPos = CreateLayout();
 
+        // Before doors/decorations/stairs/monsters, so they all steer clear of pool tiles (their
+        // placement is opt-in on TileType.Floor, and a Liquid tile no longer reports as one).
+        AddLiquidPools(playerPos);
+
         AddDoors();
         AddRandomPostMapGenerationDecorations();
         AddStairs();
@@ -324,12 +328,135 @@ abstract class MapGeneratorBase(
             int x = mapGenerationRandomSource.Next(0, map.Width);
             int y = mapGenerationRandomSource.Next(0, map.Height);
 
-            if (!map.IsBlocked(x, y))
+            if (!map.IsBlocked(x, y) && map.Tiles[x, y].Liquid is null)
                 return Tuple.Create(x, y);
         }
         throw new InvalidOperationException(
             $"Couldn't find an unblocked tile on map in {maxSearch} tries!"
         );
+    }
+
+    /// <summary>
+    /// Places a few liquid pools (see <c>Data/liquidsets.json</c>) if the level's
+    /// <c>common.liquid_pools</c> settings ask for them - absent settings mean no pools. Each pool
+    /// is a rough disc carved over existing floor tiles only, never over walls, existing game
+    /// objects, or the player's start. <c>always</c> ids get one guaranteed pool each; <c>types</c>
+    /// ids are the weighted pool for the remaining <c>count_min</c>..<c>count_max</c> random pools.
+    /// </summary>
+    protected virtual void AddLiquidPools(Tuple<int, int> playerPos)
+    {
+        var poolSettings = CommonSettings(settings).GetMap("liquid_pools", SettingsMap.Empty);
+        var weightedTypes = poolSettings.GetWeightedIds("types", []);
+        var alwaysTypes = poolSettings.GetWeightedIds("always", []);
+        if (weightedTypes.Count == 0 && alwaysTypes.Count == 0)
+        {
+            return;
+        }
+
+        int radiusMin = poolSettings.GetInt("radius_min", 1);
+        int radiusMax = poolSettings.GetInt("radius_max", 3);
+
+        int RandomRadius() => mapGenerationRandomSource.Next(radiusMin, radiusMax + 1);
+
+        void PlacePool(LiquidType liquid)
+        {
+            if (TryFindPoolCentre(playerPos, out int centreX, out int centreY))
+            {
+                CarveLiquidPool(centreX, centreY, RandomRadius(), liquid, playerPos);
+            }
+        }
+
+        // Guaranteed pools first, so a level that wants (say) an acid pool for sure always gets one.
+        foreach (var (id, _) in alwaysTypes)
+        {
+            PlacePool(configuration.LiquidTypeById(id));
+        }
+
+        if (weightedTypes.Count == 0)
+        {
+            return;
+        }
+
+        LiquidType[] liquidTypes =
+        [
+            .. weightedTypes.Select(t => configuration.LiquidTypeById(t.Id)),
+        ];
+        double[] weights = [.. weightedTypes.Select(t => t.Weight)];
+
+        int countMin = poolSettings.GetInt("count_min", 2);
+        int countMax = poolSettings.GetInt("count_max", 4);
+
+        int poolCount = mapGenerationRandomSource.Next(countMin, countMax + 1);
+        for (int i = 0; i < poolCount; i++)
+        {
+            PlacePool(GetRandomElementWeighted(liquidTypes, weights));
+        }
+    }
+
+    bool TryFindPoolCentre(Tuple<int, int> playerPos, out int x, out int y)
+    {
+        for (int attempt = 0; attempt < 200; attempt++)
+        {
+            x = mapGenerationRandomSource.Next(0, map.Width);
+            y = mapGenerationRandomSource.Next(0, map.Height);
+            if (IsPoolEligible(x, y, playerPos))
+            {
+                return true;
+            }
+        }
+
+        x = 0;
+        y = 0;
+        return false;
+    }
+
+    void CarveLiquidPool(
+        int centreX,
+        int centreY,
+        int radius,
+        LiquidType liquid,
+        Tuple<int, int> playerPos
+    )
+    {
+        for (int x = centreX - radius; x <= centreX + radius; x++)
+        {
+            for (int y = centreY - radius; y <= centreY + radius; y++)
+            {
+                int dx = x - centreX;
+                int dy = y - centreY;
+                if ((dx * dx) + (dy * dy) > radius * radius)
+                {
+                    continue;
+                }
+
+                if (IsPoolEligible(x, y, playerPos))
+                {
+                    map.SetLiquidTile(x, y, liquid);
+                }
+            }
+        }
+    }
+
+    bool IsPoolEligible(int x, int y, Tuple<int, int> playerPos)
+    {
+        if (x < 0 || y < 0 || x >= map.Width || y >= map.Height)
+        {
+            return false;
+        }
+
+        var tile = map.Tiles[x, y];
+        if (tile.TileType != TileType.Floor || tile.Blocking)
+        {
+            return false;
+        }
+
+        if (map.GameObjectByCoord[x, y].Any())
+        {
+            return false;
+        }
+
+        // keep the player's start tile and the ring around it clear of hazards
+        return Math.Abs(x - playerPos.Item1) > 1 || Math.Abs(y - playerPos.Item2) > 1;
     }
 
     /// <summary>

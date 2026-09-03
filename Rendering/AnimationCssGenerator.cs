@@ -7,18 +7,19 @@ using BlazorRogue.Entities;
 namespace BlazorRogue.Rendering;
 
 /// <summary>
-/// Generates the CSS keyframe animations for heroes and monsters, following the single pattern
-/// every one of them uses: 4 frames named <c>{name}_1.png</c>..<c>{name}_4.png</c> under
-/// <c>img/uf_heroes/</c>, looping every 1.5s. <c>{name}</c> is <see cref="MoveableType.AnimationClass"/>
-/// with its <c>animated_</c> prefix stripped, so heroes.json/monsters.json stay the single source of
-/// truth instead of duplicating each entry by hand in animations.css.
+/// Generates CSS <c>@keyframes</c> sprite animations from parsed game data, so the JSON stays the
+/// single source of truth instead of a hand-maintained block per entry in a static stylesheet.
+/// Covers heroes/monsters (4 frames under <c>img/uf_heroes/</c>, looping every 1.5s) and liquid
+/// pools (frames under <c>img/uf_terrain/</c>, per-liquid duration).
 /// </summary>
 static class AnimationCssGenerator
 {
-    const string AnimationClassPrefix = "animated_";
-    const string ImageFolder = "img/uf_heroes";
-    const int FrameCount = 4;
-    const string AnimationDuration = "1.5s";
+    const string MoveableAnimationClassPrefix = "animated_";
+    const string MoveableImageFolder = "img/uf_heroes";
+    const int MoveableFrameCount = 4;
+    const string MoveableAnimationDuration = "1.5s";
+
+    const string LiquidImageFolder = "img/uf_terrain";
 
     public static string Generate(IEnumerable<MoveableType> moveableTypes)
     {
@@ -27,44 +28,88 @@ static class AnimationCssGenerator
         var spriteNames = moveableTypes
             .Select(moveableType => moveableType.AnimationClass)
             .Where(animationClass =>
-                animationClass.StartsWith(AnimationClassPrefix, System.StringComparison.Ordinal)
+                animationClass.StartsWith(
+                    MoveableAnimationClassPrefix,
+                    System.StringComparison.Ordinal
+                )
             )
-            .Select(animationClass => animationClass[AnimationClassPrefix.Length..])
+            .Select(animationClass => animationClass[MoveableAnimationClassPrefix.Length..])
             .Distinct();
 
         foreach (string spriteName in spriteNames)
         {
-            AppendKeyframes(css, spriteName);
-            AppendAnimationClass(css, spriteName);
+            AppendKeyframes(css, spriteName, spriteName, MoveableImageFolder, MoveableFrameCount);
+            AppendAnimationClass(
+                css,
+                MoveableAnimationClassPrefix + spriteName,
+                spriteName,
+                MoveableAnimationDuration
+            );
         }
 
         return css.ToString();
     }
 
-    static void AppendKeyframes(StringBuilder css, string spriteName)
+    public static string Generate(IEnumerable<LiquidType> liquidTypes)
     {
-        _ = css.Append("@keyframes ").Append(spriteName).Append(" {\n");
+        StringBuilder css = new();
 
-        for (int frame = 0; frame <= FrameCount; frame++)
+        foreach (var liquid in liquidTypes.DistinctBy(l => l.SpriteName))
         {
-            int percent = frame * 100 / FrameCount;
-            // The pattern loops back to frame 1 at 100%, so it plays 1, 2, 3, 4, 1 across the cycle.
-            int frameNumber = frame == FrameCount ? 1 : frame + 1;
+            string keyframesName = liquid.AnimationClass;
+            AppendKeyframes(
+                css,
+                keyframesName,
+                liquid.SpriteName,
+                LiquidImageFolder,
+                liquid.FrameCount
+            );
+            AppendAnimationClass(
+                css,
+                liquid.AnimationClass,
+                keyframesName,
+                liquid.AnimationDurationSeconds.ToString("0.0#", CultureInfo.InvariantCulture) + "s"
+            );
+        }
+
+        return css.ToString();
+    }
+
+    static void AppendKeyframes(
+        StringBuilder css,
+        string keyframesName,
+        string imageFileStem,
+        string imageFolder,
+        int frameCount
+    )
+    {
+        _ = css.Append("@keyframes ").Append(keyframesName).Append(" {\n");
+
+        for (int frame = 0; frame <= frameCount; frame++)
+        {
+            int percent = frame * 100 / frameCount;
+            // The pattern loops back to frame 1 at 100%, so it plays 1, 2, ..., N, 1 across the cycle.
+            int frameNumber = frame == frameCount ? 1 : frame + 1;
 
             _ = css.Append(
                 CultureInfo.InvariantCulture,
-                $"  {percent}% {{ background-image: url('../{ImageFolder}/{spriteName}_{frameNumber}.png'); }}\n"
+                $"  {percent}% {{ background-image: url('../{imageFolder}/{imageFileStem}_{frameNumber}.png'); }}\n"
             );
         }
 
         _ = css.Append("}\n");
     }
 
-    static void AppendAnimationClass(StringBuilder css, string spriteName) =>
+    static void AppendAnimationClass(
+        StringBuilder css,
+        string className,
+        string keyframesName,
+        string duration
+    ) =>
         css.Append(
-            $".{AnimationClassPrefix}{spriteName} {{\n"
-                + $"  animation-name: {spriteName};\n"
-                + $"  animation-duration: {AnimationDuration};\n"
+            $".{className} {{\n"
+                + $"  animation-name: {keyframesName};\n"
+                + $"  animation-duration: {duration};\n"
                 + "  animation-iteration-count: infinite;\n"
                 + "}\n"
         );

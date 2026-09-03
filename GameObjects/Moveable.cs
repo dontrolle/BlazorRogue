@@ -83,5 +83,6 @@ class Moveable : GameObject
     {
         base.Move(xDelta, yDelta);
         References.SoundManager.PlayWalkSound();
+        References.Map.OnMoveableEnteredTile(this);
     }
 }

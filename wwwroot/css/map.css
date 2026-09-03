@@ -63,6 +63,22 @@
   text-overflow: ellipsis;
 }
 
+/* One-line confirmation shown while a lava step is pending (see awaitingLavaConfirm in
+   GamePage.razor). Sits just above the message log, aligned with the map area. */
+.hazard_prompt {
+  position: fixed;
+  left: 160px;
+  right: 0;
+  bottom: 40px;
+  padding: 4px 10px;
+  text-align: center;
+  color: #ffcf3f;
+  font-weight: bold;
+  text-shadow: 0 0 6px black, 1px 1px 2px black;
+  pointer-events: none;
+  z-index: 11;
+}
+
 /* Icon-based stat rows (see div[data-tool-tip] tooltip rules below for the hover explainer). */
 .stat-icon {
   display: flex;

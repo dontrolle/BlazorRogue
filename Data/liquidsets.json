@@ -1,0 +1,64 @@
+{
+  "liquid_sets": [
+    {
+      "id": "water_blue",
+      "name": "water",
+      "img_prefix": "water_blue",
+      "frames": 4,
+      "animation_duration": 1.2,
+      "lip_index": 3,
+      "ascii_color": "#3b6ea5",
+      "effect": { "kind": "slow", "magnitude": 25 }
+    },
+    {
+      "id": "water_green",
+      "name": "water",
+      "img_prefix": "water_green",
+      "frames": 4,
+      "animation_duration": 1.2,
+      "lip_index": 3,
+      "ascii_color": "#4a9e5c",
+      "effect": { "kind": "slow", "magnitude": 25 }
+    },
+    {
+      "id": "water_teal",
+      "name": "water",
+      "img_prefix": "water_teal",
+      "frames": 4,
+      "animation_duration": 1.2,
+      "lip_index": 3,
+      "ascii_color": "#2fb3b3",
+      "effect": { "kind": "slow", "magnitude": 25 }
+    },
+    {
+      "id": "water_mud",
+      "name": "mud",
+      "img_prefix": "water_mud",
+      "frames": 4,
+      "animation_duration": 1.6,
+      "lip_index": 1,
+      "ascii_color": "#7a5c3e",
+      "effect": { "kind": "slow", "magnitude": 60 }
+    },
+    {
+      "id": "water_bubbling",
+      "name": "acid",
+      "img_prefix": "water_bubbling",
+      "frames": 4,
+      "animation_duration": 1.0,
+      "lip_index": 2,
+      "ascii_color": "#9bd23c",
+      "effect": { "kind": "acid", "magnitude": 8 }
+    },
+    {
+      "id": "water_lava",
+      "name": "lava",
+      "img_prefix": "water_lava",
+      "frames": 4,
+      "animation_duration": 1.6,
+      "lip_index": 4,
+      "ascii_color": "#ff5330",
+      "effect": { "kind": "instakill" }
+    }
+  ]
+}

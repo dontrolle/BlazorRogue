@@ -12,6 +12,11 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     public TileSet TileSet { get; set; } = tileSet;
     public int TileIndex { get; set; } = tileIndex;
 
+    // When set, this tile is a walkable pool of the given liquid (see Map.SetLiquidTile). TileSet
+    // is swapped to a plain black substrate; the animated surface plus shoreline dressing are
+    // emitted as decorations by RenderLiquid below.
+    public LiquidType? Liquid { get; set; }
+
     // Set (and reset) each Render() call for a freestanding wall tile (see Render below) - the
     // tile is still, in every other respect, a normal wall (Blocking, TileType, Character all stay
     // keyed to TileSet/TileIndex as usual); only the graphical background image is swapped for a
@@ -24,10 +29,10 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             ? underlay.TileSet.ImageName(underlay.TileIndex)
             : TileSet.ImageName(TileIndex);
     public string ImageUrl => $"img/uf_terrain/{ImageName}.png";
-    public TileType TileType => TileSet.TileType;
+    public TileType TileType => Liquid is not null ? TileType.Liquid : TileSet.TileType;
 
-    public string Character => TileSet.Character;
-    public string CharacterColor => TileSet.CharacterColor;
+    public string Character => Liquid is not null ? LiquidType.AsciiCharacter : TileSet.Character;
+    public string CharacterColor => Liquid is not null ? Liquid.AsciiColor : TileSet.CharacterColor;
 
     // For now, all blocking tiles also block light. If I make windows, this needs to change.
     public bool Blocking { get; set; }
@@ -42,7 +47,8 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     int? halfWallIndex;
     int? southFaceIndex;
 
-    static bool IsOpen(TileType tileType) => tileType is TileType.Floor or TileType.Black;
+    static bool IsOpen(TileType tileType) =>
+        tileType is TileType.Floor or TileType.Black or TileType.Liquid;
 
     static bool ContainsDoor(Map map, int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
@@ -57,6 +63,12 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     /// </summary>
     public void Render(Map map)
     {
+        if (Liquid is not null)
+        {
+            RenderLiquid(map);
+            return;
+        }
+
         if (TileType != TileType.Wall)
         {
             return;
@@ -100,6 +112,72 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         }
 
         RenderEdges(map, owner, TileSet.EdgeFreeIndexes, hasFloorLeft, hasFloorRight, 0);
+    }
+
+    /// <summary>
+    /// Emits a liquid pool tile's decorations: the animated surface, the shoreline edging pieces
+    /// (see <see cref="LiquidEdging"/>) rotated to face each land neighbour, and - against a
+    /// northern shore - the lip shadow on top. All on <see cref="Decoration.Layer.Behind"/> so
+    /// moveables, items and blood puddles draw over the water.
+    /// </summary>
+    void RenderLiquid(Map map)
+    {
+        var liquid = Liquid!;
+        string displayName = char.ToUpperInvariant(liquid.Name[0]) + liquid.Name[1..];
+
+        // The mouse-over tooltip must never be rotated, so it goes only on the un-rotated surface
+        // and lip decorations; the rotated edging pieces get a tooltip-less owner (they also have
+        // no pointer-events, so a hover falls through to the surface below).
+        var describedOwner = new TileDecorationOwner(X, Y, displayName) { InfoText = displayName };
+        var edgingOwner = new TileDecorationOwner(X, Y, displayName);
+
+        map.Decorations[X, Y]
+            .Add(
+                new Decoration(describedOwner, null)
+                {
+                    AnimationClass = liquid.AnimationClass,
+                    DecorationLayer = Decoration.Layer.Behind,
+                }
+            );
+
+        bool IsLand(int nx, int ny) =>
+            nx < 0
+            || ny < 0
+            || nx >= map.Width
+            || ny >= map.Height
+            || map.Tiles[nx, ny].Liquid is null;
+
+        bool n = IsLand(X, Y - 1);
+        bool e = IsLand(X + 1, Y);
+        bool s = IsLand(X, Y + 1);
+        bool w = IsLand(X - 1, Y);
+        bool nw = IsLand(X - 1, Y - 1);
+        bool ne = IsLand(X + 1, Y - 1);
+        bool sw = IsLand(X - 1, Y + 1);
+        bool se = IsLand(X + 1, Y + 1);
+
+        foreach (var (image, rotation) in LiquidEdging.Overlays(n, e, s, w, nw, ne, sw, se))
+        {
+            map.Decorations[X, Y]
+                .Add(
+                    new Decoration(edgingOwner, image)
+                    {
+                        DecorationLayer = Decoration.Layer.Behind,
+                        RotationDegrees = rotation,
+                    }
+                );
+        }
+
+        if (n)
+        {
+            map.Decorations[X, Y]
+                .Add(
+                    new Decoration(describedOwner, $"water_lip_{liquid.LipIndex}")
+                    {
+                        DecorationLayer = Decoration.Layer.Behind,
+                    }
+                );
+        }
     }
 
     void RenderHalfWall(Map map, TileDecorationOwner owner)

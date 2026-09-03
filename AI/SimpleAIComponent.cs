@@ -21,10 +21,18 @@ class SimpleAIComponent(Map map) : AIComponent(map)
         int destX = Owner.X + dx;
         int destY = Owner.Y + dy;
 
-        if (!map.IsBlocked(destX, destY))
+        // Lava (and any future instakill liquid) is treated as impassable for pathing - the AI has
+        // no terrain awareness yet, so this just stops monsters walking to their death.
+        if (!map.IsBlocked(destX, destY) && !map.IsLethalLiquid(destX, destY))
         {
+            // Trying to leave a slow liquid can fail - the turn is spent standing still.
+            if (map.LiquidStumble(Owner!))
+            {
+                return;
+            }
+
             // where we came from is definetely not blocking anymore, since we just vacated the tile
-            map.BlocksMovementMap[Owner.X, Owner.Y] = false;
+            map.BlocksMovementMap[Owner!.X, Owner.Y] = false;
             // do the move
             Owner.Move(dx, dy);
             // and we need to update blocked status for the destination tile (for the benefit of other moveables)

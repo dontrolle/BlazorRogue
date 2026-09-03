@@ -132,6 +132,70 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsAllKnownLiquidTypes()
+    {
+        var configuration = ParseConfiguration();
+
+        var ids = configuration.LiquidTypes.Select(l => l.Id).ToHashSet();
+        string[] expected =
+        [
+            "water_blue",
+            "water_green",
+            "water_teal",
+            "water_mud",
+            "water_bubbling",
+            "water_lava",
+        ];
+        Assert.All(expected, id => Assert.Contains(id, ids));
+    }
+
+    [Fact]
+    public void ParseLoadsLiquidTypeEffectsFromData()
+    {
+        var configuration = ParseConfiguration();
+
+        var mud = configuration.LiquidTypeById("water_mud");
+        Assert.Equal(LiquidEffectKind.Slow, mud.EffectKind);
+        Assert.Equal(60, mud.EffectMagnitude);
+        Assert.Equal("mud", mud.Name);
+
+        var acid = configuration.LiquidTypeById("water_bubbling");
+        Assert.Equal(LiquidEffectKind.Acid, acid.EffectKind);
+        Assert.Equal(8, acid.EffectMagnitude);
+
+        var lava = configuration.LiquidTypeById("water_lava");
+        Assert.Equal(LiquidEffectKind.Instakill, lava.EffectKind);
+    }
+
+    [Fact]
+    public void ParseBuildsLiquidAnimationClassFromSpriteName()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.Equal(
+            "liquid_water_blue",
+            configuration.LiquidTypeById("water_blue").AnimationClass
+        );
+    }
+
+    [Fact]
+    public void ParseValidatesEveryLevelsLiquidPoolTypeIdsAreKnown()
+    {
+        // levels.json wires water_* ids into levels 0 and 1 under common.liquid_pools.types;
+        // an unknown id there must fail Parse() the same way an unknown wall/floor id does.
+        var configuration = ParseConfiguration();
+
+        foreach (var level in configuration.Levels.Values)
+        {
+            var pools = level
+                .SettingsMap.GetMap("common", SettingsMap.Empty)
+                .GetMap("liquid_pools", SettingsMap.Empty)
+                .GetWeightedIds("types", []);
+            Assert.All(pools, p => configuration.LiquidTypeById(p.Id));
+        }
+    }
+
+    [Fact]
     public void ParseLoadsWallSetEdgeIndexesWhenPresent()
     {
         // "cave" and "hedge" both define a top-level "edges" object in wallsets.json (used by
