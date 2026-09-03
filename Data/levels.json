@@ -79,7 +79,25 @@
             "percentage_chance_of_altars": 0,
             "percentage_chance_of_spider_web_in_corner": 0,
             "percentage_chance_of_torch": 0,
-            "percentage_chance_of_chests": 0
+            "percentage_chance_of_chests": 0,
+            "liquid_pools": {
+              "count_min": 2,
+              "count_max": 4,
+              "radius_min": 1,
+              "radius_max": 3,
+              "always": [
+                [ "water_bubbling", 1 ],
+                [ "water_lava", 1 ]
+              ],
+              "types": [
+                [ "water_blue", 2 ],
+                [ "water_green", 2 ],
+                [ "water_teal", 2 ],
+                [ "water_mud", 2 ],
+                [ "water_bubbling", 1 ],
+                [ "water_lava", 1 ]
+              ]
+            }
           },
           "layout": {
             "percentage_chance_of_initial_wall": 0.3,
@@ -123,7 +141,25 @@
             "percentage_chance_of_altars": 0.04,
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
-            "percentage_chance_of_chests": 0.02
+            "percentage_chance_of_chests": 0.02,
+            "liquid_pools": {
+              "count_min": 2,
+              "count_max": 4,
+              "radius_min": 1,
+              "radius_max": 3,
+              "always": [
+                [ "water_bubbling", 1 ],
+                [ "water_lava", 1 ]
+              ],
+              "types": [
+                [ "water_blue", 2 ],
+                [ "water_green", 2 ],
+                [ "water_teal", 2 ],
+                [ "water_mud", 2 ],
+                [ "water_bubbling", 1 ],
+                [ "water_lava", 1 ]
+              ]
+            }
           },
           "layout": {
             "max_rooms": 10,

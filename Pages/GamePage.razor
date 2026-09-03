@@ -233,7 +233,13 @@ else
                                         offset += $"left: {decoration.HorizontalOffset * gridTileSize}px;";
                                     }
 
-                                    style = $"{style}{offset}; opacity:{opacityValue};";
+                                    string transform = "";
+                                    if (decoration.RotationDegrees != 0 || decoration.MirrorX)
+                                    {
+                                        transform = $" transform: rotate({decoration.RotationDegrees}deg){(decoration.MirrorX ? " scaleX(-1)" : "")};";
+                                    }
+
+                                    style = $"{style}{offset}; opacity:{opacityValue};{transform}";
                                 }
 
                                 if (renderDiv)
@@ -272,6 +278,11 @@ else
             <div class="message_log_entry">@message</div>
         }
     </div>
+
+    @if (hazardPrompt is not null)
+    {
+        <div class="hazard_prompt">@hazardPrompt</div>
+    }
 
     @if (showHelp)
     {
@@ -525,6 +536,8 @@ else
     async Task StartNewGame()
     {
         confirmNewGame = false;
+        awaitingLavaConfirm = false;
+        hazardPrompt = null;
 
         session!.StartNewGame();
         game = session.Game;
@@ -544,6 +557,12 @@ else
     bool tilesetAvailable;
     bool confirmNewGame;
     bool showHelp;
+
+    // Set when the player's next move would step into lava (or any instakill liquid): the move is
+    // held until they confirm with 'y'. See OnKeyPress.
+    bool awaitingLavaConfirm;
+    char pendingLavaNumKey;
+    string? hazardPrompt;
 
     void CloseHelp() => showHelp = false;
 
@@ -673,7 +692,11 @@ else
 
         if (OnKeyPress(key, code, shiftKey))
         {
-            game.Map.PlayerTookTurn();
+            // A move that ended the game (e.g. walking into lava) gives the monsters no free turn.
+            if (!game.Map.IsGameOver)
+            {
+                game.Map.PlayerTookTurn();
+            }
 
             // Rendered once, after both the player's and the monsters' turns are fully resolved,
             // so moveable decorations always reflect the final state of the turn - never a
@@ -721,6 +744,28 @@ else
 
     bool OnKeyPress(string key, string keyCode, bool shiftKey)
     {
+        // A lava step is pending confirmation: 'y' commits the (fatal) move, a bare modifier
+        // release is ignored, anything else backs out. Nothing else happens until this resolves.
+        if (awaitingLavaConfirm)
+        {
+            if (key is "Shift" or "Control" or "Alt" or "Meta")
+            {
+                return false;
+            }
+
+            char confirmedNumKey = pendingLavaNumKey;
+            awaitingLavaConfirm = false;
+            hazardPrompt = null;
+
+            if (key.Equals("y", StringComparison.OrdinalIgnoreCase))
+            {
+                return game.Map.HandlePlayerAction(false, confirmedNumKey);
+            }
+
+            game.AddMessage("You step back from the danger.");
+            return false;
+        }
+
         char numKey;
         // System.Diagnostics.Debug.WriteLine($"{key}, {keyCode}, shift:{shiftKey}");
 
@@ -776,6 +821,15 @@ else
         }
         else
             return false;
+
+        // Stepping into lava is a deliberate act - hold the move and ask first.
+        if (!shiftKey && game.Map.PeekLethalLiquidStep(numKey, out string liquidName))
+        {
+            awaitingLavaConfirm = true;
+            pendingLavaNumKey = numKey;
+            hazardPrompt = $"Walk into the {liquidName}? (y/n)";
+            return false;
+        }
 
         return game.Map.HandlePlayerAction(shiftKey, numKey);
     }

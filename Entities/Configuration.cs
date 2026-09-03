@@ -41,6 +41,11 @@ class Configuration
         "Data",
         "wallsets.json"
     );
+    static readonly string LiquidSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "liquidsets.json"
+    );
     static readonly string DecorationsFileName = Path.Combine(
         AppContext.BaseDirectory,
         "Data",
@@ -77,6 +82,19 @@ class Configuration
         floorSetsById.TryGetValue(id, out var floorSet)
             ? floorSet
             : throw new InvalidOperationException($"Unknown floor-set id: {id}.");
+
+    readonly Dictionary<string, LiquidType> liquidTypesById = [];
+    public IEnumerable<LiquidType> LiquidTypes => liquidTypesById.Values;
+
+    /// <summary>
+    /// Looks up a liquid-set by id, for resolving the ids referenced by a level's
+    /// <c>common.liquid_pools.types</c> weights. Validated to exist by <see cref="Parse"/>, so
+    /// callers operating on already-parsed levels can rely on this never throwing.
+    /// </summary>
+    public LiquidType LiquidTypeById(string id) =>
+        liquidTypesById.TryGetValue(id, out var liquidType)
+            ? liquidType
+            : throw new InvalidOperationException($"Unknown liquid-set id: {id}.");
 
     const string DefaultStairsFloorSetId = "grey";
 
@@ -126,6 +144,7 @@ class Configuration
         );
         ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
         ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
+        ParseDataFile(options, LiquidSetsFileName, "liquid_sets", ParseLiquidType);
         ParseDataFile(
             options,
             DecorationsFileName,
@@ -173,6 +192,20 @@ class Configuration
                     {
                         throw new InvalidOperationException(
                             $"Level '{level.Value.Id}' references unknown floor-tile-set id '{floorSetId}' in floor_tile_set.{pool}."
+                        );
+                    }
+                }
+            }
+
+            var liquidPoolSettings = commonSettings.GetMap("liquid_pools", SettingsMap.Empty);
+            foreach (string listName in new[] { "types", "always" })
+            {
+                foreach (var (liquidSetId, _) in liquidPoolSettings.GetWeightedIds(listName, []))
+                {
+                    if (!liquidTypesById.ContainsKey(liquidSetId))
+                    {
+                        throw new InvalidOperationException(
+                            $"Level '{level.Value.Id}' references unknown liquid-set id '{liquidSetId}' in liquid_pools.{listName}."
                         );
                     }
                 }
@@ -360,6 +393,50 @@ class Configuration
             throw new InvalidOperationException($"Found another floor-set with id: {id}.");
         }
         floorSetsById.Add(id, t);
+    }
+
+    void ParseLiquidType(JsonElement element)
+    {
+        string id = GetRequiredString(element, "id");
+        string name = GetRequiredString(element, "name");
+        string imgPrefix = GetRequiredString(element, "img_prefix");
+        int frames = GetRequiredInt(element, "frames");
+        double animationDuration = element.GetProperty("animation_duration").GetDouble();
+        int lipIndex = GetRequiredInt(element, "lip_index");
+        string asciiColor = GetRequiredString(element, "ascii_color");
+
+        var effectElement = element.GetProperty("effect");
+        string kindString = GetRequiredString(effectElement, "kind");
+        var effectKind = kindString switch
+        {
+            "none" => LiquidEffectKind.None,
+            "slow" => LiquidEffectKind.Slow,
+            "acid" => LiquidEffectKind.Acid,
+            "instakill" => LiquidEffectKind.Instakill,
+            _ => throw new InvalidOperationException(
+                $"Liquid-set '{id}' has unknown effect kind '{kindString}' - expected none, slow, acid or instakill."
+            ),
+        };
+        int effectMagnitude = effectElement.TryGetProperty("magnitude", out var magnitudeElement)
+            ? magnitudeElement.GetInt32()
+            : 0;
+
+        var liquidType = new LiquidType(
+            id,
+            name,
+            imgPrefix,
+            frames,
+            animationDuration,
+            lipIndex,
+            asciiColor,
+            effectKind,
+            effectMagnitude
+        );
+
+        if (!liquidTypesById.TryAdd(id, liquidType))
+        {
+            throw new InvalidOperationException($"Found another liquid-set with id: {id}.");
+        }
     }
 
     void ParseWallSetType(JsonElement element)

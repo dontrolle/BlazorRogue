@@ -21,7 +21,7 @@ A small rogue-like built from the bottom up in a custom game engine on C#/Blazor
 
 ## Features
 
-- Procedural dungeon generation.
+- Procedural dungeon generation, including animated liquid pools — water, mud, acid and lava; walkable, but mud/water slow you, acid burns, and lava is instant death.
 - A variety of monsters, animated using CSS animations, with mouse-over descriptions.
 - Sounds and music, plus a screen-shake effect on hits.
 - Useable environment objects (doors, chests) and field-of-view/vision.
@@ -118,14 +118,14 @@ Vision/                           Field-of-view implementation
 World/                            Map, Tile, Decoration and related types; World/Generation/ holds
                                    the map generators (IMapGenerator and implementors)
 Rendering/                        AnimationCssGenerator (generates @keyframes CSS from
-                                   monster/hero animation data)
+                                   monster/hero and liquid-pool animation data)
 Entities/                         Type definitions parsed from configuration (MoveableType,
                                    LevelConfiguration, SettingsMap, etc.), plus Configuration.cs
                                    which parses Data/*.json into them
 Sessions/                         Per-browser session state that survives page reloads
 Utility/                          Small standalone helpers (e.g. string extension methods)
 Data/                             JSON game data: monsters, heroes, floorsets, wallsets,
-                                   decorations, levels
+                                   liquidsets, decorations, levels
 Game.cs / References.cs           Core game state (see Architecture below)
 wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
 docker/                           Dockerfile and Dockerfile.graphics (see Docker below)
@@ -145,6 +145,7 @@ Most game content is data, not code — new monsters, heroes, floor/wall sets, a
 
 - `Data/monsters.json`, `Data/heroes.json` — combat stats, AI behavior, sprites/animations.
 - `Data/floorsets.json`, `Data/wallsets.json` — tileset mappings and map-generation weights.
+- `Data/liquidsets.json` — animated liquid pools (water/mud/acid/lava): frames, ASCII colour, and hazard effect.
 - `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
 - `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
 

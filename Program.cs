@@ -72,8 +72,8 @@ var generatedAnimationsCss = new Lazy<string>(() =>
 {
     var configuration = app.Services.GetRequiredService<Configuration>();
     return AnimationCssGenerator.Generate(
-        configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values)
-    );
+            configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values)
+        ) + AnimationCssGenerator.Generate(configuration.LiquidTypes);
 });
 app.MapGet(
     "/css/generated-animations.css",

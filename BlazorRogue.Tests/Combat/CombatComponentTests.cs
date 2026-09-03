@@ -62,6 +62,20 @@ public class CombatComponentTests
     }
 
     [Fact]
+    public void ApplyDamageBelowSoakThresholdNeverHealsAWoundedTarget()
+    {
+        // Regression: `Wounds -= damage - DamageSoak` turned a fully-soaked hit into negative
+        // damage - i.e. healing - for any target below MaxWounds (the clamp in the test above hid
+        // it). A soaked hit may do nothing, but must never restore wounds.
+        var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 10); // DamageSoak = 5
+        moveable.CombatComponent!.ApplyDamage(9); // 4 wounds lost -> 6
+        Assert.Equal(6, moveable.CombatComponent.Wounds);
+
+        moveable.CombatComponent.ApplyDamage(3); // fully soaked
+        Assert.Equal(6, moveable.CombatComponent.Wounds);
+    }
+
+    [Fact]
     public void ApplyDamageKillsOwnerWhenWoundsReachZero()
     {
         // GameObject.Kill() reaches References.Game directly, so it must be set up here rather

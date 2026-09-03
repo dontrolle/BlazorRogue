@@ -9,8 +9,26 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
 {
     public int X { get; } = x;
     public int Y { get; } = y;
-    public TileSet TileSet { get; set; } = tileSet;
+
+    public TileSet TileSet
+    {
+        get;
+        // A liquid pool tile keeps a plain black substrate TileSet with its LiquidType carried
+        // alongside (see Map.SetLiquidTile), so assigning a real TileSet means this is no longer
+        // that pool - clear Liquid. SetLiquidTile sets Liquid *after* the TileSet, so it's fine.
+        set
+        {
+            field = value;
+            Liquid = null;
+        }
+    } = tileSet;
+
     public int TileIndex { get; set; } = tileIndex;
+
+    // When set, this tile is a walkable pool of the given liquid (see Map.SetLiquidTile). TileSet
+    // is a plain black substrate; the animated surface plus shoreline dressing are emitted as
+    // decorations by RenderLiquid below.
+    public LiquidType? Liquid { get; set; }
 
     // Set (and reset) each Render() call for a freestanding wall tile (see Render below) - the
     // tile is still, in every other respect, a normal wall (Blocking, TileType, Character all stay
@@ -24,10 +42,10 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             ? underlay.TileSet.ImageName(underlay.TileIndex)
             : TileSet.ImageName(TileIndex);
     public string ImageUrl => $"img/uf_terrain/{ImageName}.png";
-    public TileType TileType => TileSet.TileType;
+    public TileType TileType => Liquid is not null ? TileType.Liquid : TileSet.TileType;
 
-    public string Character => TileSet.Character;
-    public string CharacterColor => TileSet.CharacterColor;
+    public string Character => Liquid is not null ? LiquidType.AsciiCharacter : TileSet.Character;
+    public string CharacterColor => Liquid is not null ? Liquid.AsciiColor : TileSet.CharacterColor;
 
     // For now, all blocking tiles also block light. If I make windows, this needs to change.
     public bool Blocking { get; set; }
@@ -42,7 +60,8 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     int? halfWallIndex;
     int? southFaceIndex;
 
-    static bool IsOpen(TileType tileType) => tileType is TileType.Floor or TileType.Black;
+    static bool IsOpen(TileType tileType) =>
+        tileType is TileType.Floor or TileType.Black or TileType.Liquid;
 
     static bool ContainsDoor(Map map, int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
@@ -57,6 +76,12 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     /// </summary>
     public void Render(Map map)
     {
+        if (Liquid is not null)
+        {
+            RenderLiquid(map);
+            return;
+        }
+
         if (TileType != TileType.Wall)
         {
             return;
@@ -100,6 +125,78 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         }
 
         RenderEdges(map, owner, TileSet.EdgeFreeIndexes, hasFloorLeft, hasFloorRight, 0);
+    }
+
+    /// <summary>
+    /// Emits a liquid pool tile's decorations: the animated surface, the shoreline edging pieces
+    /// (see <see cref="LiquidEdging"/>) rotated to face each land neighbour, and - against a
+    /// northern shore - the lip shadow on top. All on <see cref="Decoration.Layer.Behind"/> so
+    /// moveables, items and blood puddles draw over the water.
+    /// </summary>
+    void RenderLiquid(Map map)
+    {
+        var liquid = Liquid!;
+        string displayName = char.ToUpperInvariant(liquid.Name[0]) + liquid.Name[1..];
+
+        // The mouse-over tooltip must never be rotated, so it goes only on the un-rotated surface
+        // and lip decorations; the rotated edging pieces get a tooltip-less owner (they also have
+        // no pointer-events, so a hover falls through to the surface below).
+        var describedOwner = new TileDecorationOwner(X, Y, displayName) { InfoText = displayName };
+        var edgingOwner = new TileDecorationOwner(X, Y, displayName);
+
+        map.Decorations[X, Y]
+            .Add(
+                new Decoration(describedOwner, null)
+                {
+                    AnimationClass = liquid.AnimationClass,
+                    DecorationLayer = Decoration.Layer.Behind,
+                    // Carries the '~' glyph in ASCII mode (the tile draws the same glyph underneath,
+                    // so this just overlays it) - without a Character the decoration renders no div
+                    // in ASCII and its mouse-over tooltip has nothing to attach to.
+                    Character = LiquidType.AsciiCharacter,
+                    CharacterColor = liquid.AsciiColor,
+                }
+            );
+
+        bool IsLand(int nx, int ny) =>
+            nx < 0
+            || ny < 0
+            || nx >= map.Width
+            || ny >= map.Height
+            || map.Tiles[nx, ny].Liquid is null;
+
+        bool n = IsLand(X, Y - 1);
+        bool e = IsLand(X + 1, Y);
+        bool s = IsLand(X, Y + 1);
+        bool w = IsLand(X - 1, Y);
+        bool nw = IsLand(X - 1, Y - 1);
+        bool ne = IsLand(X + 1, Y - 1);
+        bool sw = IsLand(X - 1, Y + 1);
+        bool se = IsLand(X + 1, Y + 1);
+
+        foreach (var (image, rotation, mirror) in LiquidEdging.Overlays(n, e, s, w, nw, ne, sw, se))
+        {
+            map.Decorations[X, Y]
+                .Add(
+                    new Decoration(edgingOwner, image)
+                    {
+                        DecorationLayer = Decoration.Layer.Behind,
+                        RotationDegrees = rotation,
+                        MirrorX = mirror,
+                    }
+                );
+        }
+
+        if (n)
+        {
+            map.Decorations[X, Y]
+                .Add(
+                    new Decoration(describedOwner, $"water_lip_{liquid.LipIndex}")
+                    {
+                        DecorationLayer = Decoration.Layer.Behind,
+                    }
+                );
+        }
     }
 
     void RenderHalfWall(Map map, TileDecorationOwner owner)

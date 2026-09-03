@@ -60,7 +60,9 @@ class CombatComponent(
 
     public bool IsStarving { get; internal set; }
 
-    public void ApplyDamage(int damage) => Wounds -= damage - DamageSoak;
+    // Damage soak (toughness bonus + armour) can reduce a hit to nothing, but never turn it into
+    // healing - clamp the post-soak amount at zero.
+    public void ApplyDamage(int damage) => Wounds -= Math.Max(0, damage - DamageSoak);
 
     public void HealByMove()
     {

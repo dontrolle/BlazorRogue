@@ -34,9 +34,9 @@ how to test changes in these areas.
   handler, so no other circuit can interleave. **Do not read `References.*` during render**, which
   happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
-  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `decorations.json`,
-  `levels.json`) into strongly-typed dictionaries (`MoveableType`, `StaticDecorativeObjectType`,
-  `TileSet`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
+  (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `liquidsets.json`,
+  `decorations.json`, `levels.json`) into strongly-typed dictionaries (`MoveableType`,
+  `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
   (not the process's current working directory), so `Data/*.json` is a `CopyToOutputDirectory`
   content item in `BlazorRogue.csproj` — it ships next to the built assembly in both `dotnet
   build`/`dotnet publish` output. Nearly all visual/audio/combat-stat tuning is data-driven through
