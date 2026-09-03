@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project overview
 
 BlazorRogue is a procedurally-generated rogue-like built on C#/.NET 10, Blazor Server (unified
-Blazor Components hosting model). No database or external services. Nearly all game content (monster/hero stats, floor/wall sets, decorations, map
+Blazor Components hosting model). No database or external services. Nearly all game content (monster/hero stats, floor/wall/liquid sets, decorations, map
 generation weights) is data-driven from JSON under `Data/` rather than hardcoded.
 
 ```
@@ -17,13 +17,13 @@ Combat/           Combat system, incl. the Warhammer-inspired ruleset (Combat/Wa
 AI/               Monster AI components
 Effects/          EffectsSystem (screen shake) and SoundManager (audio cues)
 Vision/           Field-of-view implementation
-World/            Map, Tile, Decoration; World/Generation/ holds the map generators (IMapGenerator
-                  and implementors)
-Rendering/        AnimationCssGenerator (generates @keyframes CSS from monster/hero data)
+World/            Map, Tile, Decoration, LiquidEdging (shoreline autotiling); World/Generation/
+                  holds the map generators (IMapGenerator and implementors)
+Rendering/        AnimationCssGenerator (generates @keyframes CSS from monster/hero and liquid-pool data)
 Entities/         Types parsed from configuration, plus Configuration.cs (parses Data/*.json)
 Sessions/         Per-browser session state that survives page reloads
 Utility/          Small standalone helpers (e.g. string extension methods)
-Data/             JSON game data: monsters, heroes, floorsets, wallsets, decorations, levels
+Data/             JSON game data: monsters, heroes, floorsets, wallsets, liquidsets, decorations, levels
 Game.cs / References.cs   Core game state
 wwwroot/          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
 docker/           Dockerfile and Dockerfile.graphics (see Commands below)
