@@ -156,9 +156,9 @@ public class LiquidPoolTests
     public void LiquidTileTooltipIsCapitalisedAndOnlyOnUnrotatedDecorations()
     {
         var map = BareFloorMap();
-        // A two-tile pool, so the northern tile gets rotated convex-corner edging sprites.
+        // A two-tile pool, so the western tile's shoreline resolves to a rotated edging sprite.
         map.SetLiquidTile(4, 4, Liquid(LiquidEffectKind.Slow, 25));
-        map.SetLiquidTile(4, 5, Liquid(LiquidEffectKind.Slow, 25));
+        map.SetLiquidTile(5, 4, Liquid(LiquidEffectKind.Slow, 25));
 
         map.Tiles[4, 4].Render(map);
 
@@ -169,6 +169,12 @@ public class LiquidPoolTests
         Assert.All(
             decs.Where(d => d.GameObject.InfoText.Length > 0),
             d => Assert.Equal(0, d.RotationDegrees)
+        );
+        // The tooltip-bearing decoration must also carry a glyph, or it renders no div (and so no
+        // tooltip) in ASCII mode.
+        Assert.Contains(
+            decs,
+            d => d.GameObject.InfoText == "Sludge" && !string.IsNullOrEmpty(d.Character)
         );
     }
 

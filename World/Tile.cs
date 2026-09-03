@@ -137,6 +137,11 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
                 {
                     AnimationClass = liquid.AnimationClass,
                     DecorationLayer = Decoration.Layer.Behind,
+                    // Carries the '~' glyph in ASCII mode (the tile draws the same glyph underneath,
+                    // so this just overlays it) - without a Character the decoration renders no div
+                    // in ASCII and its mouse-over tooltip has nothing to attach to.
+                    Character = LiquidType.AsciiCharacter,
+                    CharacterColor = liquid.AsciiColor,
                 }
             );
 
@@ -156,7 +161,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         bool sw = IsLand(X - 1, Y + 1);
         bool se = IsLand(X + 1, Y + 1);
 
-        foreach (var (image, rotation) in LiquidEdging.Overlays(n, e, s, w, nw, ne, sw, se))
+        foreach (var (image, rotation, mirror) in LiquidEdging.Overlays(n, e, s, w, nw, ne, sw, se))
         {
             map.Decorations[X, Y]
                 .Add(
@@ -164,6 +169,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
                     {
                         DecorationLayer = Decoration.Layer.Behind,
                         RotationDegrees = rotation,
+                        MirrorX = mirror,
                     }
                 );
         }
