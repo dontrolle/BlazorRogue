@@ -416,6 +416,26 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseValidatesEveryLevelsItemTypeIdsAreKnown()
+    {
+        // Mirrors ParseValidatesEveryLevelsWallTileSetIdsAreKnown above, but for the ids referenced
+        // by a level's "common.item_types" weights - an unknown id there would have thrown inside
+        // ParseConfiguration() above, before this line ever runs.
+        var configuration = ParseConfiguration();
+
+        Assert.All(
+            configuration.Levels.Values,
+            level =>
+            {
+                var weights = level
+                    .SettingsMap.GetMap("common", SettingsMap.Empty)
+                    .GetWeightedIds("item_types", []);
+                Assert.All(weights, w => Assert.NotNull(configuration.ItemTypeById(w.Id)));
+            }
+        );
+    }
+
+    [Fact]
     public void ParseValidatesEveryLevelsFloorTileSetIdsAreKnown()
     {
         // Mirrors ParseValidatesEveryLevelsWallTileSetIdsAreKnown above, but for the ids referenced

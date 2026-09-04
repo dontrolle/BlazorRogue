@@ -137,6 +137,16 @@ class Configuration
     readonly Dictionary<string, ItemType> itemTypes = [];
     public IReadOnlyDictionary<string, ItemType> ItemTypes => itemTypes;
 
+    /// <summary>
+    /// Looks up an item type by id, for resolving the ids referenced by a level's
+    /// <c>common.item_types</c> weights. Validated to exist by <see cref="Parse"/>, so callers
+    /// operating on already-parsed levels can rely on this never throwing.
+    /// </summary>
+    public ItemType ItemTypeById(string id) =>
+        itemTypes.TryGetValue(id, out var itemType)
+            ? itemType
+            : throw new InvalidOperationException($"Unknown item id: {id}.");
+
     const string DefaultStaticDecorationImgFolder = "uf_terrain";
 
     public void Parse() // Task async
@@ -217,6 +227,17 @@ class Configuration
                             $"Level '{level.Value.Id}' references unknown liquid-set id '{liquidSetId}' in liquid_pools.{listName}."
                         );
                     }
+                }
+            }
+
+            var itemTypeWeights = commonSettings.GetWeightedIds("item_types", []);
+            foreach (var (itemTypeId, _) in itemTypeWeights)
+            {
+                if (!itemTypes.ContainsKey(itemTypeId))
+                {
+                    throw new InvalidOperationException(
+                        $"Level '{level.Value.Id}' references unknown item id '{itemTypeId}' in item_types."
+                    );
                 }
             }
         }
