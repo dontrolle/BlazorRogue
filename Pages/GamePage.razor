@@ -337,6 +337,47 @@ else
             </div>
         </div>
     }
+
+    @if (showInventory)
+    {
+        <div class="help_backdrop">
+            <div class="help_modal">
+                <h1>Inventory</h1>
+                @{
+                    var inventoryItems = game.Map.Player.InventoryComponent!.Items;
+                }
+                @if (!inventoryItems.Any())
+                {
+                    <p>You aren't carrying anything.</p>
+                }
+                else
+                {
+                    <ul class="inventory_list">
+                        @foreach (var (letter, entry) in inventoryItems)
+                        {
+                            <li>
+                                @letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")
+                            </li>
+                        }
+                    </ul>
+                }
+                <p class="help_dismiss_hint">
+                    @if (pendingInventoryAction == InventoryAction.Drop)
+                    {
+                        <text>Drop which item?</text>
+                    }
+                    else if (pendingInventoryAction == InventoryAction.Use)
+                    {
+                        <text>Use/equip which item?</text>
+                    }
+                    else
+                    {
+                        <text><tt>d</tt> drop &middot; <tt>u</tt> use/equip &middot; <tt>Esc</tt> close</text>
+                    }
+                </p>
+            </div>
+        </div>
+    }
 </div>
 }
 
@@ -566,6 +607,17 @@ else
 
     void CloseHelp() => showHelp = false;
 
+    enum InventoryAction
+    {
+        Drop,
+        Use,
+    }
+
+    // Mode-scoped exactly like showHelp above, but only Esc closes it (not "any key") and 'i' is
+    // just the 9th letter, not a close key - see HandleInventoryKey.
+    bool showInventory;
+    InventoryAction? pendingInventoryAction;
+
     GameSession? session;
     SoundManager? soundManager;
 
@@ -667,6 +719,20 @@ else
             return;
         }
 
+        // The inventory window is pure UI state too, mode-scoped the same way showHelp is above -
+        // see HandleInventoryKey for what's live while it's open.
+        if (showInventory)
+        {
+            HandleInventoryKey(key);
+            return;
+        }
+        if (key.Equals("i", StringComparison.OrdinalIgnoreCase))
+        {
+            showInventory = true;
+            pendingInventoryAction = null;
+            return;
+        }
+
         // Matching the letter (not Code="KeyA") keeps this at "the key labelled A" on any
         // keyboard layout. A view preference, not a game action, so it works even after game
         // over - unlike everything below this point. The browser's native Ctrl+A (select all)
@@ -742,6 +808,67 @@ else
         }
     }
 
+    // Everything live while the inventory window is open: Esc closes it outright; 'd'/'u' arm
+    // drop/use, and the next key is read as a letter (whatever it is - an unmatched letter just
+    // gets a "No such item." message from Map, handled the same as a real one); anything else
+    // (while unarmed) is ignored, since only Esc is allowed to dismiss the window.
+    void HandleInventoryKey(string key)
+    {
+        if (key == "Escape")
+        {
+            showInventory = false;
+            pendingInventoryAction = null;
+            return;
+        }
+
+        // A bare modifier release (e.g. releasing Shift after Shift+D) isn't itself a keypress -
+        // mirrors the same guard in OnKeyPress's lava-confirm handling.
+        if (key is "Shift" or "Control" or "Alt" or "Meta")
+        {
+            return;
+        }
+
+        if (pendingInventoryAction is null)
+        {
+            if (key.Equals("d", StringComparison.OrdinalIgnoreCase))
+            {
+                pendingInventoryAction = InventoryAction.Drop;
+            }
+            else if (key.Equals("u", StringComparison.OrdinalIgnoreCase))
+            {
+                pendingInventoryAction = InventoryAction.Use;
+            }
+            // Any other key - including a bare letter - does nothing while no action is armed.
+            return;
+        }
+
+        if (key.Length != 1)
+        {
+            // Not a letter (e.g. an arrow key) - stay armed and wait for one.
+            return;
+        }
+
+        var action = pendingInventoryAction.Value;
+        pendingInventoryAction = null;
+        char letter = char.ToLowerInvariant(key[0]);
+
+        session!.Activate(soundManager!);
+
+        bool acted =
+            action == InventoryAction.Drop
+                ? game.Map.DropInventoryItem(letter)
+                : game.Map.UseInventoryItem(letter);
+
+        if (acted)
+        {
+            showInventory = false;
+            game.Map.PlayerTookTurn();
+            game.Map.RenderMoveables();
+        }
+        // else: Map already added a "No such item." message; window stays open, unarmed, for
+        // another attempt.
+    }
+
     bool OnKeyPress(string key, string keyCode, bool shiftKey)
     {
         // A lava step is pending confirmation: 'y' commits the (fatal) move, a bare modifier
@@ -764,6 +891,11 @@ else
 
             game.AddMessage("You step back from the danger.");
             return false;
+        }
+
+        if (key.Equals("g", StringComparison.OrdinalIgnoreCase))
+        {
+            return game.Map.PickUpItemsAtPlayer();
         }
 
         char numKey;
