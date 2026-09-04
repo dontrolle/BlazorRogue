@@ -76,6 +76,33 @@ public class CombatComponentTests
     }
 
     [Fact]
+    public void HealIncreasesWoundsButClampsAtMaxWounds()
+    {
+        var moveable = CreateMoveable(toughness: 30, armour: 2, wounds: 50); // DamageSoak = 5
+        moveable.CombatComponent!.ApplyDamage(15); // 10 wounds lost -> 40
+        Assert.Equal(40, moveable.CombatComponent.Wounds);
+
+        moveable.CombatComponent.Heal(20);
+        Assert.Equal(50, moveable.CombatComponent.Wounds); // clamped at MaxWounds, not 60
+    }
+
+    [Fact]
+    public void AdjustEquipmentArmourBonusIsIncludedInDamageSoakAndStacksAdditively()
+    {
+        var moveable = CreateMoveable(toughness: 30, armour: 2); // ToughnessBonus 3 + Armour 2 = 5
+        Assert.Equal(5, moveable.CombatComponent!.DamageSoak);
+
+        moveable.CombatComponent.AdjustEquipmentArmourBonus(1);
+        Assert.Equal(6, moveable.CombatComponent.DamageSoak);
+
+        moveable.CombatComponent.AdjustEquipmentArmourBonus(1); // a second equipped item
+        Assert.Equal(7, moveable.CombatComponent.DamageSoak);
+
+        moveable.CombatComponent.AdjustEquipmentArmourBonus(-1); // one unequipped again
+        Assert.Equal(6, moveable.CombatComponent.DamageSoak);
+    }
+
+    [Fact]
     public void ApplyDamageKillsOwnerWhenWoundsReachZero()
     {
         // GameObject.Kill() reaches References.Game directly, so it must be set up here rather

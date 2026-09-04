@@ -17,7 +17,10 @@ class CombatComponent(
     public int Toughness { get; private set; } = toughness;
     public int ToughnessBonus => Toughness / 10;
     public int ArmourPoints { get; private set; } = armourPoints;
-    public int DamageSoak => ToughnessBonus + ArmourPoints;
+
+    /// <summary>Armour granted by currently-equipped items - see <see cref="AdjustEquipmentArmourBonus"/>.</summary>
+    public int EquipmentArmourBonus { get; private set; }
+    public int DamageSoak => ToughnessBonus + ArmourPoints + EquipmentArmourBonus;
 
     readonly int healthGainedByOneStep = 1;
     const int ChanceToHealInTurn = 33; // every third turn, approximately
@@ -68,9 +71,14 @@ class CombatComponent(
     {
         if (Dice.RollD100() <= ChanceToHealInTurn)
         {
-            Wounds += healthGainedByOneStep;
+            Heal(healthGainedByOneStep);
         }
     }
+
+    public void Heal(int amount) => Wounds += amount;
+
+    /// <summary>Applied on equip (positive) / unequip (negative) - see <see cref="InventoryComponent"/>.</summary>
+    public void AdjustEquipmentArmourBonus(int delta) => EquipmentArmourBonus += delta;
 
     public void GainAdvantage(int number = 1)
     {
