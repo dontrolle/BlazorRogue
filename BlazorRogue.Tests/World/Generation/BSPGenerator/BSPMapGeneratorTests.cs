@@ -555,6 +555,54 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
+    public void ZeroDensityProducesNoItems()
+    {
+        var settings = Settings(
+            common: new()
+            {
+                ["percentage_chance_of_items"] = 0.0,
+                ["item_types"] = new List<(string, double)> { ("health_potion", 1) },
+            }
+        );
+
+        for (int i = 0; i < 3; i++)
+        {
+            Assert.Empty(GenerateMap(settings, width: 72, height: 48).GameObjects.OfType<Item>());
+        }
+    }
+
+    [Fact]
+    public void NoItemTypesConfiguredProducesNoItemsEvenAtFullDensity()
+    {
+        // A level with no "item_types" list at all (e.g. every level before this feature existed)
+        // must not crash the weighted pick - it should just never place an item.
+        var settings = Settings(common: new() { ["percentage_chance_of_items"] = 1.0 });
+
+        Assert.Empty(GenerateMap(settings, width: 72, height: 48).GameObjects.OfType<Item>());
+    }
+
+    [Fact]
+    public void HighDensityPlacesManyItemsUsingOnlyTheConfiguredIds()
+    {
+        var settings = Settings(
+            common: new()
+            {
+                ["percentage_chance_of_items"] = 1.0,
+                ["item_types"] = new List<(string, double)> { ("health_potion", 1) },
+            }
+        );
+
+        var map = GenerateMap(settings, width: 72, height: 48);
+        var items = map.GameObjects.OfType<Item>().ToList();
+
+        Assert.True(items.Count > 10, "full density should place plenty of items");
+        Assert.All(
+            items,
+            item => Assert.Equal("health_potion", item.PickupableComponent!.ItemType.Id)
+        );
+    }
+
+    [Fact]
     public void EmptyRoomChanceOfOneLeavesEveryRoomEmpty()
     {
         var settings = Settings(layout: new() { ["empty_room_chance"] = 1.0 });

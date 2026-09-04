@@ -30,6 +30,11 @@
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
             "percentage_chance_of_door": 0.4,
+            "percentage_chance_of_items": 0.02,
+            "item_types": [
+              [ "health_potion", 3 ],
+              [ "ring_of_protection", 1 ]
+            ],
             "monsters_per_100_tiles": 5
           },
           "layout": {
@@ -80,6 +85,11 @@
             "percentage_chance_of_spider_web_in_corner": 0,
             "percentage_chance_of_torch": 0,
             "percentage_chance_of_chests": 0,
+            "percentage_chance_of_items": 0.02,
+            "item_types": [
+              [ "health_potion", 3 ],
+              [ "ring_of_protection", 1 ]
+            ],
             "liquid_pools": {
               "count_min": 2,
               "count_max": 4,
@@ -142,6 +152,11 @@
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_items": 0.02,
+            "item_types": [
+              [ "health_potion", 3 ],
+              [ "ring_of_protection", 1 ]
+            ],
             "liquid_pools": {
               "count_min": 2,
               "count_max": 4,
@@ -198,7 +213,12 @@
             "percentage_chance_of_altars": 0.01,
             "percentage_chance_of_spider_web_in_corner": 0.30,
             "percentage_chance_of_torch": 0.15,
-            "percentage_chance_of_chests": 0.02
+            "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_items": 0.02,
+            "item_types": [
+              [ "health_potion", 3 ],
+              [ "ring_of_protection", 1 ]
+            ]
           },
           "layout": {
             "percentage_chance_of_initial_wall": 0.4,

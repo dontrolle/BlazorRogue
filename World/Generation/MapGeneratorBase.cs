@@ -50,6 +50,23 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_torch", 0.25);
     protected readonly double percentageChanceOfChests = CommonSettings(settings)
         .GetDouble("percentage_chance_of_chests", 0.02);
+    protected readonly double percentageChanceOfItems = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_items", 0.0);
+
+    // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
+    // `configuration` field further down - field initializers can't reference another instance
+    // field of the same type being constructed (see the CommonSettings note above), only the
+    // primary constructor's own parameters.
+    protected readonly ItemType[] itemTypePool =
+    [
+        .. CommonSettings(settings)
+            .GetWeightedIds("item_types", [])
+            .Select(w => game.Configuration.ItemTypeById(w.Id)),
+    ];
+    protected readonly double[] itemTypePoolWeights =
+    [
+        .. CommonSettings(settings).GetWeightedIds("item_types", []).Select(w => w.Weight),
+    ];
 
     // Independent chance each entry in candidateDoors actually becomes a door in AddDoors. Default
     // 1.0 keeps the historical "a door at every candidate" behaviour; a generator that records a
@@ -550,6 +567,17 @@ abstract class MapGeneratorBase(
                 map.AddGameObject(
                     new Chest(x, y, chestId, new InventoryComponent() { Gold = gold })
                 );
+            }
+
+            if (
+                itemTypePool.Length > 0
+                && mapGenerationRandomSource.NextDouble() < percentageChanceOfItems
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                var itemType = GetRandomElementWeighted(itemTypePool, itemTypePoolWeights);
+                map.AddGameObject(new Item(x, y, itemType));
             }
 
             // in the following we rely on floors never being placed on the perimeter tiles, else we could do
