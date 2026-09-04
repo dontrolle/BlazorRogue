@@ -253,6 +253,33 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsAllKnownItemTypes()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.True(configuration.ItemTypes.ContainsKey("health_potion"));
+        Assert.True(configuration.ItemTypes.ContainsKey("ring_of_protection"));
+    }
+
+    [Fact]
+    public void ParseLoadsItemTypeEffectsFromData()
+    {
+        var configuration = ParseConfiguration();
+
+        var healthPotion = configuration.ItemTypes["health_potion"];
+        Assert.Equal("Health potion", healthPotion.Name);
+        Assert.Equal(ItemKind.UseOnce, healthPotion.Kind);
+        Assert.Equal(ItemEffectKind.Heal, healthPotion.EffectKind);
+        Assert.Equal(20, healthPotion.EffectMagnitude);
+
+        var ringOfProtection = configuration.ItemTypes["ring_of_protection"];
+        Assert.Equal("Ring of protection", ringOfProtection.Name);
+        Assert.Equal(ItemKind.Equipable, ringOfProtection.Kind);
+        Assert.Equal(ItemEffectKind.ArmourBonus, ringOfProtection.EffectKind);
+        Assert.Equal(1, ringOfProtection.EffectMagnitude);
+    }
+
+    [Fact]
     public void ParseLoadsFloorSetStairImagesWhenPresent()
     {
         var configuration = ParseConfiguration();

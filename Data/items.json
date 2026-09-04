@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "id": "health_potion",
+      "name": "Health potion",
+      "kind": "use_once",
+      "img_folder": "uf_items",
+      "image": "potion_red",
+      "character": "!",
+      "character_color": "red",
+      "effect": { "kind": "heal", "magnitude": 20 }
+    },
+    {
+      "id": "ring_of_protection",
+      "name": "Ring of protection",
+      "kind": "equipable",
+      "img_folder": "uf_items",
+      "image": "ring_silver",
+      "character": "=",
+      "character_color": "silver",
+      "effect": { "kind": "armour_bonus", "magnitude": 1 }
+    }
+  ]
+}

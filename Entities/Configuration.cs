@@ -56,6 +56,11 @@ class Configuration
         "Data",
         "levels.json"
     );
+    static readonly string ItemsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "items.json"
+    );
 
     readonly Dictionary<string, MoveableType> monsterTypes = [];
     public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
@@ -129,6 +134,9 @@ class Configuration
     readonly Dictionary<int, LevelConfiguration> levels = [];
     public IReadOnlyDictionary<int, LevelConfiguration> Levels => levels.AsReadOnly();
 
+    readonly Dictionary<string, ItemType> itemTypes = [];
+    public IReadOnlyDictionary<string, ItemType> ItemTypes => itemTypes;
+
     const string DefaultStaticDecorationImgFolder = "uf_terrain";
 
     public void Parse() // Task async
@@ -152,6 +160,7 @@ class Configuration
             ParseStaticDecorativeType
         );
         ParseDataFile(options, LevelsFileName, "levels", ParseLevelConfiguration);
+        ParseDataFile(options, ItemsFileName, "items", ParseItemType);
         foreach (var monster in monsterTypes.Values)
         {
             if (!AIComponentFactory.IsKnown(monster.AIComponentId))
@@ -808,5 +817,68 @@ class Configuration
             makeCoveringOffsetDecsTransparent
         );
         staticDecorativeObjectTypes.Add(id, dec);
+    }
+
+    void ParseItemType(JsonElement element)
+    {
+        string id = GetRequiredString(element, "id");
+        string name = GetRequiredString(element, "name");
+
+        string kindString = GetRequiredString(element, "kind");
+        var kind = kindString switch
+        {
+            "use_once" => ItemKind.UseOnce,
+            "equipable" => ItemKind.Equipable,
+            _ => throw new InvalidOperationException(
+                $"Item '{id}' has unknown kind '{kindString}' - expected use_once or equipable."
+            ),
+        };
+
+        string imgFolder = GetRequiredString(element, "img_folder");
+        string image = GetRequiredString(element, "image");
+        string character = GetRequiredString(element, "character");
+        string characterColor = GetRequiredString(element, "character_color");
+
+        var effectElement = element.GetProperty("effect");
+        string effectKindString = GetRequiredString(effectElement, "kind");
+        var effectKind = effectKindString switch
+        {
+            "heal" => ItemEffectKind.Heal,
+            "armour_bonus" => ItemEffectKind.ArmourBonus,
+            _ => throw new InvalidOperationException(
+                $"Item '{id}' has unknown effect kind '{effectKindString}' - expected heal or armour_bonus."
+            ),
+        };
+        int effectMagnitude = GetRequiredInt(effectElement, "magnitude");
+
+        bool kindMatchesEffect = (kind, effectKind) switch
+        {
+            (ItemKind.UseOnce, ItemEffectKind.Heal) => true,
+            (ItemKind.Equipable, ItemEffectKind.ArmourBonus) => true,
+            _ => false,
+        };
+        if (!kindMatchesEffect)
+        {
+            throw new InvalidOperationException(
+                $"Item '{id}' has kind '{kindString}' with incompatible effect kind '{effectKindString}'."
+            );
+        }
+
+        var itemType = new ItemType(
+            id,
+            name,
+            kind,
+            imgFolder,
+            image,
+            character,
+            characterColor,
+            effectKind,
+            effectMagnitude
+        );
+
+        if (!itemTypes.TryAdd(id, itemType))
+        {
+            throw new InvalidOperationException($"Found another item with id: {id}.");
+        }
     }
 }
