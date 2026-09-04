@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.Combat;
+using BlazorRogue.Components;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.Vision;
@@ -364,6 +365,17 @@ class Map
         gameObjectByCoord[gameObject.X, gameObject.Y].Add(gameObject);
     }
 
+    /// <summary>
+    /// Removes a game object from the map outright - used for picked-up floor items, which (unlike
+    /// chests/doors/decorations) don't persist once collected. Caller is responsible for
+    /// re-rendering the vacated tile.
+    /// </summary>
+    void RemoveGameObject(GameObject gameObject)
+    {
+        _ = gameObjects.Remove(gameObject);
+        _ = gameObjectByCoord[gameObject.X, gameObject.Y].Remove(gameObject);
+    }
+
     public void AddPlayer(Moveable player)
     {
         AddMoveable(player);
@@ -548,6 +560,129 @@ class Map
             Player.CombatComponent.HealByMove();
         }
 
+        return true;
+    }
+
+    /// <summary>
+    /// Picks up every <see cref="Item"/> on the player's own tile (the 'g' key) into the player's
+    /// <see cref="InventoryComponent"/>. Returns whether anything was actually picked up -
+    /// the caller uses this to decide whether the action costs a turn. An item that doesn't fit
+    /// (inventory full) is left on the floor with a message, and doesn't by itself cost a turn.
+    /// </summary>
+    public bool PickUpItemsAtPlayer()
+    {
+        if (IsGameOver)
+        {
+            return false;
+        }
+
+        var itemsHere = gameObjectByCoord[Player.X, Player.Y].OfType<Item>().ToList();
+        bool pickedUpAny = false;
+
+        foreach (var item in itemsHere)
+        {
+            var itemType = item.PickupableComponent!.ItemType;
+            if (!Player.InventoryComponent!.TryPickUp(itemType, out char letter))
+            {
+                Game.AddMessage("Your inventory is full.");
+                continue;
+            }
+
+            RemoveGameObject(item);
+            pickedUpAny = true;
+
+            int count = Player.InventoryComponent.Items[letter].Count;
+            Game.AddMessage(
+                count > 1
+                    ? $"You pick up a {itemType.Name} (now {count})."
+                    : $"You pick up a {itemType.Name}."
+            );
+        }
+
+        if (pickedUpAny)
+        {
+            UpdateBlocksLight(Player.X, Player.Y, recomputeVisibility: true);
+            UpdateBlockMovement(Player.X, Player.Y);
+            RenderDecorations(Player.X, Player.Y);
+        }
+
+        return pickedUpAny;
+    }
+
+    /// <summary>
+    /// Uses (consumables) or toggles equipped (wearables) the inventory entry at
+    /// <paramref name="letter"/> (the inventory window's 'u' command). Returns whether it did
+    /// anything - false (with a "No such item." message) for a letter with nothing in it.
+    /// </summary>
+    public bool UseInventoryItem(char letter)
+    {
+        if (IsGameOver)
+        {
+            return false;
+        }
+
+        var itemType = Player.InventoryComponent!.Use(letter);
+        if (itemType is null)
+        {
+            Game.AddMessage("No such item.");
+            return false;
+        }
+
+        Game.AddMessage(DescribeUse(itemType, letter));
+        return true;
+    }
+
+    string DescribeUse(ItemType itemType, char letter)
+    {
+        if (itemType.Kind == ItemKind.Equipable)
+        {
+            bool nowEquipped =
+                Player.InventoryComponent!.Items.TryGetValue(letter, out var entry)
+                && entry.IsEquipped;
+            return nowEquipped
+                ? $"You put on the {itemType.Name}."
+                : $"You take off the {itemType.Name}.";
+        }
+
+        return itemType.EffectKind switch
+        {
+            ItemEffectKind.Heal =>
+                $"You drink the {itemType.Name} and recover {itemType.EffectMagnitude} hitpoints.",
+            _ => $"You use the {itemType.Name}.",
+        };
+    }
+
+    /// <summary>
+    /// Drops the inventory entry at <paramref name="letter"/> (the inventory window's 'd' command)
+    /// onto the player's tile, unequipping it first if it was equipped. Returns whether it did
+    /// anything - false (with a "No such item." message) for a letter with nothing in it.
+    /// </summary>
+    public bool DropInventoryItem(char letter)
+    {
+        if (IsGameOver)
+        {
+            return false;
+        }
+
+        bool wasEquipped =
+            Player.InventoryComponent!.Items.TryGetValue(letter, out var entryBeforeDrop)
+            && entryBeforeDrop.IsEquipped;
+
+        var itemType = Player.InventoryComponent.Remove(letter);
+        if (itemType is null)
+        {
+            Game.AddMessage("No such item.");
+            return false;
+        }
+
+        if (wasEquipped)
+        {
+            Game.AddMessage($"You take off the {itemType.Name}.");
+        }
+
+        AddGameObject(new Item(Player.X, Player.Y, itemType));
+        RenderDecorations(Player.X, Player.Y);
+        Game.AddMessage($"You drop the {itemType.Name}.");
         return true;
     }
 
