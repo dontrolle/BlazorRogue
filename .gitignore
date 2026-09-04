@@ -10,3 +10,5 @@ wwwroot/img/uf_*
 .idea
 .claude/settings.local.json
 .claude/worktrees/
+.claude/skills/run-blazorrogue/node_modules/
+.claude/skills/run-blazorrogue/screenshots/
