@@ -112,7 +112,7 @@ public class FightingSystemTests
 
         string message = game.Messages[^1];
         Assert.StartsWith("You ", message);
-        Assert.Contains("Goblin", message);
+        Assert.Contains("the Goblin", message);
         Assert.DoesNotContain(player.Name, message);
     }
 
@@ -126,7 +126,7 @@ public class FightingSystemTests
         game.FightingSystem.CloseCombatAttack(goblin.CombatComponent!, player.CombatComponent!);
 
         string message = game.Messages[^1];
-        Assert.StartsWith("Goblin ", message);
+        Assert.StartsWith("The Goblin ", message);
         Assert.Contains(" you", message);
         Assert.DoesNotContain(player.Name, message);
     }
