@@ -347,6 +347,35 @@
   font-style: italic;
 }
 
+/* Inventory list inside the .help_modal. Each row is prefixed with the item's sprite (tileset
+   mode) or its coloured ASCII glyph (ASCII mode) - see the inventory modal in GamePage.razor. */
+.inventory_list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5em 0;
+}
+
+.inventory_row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 28px;
+}
+
+.inventory_icon {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+}
+
+.inventory_glyph {
+  display: inline-block;
+  width: 28px;
+  text-align: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
   /* Tooltips */
 div [data-tool-tip]::after {
   content: attr(data-tool-tip);

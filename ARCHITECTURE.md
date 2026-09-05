@@ -35,8 +35,8 @@ how to test changes in these areas.
   happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `liquidsets.json`,
-  `decorations.json`, `levels.json`) into strongly-typed dictionaries (`MoveableType`,
-  `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
+  `decorations.json`, `items.json`, `levels.json`) into strongly-typed dictionaries (`MoveableType`,
+  `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `ItemType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
   (not the process's current working directory), so `Data/*.json` is a `CopyToOutputDirectory`
   content item in `BlazorRogue.csproj` — it ships next to the built assembly in both `dotnet
   build`/`dotnet publish` output. Nearly all visual/audio/combat-stat tuning is data-driven through
@@ -52,11 +52,18 @@ how to test changes in these areas.
   than mid-game.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `WallEdge`,
-  `StaticDecorativeObject`). Behavior is composed via optional `Component` (`Components/Component.cs`)
-  subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`; the latter
-  two live in `Components/` alongside the base class) attached at construction — a `Component` always
-  knows its `Owner` via `SetOwner`. AI variants live under `AI/` (`SimpleAIComponent`,
-  `RandomWalkAIComponent`).
+  `StaticDecorativeObject`, `Item`). Behavior is composed via optional `Component` (`Components/Component.cs`)
+  subclasses (`AIComponent`, `CombatComponent`, `UseableComponent`, `InventoryComponent`,
+  `PickupableComponent`; the last three live in `Components/` alongside the base class) attached at
+  construction — a `Component` always knows its `Owner` via `SetOwner`. AI variants live under `AI/`
+  (`SimpleAIComponent`, `RandomWalkAIComponent`).
+- **Items & inventory**: an `Item` on the floor carries a `PickupableComponent` wrapping its
+  `ItemType` (from `Data/items.json`). `Map.PickUpItemsAtPlayer()` (the `g` key) moves it into the
+  player's `InventoryComponent`, which keeps a `SortedDictionary<char, InventoryEntry>` — `use_once`
+  items stack on one letter, `equipable` items get their own and toggle `IsEquipped`. `Map`'s
+  `UseInventoryItem`/`DropInventoryItem` are the turn-consuming entry points the UI calls; effects
+  (`heal`, `armour_bonus`) are applied in `InventoryComponent.ApplyEffect` against the owner's
+  `CombatComponent`.
 - **Map & rendering**: `World/Map.cs` holds the `Tile` grid; a map generator (see *Map generation*
   below) procedurally builds it — `World/` also holds `Tile.cs`, `TileType.cs`, `Decoration.cs`
   and `Orientation.cs`.

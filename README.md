@@ -25,6 +25,7 @@ A small rogue-like built from the bottom up in a custom game engine on C#/Blazor
 - A variety of monsters, animated using CSS animations, with mouse-over descriptions.
 - Sounds and music, plus a screen-shake effect on hits.
 - Useable environment objects (doors, chests) and field-of-view/vision.
+- Pick-up items with a lettered inventory: consumable potions and toggle-equippable gear (e.g. a ring of protection), data-driven from `Data/items.json`.
 - Basic combat, driven by a Warhammer-inspired ruleset.
 - A tileset renderer (using the Ultimate Fantasy Tileset) and a from-scratch ASCII renderer (old-school format, with colors), switchable client-side at any time - and auto-selected on load based on whether tileset assets are present.
 - Almost everything (monster/hero stats, floor/wall sets, decorations, map generation weights) is data-driven via JSON, rather than hardcoded — see [Game data / configuration](#game-data--configuration).
@@ -91,6 +92,9 @@ so the containerized game always runs in ASCII-renderer mode.
 |---|---|
 | Move / attack (8-directional) | Numpad, or `qweasdzxc` |
 | Use (open door, chest, etc.) | `Shift` + move towards the object |
+| Pick up item(s) on your tile | `g` |
+| Open inventory | `i` — then `u` use/equip, `d` drop, `Esc` close |
+| Quick use / equip an item | `u` — opens the inventory ready to use/equip |
 | Start a new game | "New game" button (left panel) |
 | Switch tileset/ASCII rendering | CTRL-A |
 | Help overlay | ? |
@@ -125,7 +129,7 @@ Entities/                         Type definitions parsed from configuration (Mo
 Sessions/                         Per-browser session state that survives page reloads
 Utility/                          Small standalone helpers (e.g. string extension methods)
 Data/                             JSON game data: monsters, heroes, floorsets, wallsets,
-                                   liquidsets, decorations, levels
+                                   liquidsets, decorations, items, levels
 Game.cs / References.cs           Core game state (see Architecture below)
 wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
 docker/                           Dockerfile and Dockerfile.graphics (see Docker below)
@@ -147,6 +151,7 @@ Most game content is data, not code — new monsters, heroes, floor/wall sets, a
 - `Data/floorsets.json`, `Data/wallsets.json` — tileset mappings and map-generation weights.
 - `Data/liquidsets.json` — animated liquid pools (water/mud/acid/lava): frames, ASCII colour, and hazard effect.
 - `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
+- `Data/items.json` — pickup-able items: name, kind (`use_once` / `equipable`), sprite + ASCII glyph, and effect (`heal` / `armour_bonus`) with a magnitude.
 - `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
 
 These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind — follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.

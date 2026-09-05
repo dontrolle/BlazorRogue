@@ -326,6 +326,17 @@ else
                         </dl>
                     </section>
                     <section>
+                        <h3>Items</h3>
+                        <dl>
+                            <dt>Pick up</dt>
+                            <dd><tt>g</tt> &mdash; grab items on your tile</dd>
+                            <dt>Inventory</dt>
+                            <dd><tt>i</tt> &mdash; then <tt>u</tt> use/equip, <tt>d</tt> drop, <tt>Esc</tt> close</dd>
+                            <dt>Quick use</dt>
+                            <dd><tt>u</tt> &mdash; opens the inventory ready to use/equip</dd>
+                        </dl>
+                    </section>
+                    <section>
                         <h3>View</h3>
                         <dl>
                             <dt>Toggle graphics</dt>
@@ -355,8 +366,16 @@ else
                     <ul class="inventory_list">
                         @foreach (var (letter, entry) in inventoryItems)
                         {
-                            <li>
-                                @letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")
+                            <li class="inventory_row">
+                                @if (renderAscii)
+                                {
+                                    <span class="inventory_glyph" style="color:@(string.IsNullOrEmpty(entry.ItemType.CharacterColor) ? "white" : entry.ItemType.CharacterColor)">@entry.ItemType.Character</span>
+                                }
+                                else
+                                {
+                                    <img class="inventory_icon" src="img/@(entry.ItemType.ImgFolder)/@(entry.ItemType.Image).png" alt="" />
+                                }
+                                <span>@letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")</span>
                             </li>
                         }
                     </ul>
@@ -730,6 +749,14 @@ else
         {
             showInventory = true;
             pendingInventoryAction = null;
+            return;
+        }
+        // Quick-use: open the inventory already armed for use/equip, so a single 'u' then a letter
+        // uses an item - exactly like pressing 'i' then 'u'. HandleInventoryKey takes it from here.
+        if (key.Equals("u", StringComparison.OrdinalIgnoreCase))
+        {
+            showInventory = true;
+            pendingInventoryAction = InventoryAction.Use;
             return;
         }
 
