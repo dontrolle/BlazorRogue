@@ -1,6 +1,7 @@
 using System.Linq;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 
@@ -40,10 +41,36 @@ public class ItemInteractionTests
         return item;
     }
 
+    // Map generation can drop items, chests and decorations on any floor tile, the player's own
+    // start tile included, which makes assertions about exactly what is on that tile flaky. Park
+    // the player on a tile we know is empty first.
+    static void PlacePlayerOnEmptyTile(Game game)
+    {
+        var map = game.Map;
+        for (int x = 1; x < map.Width - 1; x++)
+        {
+            for (int y = 1; y < map.Height - 1; y++)
+            {
+                if (
+                    map.Tiles[x, y].TileType == TileType.Floor
+                    && !map.IsBlocked(x, y)
+                    && !map.GameObjectByCoord[x, y].Any()
+                )
+                {
+                    map.Player.PlaceAt(x, y);
+                    return;
+                }
+            }
+        }
+
+        throw new InvalidOperationException("No empty floor tile found to place the player on.");
+    }
+
     [Fact]
     public void PickUpItemsAtPlayerPicksUpAnItemAndRemovesItFromTheFloor()
     {
         var game = new Game();
+        PlacePlayerOnEmptyTile(game);
         var item = AddItemAtPlayer(game, HealthPotion);
 
         bool pickedUp = game.Map.PickUpItemsAtPlayer();
@@ -61,6 +88,7 @@ public class ItemInteractionTests
     public void PickUpItemsAtPlayerReturnsFalseOnAnEmptyTile()
     {
         var game = new Game();
+        PlacePlayerOnEmptyTile(game);
 
         Assert.False(game.Map.PickUpItemsAtPlayer());
     }
@@ -69,6 +97,7 @@ public class ItemInteractionTests
     public void PickUpItemsAtPlayerPicksUpEveryItemOnTheTileInOnePress()
     {
         var game = new Game();
+        PlacePlayerOnEmptyTile(game);
         AddItemAtPlayer(game, HealthPotion);
         AddItemAtPlayer(game, RingOfProtection);
 

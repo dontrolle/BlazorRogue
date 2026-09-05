@@ -209,7 +209,7 @@ class Map
                 Game.AddMessage(
                     ReferenceEquals(moveable, Player)
                         ? $"You take {dealt} damage from the {acid.Name}!"
-                        : $"{moveable.Name} takes {dealt} damage from the {acid.Name}!"
+                        : $"The {moveable.Name} takes {dealt} damage from the {acid.Name}!"
                 );
             }
         }
@@ -235,7 +235,7 @@ class Map
         Game.AddMessage(
             ReferenceEquals(moveable, Player)
                 ? $"You stumble in the {slow.Name} and fail to move."
-                : $"{moveable.Name} stumbles in the {slow.Name} and fails to move."
+                : $"The {moveable.Name} stumbles in the {slow.Name} and fails to move."
         );
         return true;
     }

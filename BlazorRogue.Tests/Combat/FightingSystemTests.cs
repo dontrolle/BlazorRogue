@@ -100,4 +100,34 @@ public class FightingSystemTests
             $"Expected an attacker with much higher weapon skill to land more hits ({strongAttackerHits}) than one with much lower weapon skill ({weakAttackerHits}) over {rounds} rounds."
         );
     }
+
+    [Fact]
+    public void CombatMessageCallsThePlayerYouWhenItIsTheAttacker()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+        var goblin = CreateMoveable("Goblin", weaponSkill: 30, weaponDamage: 1);
+
+        game.FightingSystem.CloseCombatAttack(player.CombatComponent!, goblin.CombatComponent!);
+
+        string message = game.Messages[^1];
+        Assert.StartsWith("You ", message);
+        Assert.Contains("the Goblin", message);
+        Assert.DoesNotContain(player.Name, message);
+    }
+
+    [Fact]
+    public void CombatMessageCallsThePlayerYouWhenItIsTheDefender()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+        var goblin = CreateMoveable("Goblin", weaponSkill: 30, weaponDamage: 1);
+
+        game.FightingSystem.CloseCombatAttack(goblin.CombatComponent!, player.CombatComponent!);
+
+        string message = game.Messages[^1];
+        Assert.StartsWith("The Goblin ", message);
+        Assert.Contains(" you", message);
+        Assert.DoesNotContain(player.Name, message);
+    }
 }
