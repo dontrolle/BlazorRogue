@@ -90,7 +90,11 @@ abstract class GameObject
     internal void Kill()
     {
         References.SoundManager.PlayKillMonsterSound();
-        References.Game.AddMessage($"{Name} was killed!");
+        References.Game.AddMessage(
+            ReferenceEquals(this, References.Map.Player)
+                ? "You were killed!"
+                : $"The {Name} was killed!"
+        );
         OnGameObjectKilled(new EventArgs());
     }
 }

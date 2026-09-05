@@ -16,6 +16,6 @@ abstract class AIComponent(Map map) : Component()
             return;
 
         Awake = true;
-        References.Game.AddMessage($"{Owner!.Name} awake{(Owner!.Singular ? "s" : "")}");
+        References.Game.AddMessage($"The {Owner!.Name} awake{(Owner!.Singular ? "s" : "")}.");
     }
 }

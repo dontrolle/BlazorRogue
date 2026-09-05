@@ -50,18 +50,32 @@ class FightingSystem(Game game) : IFightingSystem
         // if we're not in a test, then add messages
         if (Game != null)
         {
-            string hitTerm = $"hit{(attacker.Owner!.Singular ? "s" : "")}";
-            string missTerm = $"miss{(attacker.Owner!.Singular ? "es" : "")}";
+            var player = Game.Map.Player;
+            bool attackerIsPlayer = ReferenceEquals(attacker.Owner, player);
+            bool defenderIsPlayer = ReferenceEquals(defender.Owner, player);
+
+            string attackerName = attackerIsPlayer ? "You" : $"The {attacker.Owner!.Name}";
+            string defenderName = defenderIsPlayer ? "you" : $"the {defender.Owner!.Name}";
+
+            // Second person ("You hit") takes no -s the way a third-person singular subject
+            // ("The goblin hits") does.
+            bool singularVerb = attacker.Owner!.Singular && !attackerIsPlayer;
+            string hitTerm = $"hit{(singularVerb ? "s" : "")}";
+            string missTerm = $"miss{(singularVerb ? "es" : "")}";
             string description = hit ? hitTerm : missTerm;
-            string damageDescription = damage > 0 ? $" and deals {damage} damage." : "";
-            Game.AddMessage(
-                $"{attacker.Owner!.Name} {description} {defender.Owner!.Name}{damageDescription}"
-            );
+            string damageDescription = damage > 0 ? $" and deals {damage} damage" : "";
+            Game.AddMessage($"{attackerName} {description} {defenderName}{damageDescription}.");
 
             if (Game.DebugMode)
             {
+                string attackerRolls = attackerIsPlayer
+                    ? "You roll"
+                    : $"{attacker.Owner!.Name} rolls";
+                string defenderRolls = defenderIsPlayer
+                    ? "You roll"
+                    : $"{defender.Owner!.Name} rolls";
                 Game.AddMessage(
-                    $"({attacker.Owner!.Name} rolls {toHitRoll} => SL {attackerSL}) ({defender.Owner!.Name} rolls {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
+                    $"({attackerRolls} {toHitRoll} => SL {attackerSL}) ({defenderRolls} {toDefendRoll} => SL {defenderSL}) (resulting SL for attacker: {attackerSLAdvantage})"
                 );
             }
         }

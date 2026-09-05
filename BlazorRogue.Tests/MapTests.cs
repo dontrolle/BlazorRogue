@@ -197,6 +197,18 @@ public class MapTests
     }
 
     [Fact]
+    public void PlayerDeathMessageRefersToThePlayerAsYou()
+    {
+        var game = new Game();
+        var player = game.Map.Player;
+
+        player.CombatComponent!.ApplyDamage(1000);
+
+        Assert.Contains("You were killed!", game.Messages);
+        Assert.DoesNotContain(game.Messages, m => m == $"{player.Name} was killed!");
+    }
+
+    [Fact]
     public void HandlePlayerActionIsRefusedOnceTheGameIsOver()
     {
         var game = new Game();
