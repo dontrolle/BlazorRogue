@@ -184,6 +184,13 @@
   width: 100%;
   height: 100%;
   justify-content: center;
+  /* Scale the 48px tileset art to whatever the current cell size is (see graphicGridTileSize /
+     the +/- zoom in GamePage.razor) instead of rendering it 1:1 and clipping when zoomed out. */
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* Keep the pixel art crisp when it isn't at 1:1 - browser zoom, OS display scaling, or the
+     in-game zoom. Matches the UI sprites, which already opt in (see .stat-icon > img etc.). */
+  image-rendering: pixelated;
 }
 
 .decoration {
@@ -194,6 +201,9 @@
   left: 0px;
   top: 0px;
   background-size: cover;
+  background-repeat: no-repeat;
+  /* Same as .tile: keep sprites crisp at non-1:1 scales (zoom / display scaling). */
+  image-rendering: pixelated;
   justify-content: center;
   /* Decorations only exist to be looked at - the game has no click-to-interact step - so by
      default they must not intercept the pointer. Without this, a decoration with no tooltip of

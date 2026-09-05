@@ -50,6 +50,17 @@ sealed class GameSession
     /// </summary>
     public bool PreferAscii { get; set; }
 
+    /// <summary>The tile size (px) the tileset renderer starts at, before any in-game zoom.</summary>
+    public const int DefaultGraphicTileSize = 48;
+
+    /// <summary>
+    /// The tileset renderer's tile size in px, adjusted in-game with +/-. Kept here (like
+    /// <see cref="PreferAscii"/>) so the chosen zoom survives a page reload along with the game.
+    /// The component clamps this to its own min/max on load, so an out-of-range value stored by a
+    /// future build can't break the view.
+    /// </summary>
+    public int GraphicTileSize { get; set; } = DefaultGraphicTileSize;
+
     /// <summary>
     /// When this session was last created, resumed or played. Drives idle eviction in
     /// <see cref="GameSessionStore"/>.
