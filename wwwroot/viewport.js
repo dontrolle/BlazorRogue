@@ -6,8 +6,11 @@ window.blazorViewport = (() => {
     const leftEl = document.getElementById(leftMenuId);
     const debugEl = document.getElementById(debugId);
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // documentElement.clientWidth/Height exclude whatever scrollbar is showing right now, so the
+    // fit is computed against genuinely usable space. window.innerWidth counts the scrollbar
+    // gutter, which lets the grid grow just wide enough to keep that scrollbar there for good.
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
 
     const leftWidth = leftEl ? Math.ceil(leftEl.getBoundingClientRect().width) : 0;
     const debugWidth = debugEl ? Math.ceil(debugEl.getBoundingClientRect().width) : 0;

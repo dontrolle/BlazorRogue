@@ -386,6 +386,12 @@ else
     private DotNetObjectReference<GamePage>? _selfRef;
     private bool _resizeHandlingInProgress;
 
+    // Set on the first render (which still shows the `session is null` placeholder) so the map is
+    // fitted on the *next* render, once the real UI - #left_menu, #mapcontainer - is in the DOM for
+    // getAvailableMapArea to measure. Fitting during the first render measured missing elements as
+    // zero-width and sized the grid ~3 columns too wide, leaving scrollbars until the first resize.
+    private bool _needsInitialFit;
+
     private sealed record HealthBarMetrics(
         bool ShowDrain,
         int GreyStripWidthPx,
@@ -462,6 +468,14 @@ else
     {
         if (!firstRender)
         {
+            // The first render only had the "Loading" placeholder in the DOM, so the map fit was
+            // deferred to here - the real UI it needs to measure is now present.
+            if (_needsInitialFit)
+            {
+                _needsInitialFit = false;
+                await FitMapToViewportAsync();
+                StateHasChanged();
+            }
             return;
         }
 
@@ -493,12 +507,14 @@ else
         );
 
         CenterViewportOnPlayer();
-        await FitMapToViewportAsync();
 
         _selfRef = DotNetObjectReference.Create(this);
         await JsRuntime.InvokeVoidAsync("blazorViewport.registerResize", _selfRef);
         await JsRuntime.InvokeVoidAsync("blazorroguefuncs.registerKeyup", _selfRef);
 
+        // Render the real game UI now; OnAfterRenderAsync fires again once it's in the DOM, and the
+        // _needsInitialFit branch above sizes the map viewport against it.
+        _needsInitialFit = true;
         StateHasChanged();
     }
 
