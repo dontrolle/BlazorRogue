@@ -121,6 +121,10 @@ dotnet csharpier check .
   `code` (defaults `code` to `"d"`, not `"KeyD"`) silently does nothing - always pass both for
   movement/pickup/etc. (`?`, `Escape`, and letters used only for inventory selection are the
   exceptions - `HandleInventoryKey`/the help toggle match on `key`).
+- **Item keys.** `g` picks up items on the player's tile; `i` opens the inventory modal; `u` opens
+  it already armed for use/equip (same as `i` then `u`). Inside the modal `d`/`u` arm drop/use and
+  the next key is read as the item's letter, `Esc` closes - all matched on `key`, so pass `key`
+  (a bare `code` is ignored here).
 - **Item/monster/room layout is randomized per new game.** A screenshot or a scripted walk from
   one run won't reproduce on the next `launch`. For anything that needs to reach a specific game
   object (an item, a monster), locate it first with `eval` reading `.decoration`'s `alt` attribute

@@ -126,7 +126,7 @@ else
             }
         </div>
         <div class="instructions">
-            Press <tt>?</tt> for help
+            Press <kbd>?</kbd> for help
         </div>
     </div>
 
@@ -288,50 +288,36 @@ else
     {
         <div class="help_backdrop" @onclick="CloseHelp">
             <div class="help_modal" @onclick:stopPropagation="true">
-                <h1>Help</h1>
-                <div class="help_columns">
-                    <section>
-                        <h3>New Game</h3>
-                        <dl>
-                            <dt>New game</dt>
-                            <dd>Use the <b>New game</b> button</dd>
-                        </dl>
-                    </section>
-                    <section>
-                        <h3>Movement</h3>
-                        <dl>
-                            <dt>Move</dt>
-                            <dd><tt>&lt;Numkey&gt;</tt> or <tt>qwe/ad/zxc</tt></dd>
-                        </dl>
-                    </section>
-                    <section>
-                        <h3>Attack</h3>
-                        <dl>
-                            <dt>Attack</dt>
-                            <dd>Move into a monster</dd>
-                        </dl>
-                    </section>
-                    <section>
-                        <h3>Rest</h3>
-                        <dl>
-                            <dt>Wait</dt>
-                            <dd><tt>5</tt> or <tt>s</tt> &mdash; skip a turn in place</dd>
-                        </dl>
-                    </section>
-                    <section>
-                        <h3>Use</h3>
-                        <dl>
-                            <dt>Use</dt>
-                            <dd><tt>&lt;Shift&gt;+Move</tt> &mdash; doors, chests, etc.</dd>
-                        </dl>
-                    </section>
-                    <section>
-                        <h3>View</h3>
-                        <dl>
-                            <dt>Toggle graphics</dt>
-                            <dd><tt>&lt;Ctrl&gt;+A</tt> &mdash; switch between ASCII and tileset</dd>
-                        </dl>
-                    </section>
+                <div class="help_grid">
+                    <div class="help_key">Move / attack</div>
+                    <div class="help_act">
+                        <kbd>Numpad</kbd> or <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> / <kbd>A</kbd><kbd>D</kbd> / <kbd>Z</kbd><kbd>X</kbd><kbd>C</kbd> &mdash; step into a monster to attack
+                    </div>
+
+                    <div class="help_key">Wait</div>
+                    <div class="help_act"><kbd>5</kbd> or <kbd>S</kbd> &mdash; skip a turn in place</div>
+
+                    <div class="help_key">Operate</div>
+                    <div class="help_act"><kbd>Shift</kbd> + move &mdash; doors, chests, &hellip;</div>
+
+                    <div class="help_group">Items</div>
+
+                    <div class="help_key">Pick up</div>
+                    <div class="help_act"><kbd>G</kbd> &mdash; grab items on your tile</div>
+
+                    <div class="help_key">Inventory</div>
+                    <div class="help_act"><kbd>I</kbd> &mdash; then <kbd>U</kbd> use/equip &middot; <kbd>D</kbd> drop &middot; <kbd>Esc</kbd> close</div>
+
+                    <div class="help_key">Quick use</div>
+                    <div class="help_act"><kbd>U</kbd> &mdash; opens the inventory ready to use/equip</div>
+
+                    <div class="help_group">View</div>
+
+                    <div class="help_key">Render mode</div>
+                    <div class="help_act"><kbd>Ctrl</kbd> + <kbd>A</kbd> &mdash; ASCII &#8644; tileset</div>
+
+                    <div class="help_key">New game</div>
+                    <div class="help_act">&ldquo;New game&rdquo; button, top-left</div>
                 </div>
                 <p class="help_dismiss_hint">Press any key to close</p>
             </div>
@@ -355,8 +341,16 @@ else
                     <ul class="inventory_list">
                         @foreach (var (letter, entry) in inventoryItems)
                         {
-                            <li>
-                                @letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")
+                            <li class="inventory_row">
+                                @if (renderAscii)
+                                {
+                                    <span class="inventory_glyph" style="color:@(string.IsNullOrEmpty(entry.ItemType.CharacterColor) ? "white" : entry.ItemType.CharacterColor)">@entry.ItemType.Character</span>
+                                }
+                                else
+                                {
+                                    <img class="inventory_icon" src="img/@(entry.ItemType.ImgFolder)/@(entry.ItemType.Image).png" alt="" />
+                                }
+                                <span>@letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")</span>
                             </li>
                         }
                     </ul>
@@ -372,7 +366,7 @@ else
                     }
                     else
                     {
-                        <text><tt>d</tt> drop &middot; <tt>u</tt> use/equip &middot; <tt>Esc</tt> close</text>
+                        <text><kbd>D</kbd> drop &middot; <kbd>U</kbd> use/equip &middot; <kbd>Esc</kbd> close</text>
                     }
                 </p>
             </div>
@@ -730,6 +724,14 @@ else
         {
             showInventory = true;
             pendingInventoryAction = null;
+            return;
+        }
+        // Quick-use: open the inventory already armed for use/equip, so a single 'u' then a letter
+        // uses an item - exactly like pressing 'i' then 'u'. HandleInventoryKey takes it from here.
+        if (key.Equals("u", StringComparison.OrdinalIgnoreCase))
+        {
+            showInventory = true;
+            pendingInventoryAction = InventoryAction.Use;
             return;
         }
 

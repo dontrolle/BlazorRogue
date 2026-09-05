@@ -324,27 +324,89 @@
 .help_modal {
   background-color: #222;
   color: white;
-  padding: 1.5em 2em;
+  padding: 1.1em 1.4em;
   border-radius: 6px;
-  max-width: 700px;
+  max-width: 470px;
   max-height: 80vh;
   overflow-y: auto;
 }
 
-.help_columns {
-  column-count: 2;
-  column-gap: 2em;
+/* Two-column key/action grid: keys align in a single column down the left, the group labels
+   ("Items", "View") span the full width as lightweight separators. Replaces the old per-section
+   <h3> + <dl> layout, which stacked three lines (heading, term, description) per shortcut. */
+.help_grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.25em;
+  row-gap: 0.3em;
+  align-items: baseline;
 }
 
-.help_columns section {
-  break-inside: avoid;
-  margin-bottom: 1em;
+.help_key {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.help_group {
+  grid-column: 1 / -1;
+  margin: 0.7em 0 0.15em;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+/* Key-cap styling for the shortcut letters in both the help overlay and the inventory modal. */
+.help_modal kbd,
+.instructions kbd {
+  display: inline-block;
+  min-width: 1em;
+  margin: 0 0.05em;
+  padding: 0 0.3em;
+  border: 1px solid #555;
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background-color: #333;
+  font-family: inherit;
+  font-size: 0.85em;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .help_dismiss_hint {
-  margin-top: 1em;
+  margin-top: 0.6em;
   opacity: 0.7;
   font-style: italic;
+  font-size: 0.9em;
+}
+
+/* Inventory list inside the .help_modal. Each row is prefixed with the item's sprite (tileset
+   mode) or its coloured ASCII glyph (ASCII mode) - see the inventory modal in GamePage.razor. */
+.inventory_list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5em 0;
+}
+
+.inventory_row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 28px;
+}
+
+.inventory_icon {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+}
+
+.inventory_glyph {
+  display: inline-block;
+  width: 28px;
+  text-align: center;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
   /* Tooltips */

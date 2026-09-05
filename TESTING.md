@@ -6,7 +6,9 @@ writing tests and how to manually verify changes that can't be unit tested.
 ## Tests (`BlazorRogue.Tests`)
 
 xUnit project covering core, UI-independent game logic: dice/combat math (`Combat/`),
-`Configuration` JSON parsing, `Map` geometry helpers, and end-to-end dungeon-generation smoke tests.
+`Configuration` JSON parsing, `Map` geometry helpers, item/inventory logic (`ItemTests`,
+`ItemInteractionTests`, `Components/InventoryComponentTests`), and end-to-end dungeon-generation
+smoke tests.
 It references `BlazorRogue.csproj` directly (`InternalsVisibleTo` in `BlazorRogue.csproj` lets tests
 wire up internal-setter statics like `References.SoundManager`, mirroring how `Pages/GamePage.razor`
 does it at runtime), and mirrors `Data/*.json` into its own output directory since
@@ -62,3 +64,8 @@ app (`dotnet run --urls http://localhost:5000`). Hard-won notes:
   cycling **New game** and waiting a few turns in each is far faster, since any hit is then lethal.
 - Screenshot and zoom regions are in **device** pixels, while `getBoundingClientRect()` returns CSS
   pixels — scale by the display factor (e.g. 1568/1280 ≈ 1.225) or the zoom will miss its target.
+- **The inventory modal** (`i`, or `u` to open it already armed for use/equip) is Blazor UI, not
+  unit-tested. Verify it by dispatching `g` on an item tile, then `u`, and checking the modal lists
+  the item — in tileset mode each row has an `<img class="inventory_icon">` (its `uf_items` sprite);
+  in ASCII mode a `<span class="inventory_glyph">` with the item's coloured character. Then dispatch
+  the item's letter and confirm it's used/equipped and the modal closes.
