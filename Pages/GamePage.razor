@@ -316,6 +316,9 @@ else
                     <div class="help_key">Render mode</div>
                     <div class="help_act"><kbd>Ctrl</kbd> + <kbd>A</kbd> &mdash; ASCII &#8644; tileset</div>
 
+                    <div class="help_key">Zoom</div>
+                    <div class="help_act"><kbd>+</kbd> / <kbd>-</kbd> &mdash; tile size (tileset mode)</div>
+
                     <div class="help_key">New game</div>
                     <div class="help_act">&ldquo;New game&rdquo; button, top-left</div>
                 </div>
@@ -482,6 +485,13 @@ else
         // A stored preference only applies when the tileset is actually installed.
         renderAscii = !tilesetAvailable || session.PreferAscii;
 
+        // Clamp on load so a value stored by another build (different min/max) can't break the view.
+        graphicGridTileSize = Math.Clamp(
+            session.GraphicTileSize,
+            minGraphicGridTileSize,
+            maxGraphicGridTileSize
+        );
+
         CenterViewportOnPlayer();
         await FitMapToViewportAsync();
 
@@ -587,7 +597,14 @@ else
 
     bool renderAscii = false;
     const int asciiGridTileSize = 20;
-    const int graphicGridTileSize = 48;
+
+    // Tileset cell size in px. Adjustable in-game with +/- (see KeyUp) and persisted on the
+    // session so the choice outlives a reload. The art is authored at 48px; smaller shows more
+    // map, larger zooms in - .tile/.decoration use background-size: cover to scale to match.
+    const int minGraphicGridTileSize = 24;
+    const int maxGraphicGridTileSize = 64;
+    const int graphicGridTileSizeStep = 8;
+    int graphicGridTileSize = GameSession.DefaultGraphicTileSize;
     bool tikTok = false;
     bool tilesetAvailable;
     bool confirmNewGame;
@@ -742,6 +759,28 @@ else
         if (ctrlKey && key.Equals("a", StringComparison.OrdinalIgnoreCase))
         {
             await ToggleRenderMode();
+            return;
+        }
+
+        // Tileset zoom: '+' / '=' zoom in, '-' zoom out (numpad +/- send the same key). A view
+        // preference like the render mode above, so it stays live after game over. No-op in ASCII
+        // mode, which has its own fixed cell size; the keypress falls through there but drives no
+        // game action.
+        if (!renderAscii && key is "+" or "=" or "-")
+        {
+            int step = key == "-" ? -graphicGridTileSizeStep : graphicGridTileSizeStep;
+            int zoomed = Math.Clamp(
+                graphicGridTileSize + step,
+                minGraphicGridTileSize,
+                maxGraphicGridTileSize
+            );
+            if (zoomed != graphicGridTileSize)
+            {
+                graphicGridTileSize = zoomed;
+                session.GraphicTileSize = zoomed;
+                // Re-fit: the number of tiles that fit the viewport is derived from the cell size.
+                await FitMapToViewportAsync();
+            }
             return;
         }
 
