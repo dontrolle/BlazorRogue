@@ -36,11 +36,6 @@ class CombatComponent(
             field =
                 Math.Clamp(value, 0, MaxWounds);
 
-            if (Owner != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"{Owner.Name} now has {field}W");
-            }
-
             if (field <= 0)
             {
                 Owner!.Kill();
@@ -51,15 +46,7 @@ class CombatComponent(
     // TODO: AdvantageCap=0 ie, disable Advantage - at least for now
     const int AdvantageCap = 0;
 
-    public int Advantage
-    {
-        get;
-        private set
-        {
-            field = value;
-            System.Diagnostics.Debug.WriteLine($"{Owner!.Name} now has {Advantage} Advantage");
-        }
-    }
+    public int Advantage { get; private set; }
 
     public bool IsStarving { get; internal set; }
 
