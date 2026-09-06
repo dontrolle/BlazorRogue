@@ -61,6 +61,11 @@ class Configuration
         "Data",
         "items.json"
     );
+    static readonly string GameConfigFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "game-config.json"
+    );
 
     readonly Dictionary<string, MoveableType> monsterTypes = [];
     public IReadOnlyDictionary<string, MoveableType> MonsterTypes => monsterTypes;
@@ -102,6 +107,24 @@ class Configuration
             : throw new InvalidOperationException($"Unknown liquid-set id: {id}.");
 
     const string DefaultStairsFloorSetId = "grey";
+
+    /// <summary>Level number a new game starts on when <c>game-config.json</c> doesn't say otherwise.</summary>
+    internal const int DefaultStartingLevelNumber = 0;
+
+    /// <summary>
+    /// Level number (a level's <c>no</c> in <c>levels.json</c>) that a new <see cref="Game"/>
+    /// starts on, from <c>Data/game-config.json</c>'s <c>starting_level</c>. Defaults to
+    /// <see cref="DefaultStartingLevelNumber"/>, and <see cref="Parse"/> fail-fast validates that a
+    /// level with this number actually exists.
+    /// </summary>
+    public int StartingLevelNumber { get; private set; } = DefaultStartingLevelNumber;
+
+    /// <summary>
+    /// Initial value for <see cref="Game.DebugMode"/> (verbose combat rolls in the message log),
+    /// from <c>Data/game-config.json</c>'s <c>debug_mode</c>. Defaults to <c>false</c>; toggle it
+    /// in-game with Ctrl+D.
+    /// </summary>
+    public bool DebugMode { get; private set; }
 
     // Set by Parse() once all floorsets are loaded and validated; used as the stair image source
     // for any floorset that doesn't define its own "img_stairs" (see Stair.Render). null! avoids
@@ -242,6 +265,14 @@ class Configuration
             }
         }
 
+        ParseGameConfig(options);
+        if (!levels.ContainsKey(StartingLevelNumber))
+        {
+            throw new InvalidOperationException(
+                $"game-config.json 'starting_level' is {StartingLevelNumber}, but levels.json defines no level with that number."
+            );
+        }
+
         DefaultStairsFloorSet = FloorSetById(DefaultStairsFloorSetId);
         if (DefaultStairsFloorSet.StairImages is null)
         {
@@ -273,6 +304,33 @@ class Configuration
         foreach (var element in root.EnumerateArray())
         {
             parseElement(element);
+        }
+    }
+
+    /// <summary>
+    /// Reads the optional <c>Data/game-config.json</c> (a flat object of local knobs, not the
+    /// <c>{ "&lt;root&gt;": [ ... ] }</c> shape the other data files use, so it doesn't go through
+    /// <see cref="ParseDataFile"/>). A missing file, or a missing key within it, leaves the
+    /// corresponding property at its default.
+    /// </summary>
+    void ParseGameConfig(JsonDocumentOptions options)
+    {
+        if (!File.Exists(GameConfigFileName))
+        {
+            return;
+        }
+
+        using var jsonFile = File.OpenRead(GameConfigFileName);
+        using var doc = JsonDocument.Parse(jsonFile, options);
+        var root = doc.RootElement;
+
+        if (root.TryGetProperty("starting_level", out var startingLevelElement))
+        {
+            StartingLevelNumber = RequireNonNullInt(startingLevelElement, "starting_level");
+        }
+        if (root.TryGetProperty("debug_mode", out var debugModeElement))
+        {
+            DebugMode = debugModeElement.GetBoolean();
         }
     }
 

@@ -22,26 +22,6 @@
             }
         },
         {
-            "name": ".NET Core Launch (Test Level)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "BlazorRogue: build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net10.0/BlazorRogue.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "stopAtEntry": false,
-            "launchBrowser": {
-                "enabled": true
-            },
-            "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development",
-                // Matches "Game:StartingLevelId" in Program.cs - starts every session on
-                // Data/levels.json's "test_level" instead of the normal level 0.
-                "Game__StartingLevelId": "test_level"
-            }
-        },
-        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",

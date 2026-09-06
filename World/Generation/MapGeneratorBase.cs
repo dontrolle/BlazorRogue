@@ -680,7 +680,6 @@ abstract class MapGeneratorBase(
         if (mapGenerationRandomSource.NextDouble() < percentageChanceOfTorch)
         {
             map.AddGameObject(new Torch(x, y));
-            //map.DebugInfo.Add($"Added torch at ({x},{y}).");
         }
     }
 

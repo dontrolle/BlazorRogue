@@ -11,7 +11,6 @@ class SimpleAIComponent(Map map) : AIComponent(map)
     {
         if (!Awake)
         {
-            // Map.DebugInfo.Add("Monster wasn't awake, so skipping.");
             return;
         }
 

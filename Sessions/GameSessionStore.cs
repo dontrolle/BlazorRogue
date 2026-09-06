@@ -33,15 +33,9 @@ sealed class GameSessionStore
     readonly TimeProvider timeProvider;
     readonly int maxSessions;
     readonly TimeSpan idleTimeout;
-    readonly string? startingLevelId;
 
-    public GameSessionStore(
-        Configuration configuration,
-        TimeProvider timeProvider,
-        string? startingLevelId = null
-    )
-        : this(configuration, timeProvider, DefaultMaxSessions, DefaultIdleTimeout, startingLevelId)
-    { }
+    public GameSessionStore(Configuration configuration, TimeProvider timeProvider)
+        : this(configuration, timeProvider, DefaultMaxSessions, DefaultIdleTimeout) { }
 
     /// <summary>
     /// Overload letting tests shrink the limits, so eviction can be exercised without generating
@@ -51,15 +45,13 @@ sealed class GameSessionStore
         Configuration configuration,
         TimeProvider timeProvider,
         int maxSessions,
-        TimeSpan idleTimeout,
-        string? startingLevelId = null
+        TimeSpan idleTimeout
     )
     {
         this.configuration = configuration;
         this.timeProvider = timeProvider;
         this.maxSessions = maxSessions;
         this.idleTimeout = idleTimeout;
-        this.startingLevelId = startingLevelId;
     }
 
     /// <summary>Number of sessions currently held. Intended for tests and diagnostics.</summary>
@@ -78,7 +70,7 @@ sealed class GameSessionStore
         // browsers racing on the same id would waste a dungeon, never share a corrupted one.
         var session = sessions.GetOrAdd(
             id,
-            key => new GameSession(key, configuration, timeProvider, startingLevelId)
+            key => new GameSession(key, configuration, timeProvider)
         );
 
         session.LastAccessed = timeProvider.GetUtcNow();

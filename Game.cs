@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Effects;
 using BlazorRogue.Entities;
@@ -27,8 +26,14 @@ class Game
     readonly Dictionary<int, Map> visitedLevels = [];
 
     const int MaxMessages = 5;
-    const int DefaultStartingLevelNumber = 0;
-    internal bool DebugMode;
+
+    /// <summary>
+    /// <c>Game.DebugMode</c> controls various settings, e.g. verbose combat logging
+    /// (dice rolls in the message log - see <c>FightingSystem</c>). Seeded from
+    /// <see cref="Entities.Configuration.DebugMode"/> when the game is created;
+    /// toggled in-game with Ctrl+D (see <c>GamePage.KeyUp</c>).
+    /// </summary>
+    internal bool DebugMode { get; set; }
     readonly List<string> messages = [];
     public IReadOnlyList<string> Messages => messages;
 
@@ -37,31 +42,26 @@ class Game
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses
-    /// <see cref="Game(Configuration, string)"/>; this overload exists for tests and standalone
-    /// use.
+    /// <see cref="Game(Configuration)"/>; this overload exists for tests and standalone use.
     /// </remarks>
-    public Game(string? startingLevelId = null)
-        : this(ParseConfiguration(), startingLevelId) { }
+    public Game()
+        : this(ParseConfiguration()) { }
 
     /// <summary>
     /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
-    /// shared with other games - it is immutable once parsed.
+    /// shared with other games - it is immutable once parsed. The starting level
+    /// (<see cref="Entities.Configuration.StartingLevelNumber"/>) and the initial
+    /// <see cref="DebugMode"/> both come from <c>Data/game-config.json</c> via the configuration.
     /// </summary>
     /// <param name="configuration">Already-parsed, immutable game content.</param>
-    /// <param name="startingLevelId">
-    /// When given, starts on the level with this id instead of <see cref="DefaultStartingLevelNumber"/>
-    /// - e.g. "test_level", driven by the "Game:StartingLevelId" config value (see Program.cs), so
-    /// switching to it is a config/env-var flip rather than an edit to this file or to
-    /// Data/levels.json's level numbering.
-    /// </param>
-    public Game(Configuration configuration, string? startingLevelId = null)
+    public Game(Configuration configuration)
     {
         Configuration = configuration;
         References.Configuration = Configuration;
 
-        var level = startingLevelId is null
-            ? configuration.Levels[DefaultStartingLevelNumber]
-            : configuration.Levels.Values.Single(l => l.Id == startingLevelId);
+        DebugMode = configuration.DebugMode;
+
+        var level = configuration.Levels[configuration.StartingLevelNumber];
         CurrentLevelNumber = level.Number;
         MapGenerator = MapGeneratorFactory.Create(level, this);
 

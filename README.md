@@ -97,6 +97,7 @@ so the containerized game always runs in ASCII-renderer mode.
 | Quick use / equip an item | `u` — opens the inventory ready to use/equip |
 | Start a new game | "New game" button (left panel) |
 | Switch tileset/ASCII rendering | CTRL-A |
+| Toggle debug mode | CTRL-D |
 | Help overlay | ? |
 
 ## Tileset
@@ -153,6 +154,7 @@ Most game content is data, not code — new monsters, heroes, floor/wall sets, a
 - `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
 - `Data/items.json` — pickup-able items: name, kind (`use_once` / `equipable`), sprite + ASCII glyph, and effect (`heal` / `armour_bonus`) with a magnitude.
 - `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
+- `Data/game-config.json` — optional local knobs: `starting_level` (the level `no` a new game starts on, default `0`; set to `-1000` to start on the test level) and `debug_mode` (initial value of the in-game Ctrl-D debug toggle, default `false`). The file, or either key, may be omitted.
 
 These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind — follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.
 

@@ -35,7 +35,7 @@ how to test changes in these areas.
   happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `liquidsets.json`,
-  `decorations.json`, `items.json`, `levels.json`) into strongly-typed dictionaries (`MoveableType`,
+  `decorations.json`, `items.json`, `levels.json`, plus the optional `game-config.json`) into strongly-typed dictionaries (`MoveableType`,
   `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `ItemType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
   (not the process's current working directory), so `Data/*.json` is a `CopyToOutputDirectory`
   content item in `BlazorRogue.csproj` — it ships next to the built assembly in both `dotnet
@@ -49,7 +49,13 @@ how to test changes in these areas.
   `generator_id` against `MapGeneratorFactory` right after loading `levels.json` (see *Map
   generation* below) and every monster's `ai_component.id` against `AIComponentFactory` right after
   loading `monsters.json` (see *AI components* below), so an unknown id breaks at app startup rather
-  than mid-game.
+  than mid-game. `game-config.json` is the exception to the file shape: a flat object of local knobs
+  (`starting_level`, `debug_mode`), not a `{ "<root>": [ ... ] }` array, so it is read by
+  `ParseGameConfig` rather than `ParseDataFile`; the file and either key are optional and default to
+  level `0` / `false`, and `Parse()` fail-fast validates that `starting_level` names a real level.
+  `Game` seeds `CurrentLevelNumber` from `StartingLevelNumber` and `Game.DebugMode` from
+  `Configuration.DebugMode` at construction (the latter also re-toggled in-game via Ctrl+D — see
+  `GamePage.KeyUp`).
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `WallEdge`,
   `StaticDecorativeObject`, `Item`). Behavior is composed via optional `Component` (`Components/Component.cs`)
