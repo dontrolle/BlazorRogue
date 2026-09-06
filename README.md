@@ -96,7 +96,7 @@ so the containerized game always runs in ASCII-renderer mode.
 | Open inventory | `i` — then `u` use/equip, `d` drop, `Esc` close |
 | Quick use / equip an item | `u` — opens the inventory ready to use/equip |
 | Start a new game | "New game" button (left panel) |
-| Switch tileset/ASCII rendering | CTRL-A |
+| Toggle tileset/ASCII rendering | CTRL-A |
 | Toggle debug mode | CTRL-D |
 | Help overlay | ? |
 
