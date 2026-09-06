@@ -378,6 +378,28 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseLoadsGameConfigDefaults()
+    {
+        // The committed Data/game-config.json ships the defaults; this locks in that Parse() reads
+        // them rather than leaving the properties unset.
+        var configuration = ParseConfiguration();
+
+        Assert.Equal(0, configuration.StartingLevelNumber);
+        Assert.False(configuration.DebugMode);
+    }
+
+    [Fact]
+    public void ParseValidatesStartingLevelNumberNamesAnExistingLevel()
+    {
+        // Configuration.Parse() throws if game-config.json's starting_level doesn't match a level
+        // number in levels.json - an out-of-range value would have thrown inside ParseConfiguration()
+        // above. Mirrors the other "guard covered indirectly against the real data" tests here.
+        var configuration = ParseConfiguration();
+
+        Assert.True(configuration.Levels.ContainsKey(configuration.StartingLevelNumber));
+    }
+
+    [Fact]
     public void ParseValidatesEveryLevelsGeneratorIdIsKnown()
     {
         // Configuration.Parse() checks every level's generator id against MapGeneratorFactory

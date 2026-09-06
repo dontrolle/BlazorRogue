@@ -16,6 +16,16 @@ public class GameTests
     }
 
     [Fact]
+    public void NewGameSeedsDebugModeFromConfiguration()
+    {
+        // Data/game-config.json ships debug_mode: false, and Game copies Configuration.DebugMode
+        // into Game.DebugMode at construction (Ctrl+D flips it thereafter, per game).
+        var game = new Game();
+
+        Assert.False(game.DebugMode);
+    }
+
+    [Fact]
     public void NewGameGeneratesAPlayableMapWithAPlacedPlayer()
     {
         var game = new Game();

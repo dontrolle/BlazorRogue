@@ -23,17 +23,12 @@ builder.Services.AddSingleton(_ =>
 });
 builder.Services.AddSingleton(TimeProvider.System);
 
-// Which level new sessions start on - normally unset (level 0). Set "Game:StartingLevelId" (env
-// var Game__StartingLevelId, or appsettings) to a level's id, e.g. "test_level", to make every new
-// session start there instead - see the "BlazorRogue (Test Level)" launch profile.
-string? startingLevelId = builder.Configuration["Game:StartingLevelId"];
-
 // Holds each browser's game in memory so it survives a page reload. Constructed explicitly rather
-// than by type so the DI container can't pick the tests-only constructor overload.
+// than by type so the DI container can't pick the tests-only constructor overload. Which level a
+// new game starts on is driven by Data/game-config.json's "starting_level" (see Configuration).
 builder.Services.AddSingleton(sp => new GameSessionStore(
     sp.GetRequiredService<Configuration>(),
-    sp.GetRequiredService<TimeProvider>(),
-    startingLevelId
+    sp.GetRequiredService<TimeProvider>()
 ));
 
 var app = builder.Build();

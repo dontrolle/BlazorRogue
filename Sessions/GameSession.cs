@@ -18,22 +18,15 @@ sealed class GameSession
 {
     readonly Configuration configuration;
     readonly TimeProvider timeProvider;
-    readonly string? startingLevelId;
 
-    internal GameSession(
-        string id,
-        Configuration configuration,
-        TimeProvider timeProvider,
-        string? startingLevelId = null
-    )
+    internal GameSession(string id, Configuration configuration, TimeProvider timeProvider)
     {
         Id = id;
         this.configuration = configuration;
         this.timeProvider = timeProvider;
-        this.startingLevelId = startingLevelId;
 
         LastAccessed = timeProvider.GetUtcNow();
-        Game = new Game(configuration, startingLevelId);
+        Game = new Game(configuration);
     }
 
     public string Id { get; }
@@ -71,7 +64,7 @@ sealed class GameSession
     public void StartNewGame()
     {
         LastAccessed = timeProvider.GetUtcNow();
-        Game = new Game(configuration, startingLevelId);
+        Game = new Game(configuration);
     }
 
     /// <summary>
