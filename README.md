@@ -82,9 +82,9 @@ docker run -p 8080:8080 blazorrogue
 ```
 
 Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage
-`dotnet publish` (see `docker/Dockerfile`) and intentionally excludes the proprietary tileset assets
-(`wwwroot/img/uf_*`, gitignored and license-restricted — see [Tileset](#tileset)) via `.dockerignore`,
-so the containerized game always runs in ASCII-renderer mode.
+`dotnet publish` (see `docker/Dockerfile`) and never contains the proprietary tileset assets at all
+— see [Tileset](#tileset) — so the containerized game runs in ASCII-renderer mode unless
+`BLAZORROGUE_ART_PATH` is pointed at a separately-deployed tileset atlas.
 
 ## How to play
 
@@ -104,7 +104,7 @@ so the containerized game always runs in ASCII-renderer mode.
 
 This project employs the excellent [Ultimate Fantasy Tileset](https://www.oryxdesignlab.com/ultimatefantasy).
 
-If you own the UF Tileset, put the subfolders of the `uf_split` folder from the tileset into the `wwwroot/img/` folder, and BlazorRogue will use it automatically. Without it, the game automatically falls back to the built-in ASCII renderer — no setup needed to get playing.
+If you own the UF Tileset, see `tools/AtlasPacker/README.md` for how to build an atlas bundle from it and point the game at it via `BLAZORROGUE_ART_PATH`. Without one, the game automatically falls back to the built-in ASCII renderer — no setup needed to get playing.
 
 ## Project structure
 
@@ -122,8 +122,9 @@ Effects/                          EffectsSystem (screen shake) and SoundManager 
 Vision/                           Field-of-view implementation
 World/                            Map, Tile, Decoration and related types; World/Generation/ holds
                                    the map generators (IMapGenerator and implementors)
-Rendering/                        AnimationCssGenerator (generates @keyframes CSS from
-                                   monster/hero and liquid-pool animation data)
+Rendering/                        SpriteAtlas (licensed-tileset atlas -> CSS), AnimationCssGenerator
+                                   and HandAuthoredSpriteAnimations (generate @keyframes CSS from
+                                   monster/hero, liquid-pool, and torch/hit-flash animation data)
 Entities/                         Type definitions parsed from configuration (MoveableType,
                                    LevelConfiguration, SettingsMap, etc.), plus Configuration.cs
                                    which parses Data/*.json into them
@@ -132,8 +133,10 @@ Utility/                          Small standalone helpers (e.g. string extensio
 Data/                             JSON game data: monsters, heroes, floorsets, wallsets,
                                    liquidsets, decorations, items, levels
 Game.cs / References.cs           Core game state (see Architecture below)
-wwwroot/                          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
-docker/                           Dockerfile and Dockerfile.graphics (see Docker below)
+wwwroot/                          Static assets: CSS, JS interop, sounds
+docker/                           Dockerfile (see Docker below)
+tools/AtlasPacker/                Dev-machine-only tool that packs the licensed tileset into an
+                                   obfuscated atlas bundle for BLAZORROGUE_ART_PATH
 ```
 
 ## Architecture

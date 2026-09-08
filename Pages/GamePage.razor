@@ -1,15 +1,14 @@
 ﻿@page "/"
 
-@using System.IO
 @using System.Linq
-@using Microsoft.AspNetCore.Hosting
 @using Microsoft.JSInterop
 @using BlazorRogue.Effects
+@using BlazorRogue.Rendering
 @using BlazorRogue.Sessions
 @using BlazorRogue.World
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime;
-@inject IWebHostEnvironment WebHostEnvironment;
+@inject SpriteAtlas Atlas;
 @inject GameSessionStore Sessions;
 
 @{
@@ -81,26 +80,33 @@ else
                     <div class="health-bar">
                         @if (isDead)
                         {
-                            <img class="health-bar-base" src="/img/ui/blood_meter_empty.png" alt="Health" />
+                            <div class="health-bar-base spr-blood_meter_empty" role="img" aria-label="Health"></div>
                         }
                         else
                         {
-                            <img class="health-bar-base" src="/img/ui/blood_meter_full.png" alt="Health" />
+                            <div class="health-bar-base spr-blood_meter_full" role="img" aria-label="Health"></div>
                             @if (healthBar.ShowDrain)
                             {
-                                <img class="health-bar-cap" src="/img/ui/blood_meter_empty_right_end.png" alt="" />
+                                <div class="health-bar-cap spr-blood_meter_empty_right_end"></div>
                                 @if (healthBar.GreyStripWidthPx > 0)
                                 {
-                                    <div class="health-bar-strip" style="width:@(healthBar.GreyStripWidthPx)px;"></div>
+                                    <!-- One div per 2px-wide repeat unit, rather than a single div tiled via
+                                         CSS background-repeat: repeating the *whole* shared atlas sheet at a
+                                         2px interval would smear neighbouring sprites across the strip, not
+                                         tile this one small sub-region of it (see SpriteAtlas's remarks). -->
+                                    <div class="health-bar-strip">
+                                        @for (int i = 0; i < healthBar.GreyStripWidthPx / 2; i++)
+                                        {
+                                            <div class="health-bar-strip-unit spr-blood_meter_strip_empty"></div>
+                                        }
+                                    </div>
                                 }
                                 @if (healthBar.ShowBoundaryMarker)
                                 {
-                                    <img
-                                        class="health-bar-marker"
-                                        src="/img/ui/blood_meter_strip_full_right_end.png"
-                                        alt=""
+                                    <div
+                                        class="health-bar-marker spr-blood_meter_strip_full_right_end"
                                         style="right:@(healthBar.BoundaryMarkerRightPx)px;"
-                                    />
+                                    ></div>
                                 }
                             }
                         }
@@ -108,19 +114,19 @@ else
                     <span>@wounds/@maxWounds</span>
                 </div>
                 <div class="stat-icon" data-tool-tip="Gold">
-                    <img src="/img/ui/gold_@(gold == 0 ? "empty" : "full").png" alt="Gold" />
+                    <div class="stat-icon-img spr-gold_@(gold == 0 ? "empty" : "full")" role="img" aria-label="Gold"></div>
                     <span>@gold</span>
                 </div>
                 <div class="stat-icon" data-tool-tip="Attack skill">
-                    <img src="/img/ui/skills_attack_gray.png" alt="Attack" />
+                    <div class="stat-icon-img spr-skills_attack" role="img" aria-label="Attack"></div>
                     <span>@game.Map.Player.CombatComponent!.WeaponSkill</span>
                 </div>
                 <div class="stat-icon" data-tool-tip="Damage">
-                    <img src="/img/ui/skills_damage_gray.png" alt="Damage" />
+                    <div class="stat-icon-img spr-skills_damage" role="img" aria-label="Damage"></div>
                     <span>@game.Map.Player.CombatComponent!.WeaponDamage</span>
                 </div>
                 <div class="stat-icon" data-tool-tip="Defense">
-                    <img src="/img/ui/skill_defense_gray.png" alt="Defense" />
+                    <div class="stat-icon-img spr-skill_defense" role="img" aria-label="Defense"></div>
                     <span>@game.Map.Player.CombatComponent!.DamageSoak</span>
                 </div>
             }
@@ -131,7 +137,7 @@ else
     </div>
 
     <span class="@spanClass">
-        <div class="@mapClass" style="@mapStyle" id="mapcontainer">
+        <div class="@mapClass" style="@mapStyle" id="mapcontainer" oncontextmenu="return false">
             <!-- map is rendered row by row, top to bottom -->
             @for (int wY = 0; wY < windowHeight; wY++)
             {
@@ -154,8 +160,7 @@ else
                             }
                             else
                             {
-                                <div class="@tileClass" style="background-image: url('@tile.ImageUrl')"
-                                     alt="@x,@y (@tile.TileType)"> </div>
+                                <div class="@tileClass spr-@tile.ImageName" alt="@x,@y (@tile.TileType)"> </div>
                             }
 
                             @foreach (var decoration in game.Map.AllDecorations(x, y))
@@ -169,6 +174,7 @@ else
                                 bool renderDiv = false;
                                 string baseCssClass = "decoration";
                                 string animationClass = "";
+                                string spriteClass = "";
                                 string style = "";
                                 string divContent = "";
 
@@ -202,13 +208,11 @@ else
                                         renderDiv = true;
                                     }
 
-                                    // determine css style
-                                    if (decoration.ImageName != null && decoration.ImageName != "")
+                                    // determine sprite class
+                                    if (!String.IsNullOrEmpty(decoration.ImageName))
                                     {
-                                        string decImgFileName = decoration.ImageName + ".png";
-
                                         renderDiv = true;
-                                        style = $"background-image: url('img/{decoration.ImageFolder}/{decImgFileName}');";
+                                        spriteClass = $"spr-{decoration.ImageName}";
                                     }
 
                                     // - handle horizontal and vertical offset
@@ -239,13 +243,13 @@ else
                                         transform = $" transform: rotate({decoration.RotationDegrees}deg){(decoration.MirrorX ? " scaleX(-1)" : "")};";
                                     }
 
-                                    style = $"{style}{offset}; opacity:{opacityValue};{transform}";
+                                    style = $"{offset}; opacity:{opacityValue};{transform}";
                                 }
 
                                 if (renderDiv)
                                 {
                                     string pausedClass = decoration.AnimationPaused ? "animation-paused" : "";
-                                    baseCssClass = $"{baseCssClass} {(animationClass)} {(layerClass)} {(fovClass)} {(pausedClass)}";
+                                    baseCssClass = $"{baseCssClass} {(animationClass)} {(spriteClass)} {(layerClass)} {(fovClass)} {(pausedClass)}";
 
                                     string? datatooltip = null;
                                     string infoText = decoration.GameObject.InfoText;
@@ -354,7 +358,7 @@ else
                                 }
                                 else
                                 {
-                                    <img class="inventory_icon" src="img/@(entry.ItemType.ImgFolder)/@(entry.ItemType.Image).png" alt="" />
+                                    <div class="inventory_icon spr-@(entry.ItemType.Image)"></div>
                                 }
                                 <span>@letter) @entry.ItemType.Name@(entry.Count > 1 ? $" x{entry.Count}" : "")@(entry.IsEquipped ? " (E)" : "")</span>
                             </li>
@@ -501,6 +505,10 @@ else
 
         // A stored preference only applies when the tileset is actually installed.
         renderAscii = !tilesetAvailable || session.PreferAscii;
+        if (!renderAscii)
+        {
+            await EnsureAtlasLoadedAsync();
+        }
 
         // Clamp on load so a value stored by another build (different min/max) can't break the view.
         graphicGridTileSize = Math.Clamp(
@@ -578,7 +586,28 @@ else
             session.PreferAscii = renderAscii;
         }
 
+        if (!renderAscii)
+        {
+            await EnsureAtlasLoadedAsync();
+        }
+
         await FitMapToViewportAsync();
+    }
+
+    bool _atlasLoadRequested;
+
+    // Fetches+unmasks the obfuscated sheets into Blob URLs client-side (wwwroot/atlas.js) the first
+    // time graphics mode is actually needed - not on every load, and not at all for a player who
+    // stays in ASCII mode. Safe to call repeatedly; only the first call does anything.
+    private async Task EnsureAtlasLoadedAsync()
+    {
+        if (_atlasLoadRequested || !tilesetAvailable)
+        {
+            return;
+        }
+
+        _atlasLoadRequested = true;
+        await JsRuntime.InvokeVoidAsync("blazorRogueAtlas.init", Atlas.SheetEndpoints);
     }
 
     // Once the game is over there is no progress left to protect, so skip straight past the confirm
@@ -665,14 +694,11 @@ else
 
     protected override void OnInitialized()
     {
-        // Fall back to the ASCII renderer by default if the (licensed, not
-        // included in the repo) Ultimate Fantasy tileset hasn't been placed
-        // under wwwroot/img - otherwise the tileset view would just render
-        // empty/broken tiles. uf_terrain is used pervasively (floors/walls),
-        // so its presence is a good proxy for "the tileset is installed".
-        string tilesetProbeDirectory = Path.Combine(WebHostEnvironment.WebRootPath, "img", "uf_terrain");
-        tilesetAvailable = Directory.Exists(tilesetProbeDirectory)
-            && Directory.EnumerateFiles(tilesetProbeDirectory).Any();
+        // Fall back to the ASCII renderer by default if the (licensed, not included in the repo)
+        // Ultimate Fantasy tileset atlas hasn't been deployed alongside the app (BLAZORROGUE_ART_PATH
+        // unset or pointed somewhere with no atlas.json) - otherwise the tileset view would just
+        // render empty tiles.
+        tilesetAvailable = Atlas.IsAvailable;
         renderAscii = !tilesetAvailable;
     }
 

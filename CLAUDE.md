@@ -19,15 +19,19 @@ Effects/          EffectsSystem (screen shake) and SoundManager (audio cues)
 Vision/           Field-of-view implementation
 World/            Map, Tile, Decoration, LiquidEdging (shoreline autotiling); World/Generation/
                   holds the map generators (IMapGenerator and implementors)
-Rendering/        AnimationCssGenerator (generates @keyframes CSS from monster/hero and liquid-pool data)
+Rendering/        SpriteAtlas (licensed-tileset atlas -> CSS), AnimationCssGenerator and
+                  HandAuthoredSpriteAnimations (generate @keyframes CSS from monster/hero,
+                  liquid-pool, and torch/hit-flash data)
 Entities/         Types parsed from configuration, plus Configuration.cs (parses Data/*.json)
 Sessions/         Per-browser session state that survives page reloads
 Utility/          Small standalone helpers (e.g. string extension methods)
 Data/             JSON game data: monsters, heroes, floorsets, wallsets, liquidsets, decorations, items, levels, game-config
 Game.cs / References.cs   Core game state
-wwwroot/          Static assets: CSS, JS interop, sounds, tileset images (gitignored)
-docker/           Dockerfile and Dockerfile.graphics (see Commands below)
+wwwroot/          Static assets: CSS, JS interop, sounds
+docker/           Dockerfile (see Commands below)
 BlazorRogue.Tests/        xUnit test project
+tools/AtlasPacker/        Dev-machine-only tool that packs the licensed tileset into an obfuscated
+                  atlas bundle (tools/AtlasPacker.Tests/ covers its matching/CSS-math logic)
 ```
 
 For engine internals (Game/Sessions/References/Configuration, rendering, map generation, combat,
@@ -51,21 +55,12 @@ docker run -p 8080:8080 blazorrogue   # Run it, then open http://localhost:8080
 CI (`.github/workflows/CI.yml`) runs `dotnet restore` → `dotnet build --configuration Release` →
 `dotnet csharpier check .` → `dotnet test --configuration Release` on every push/PR to `master`.
 
-The proprietary Ultimate Fantasy Tileset image assets are excluded from the repo (`wwwroot/img/`
-populated manually if you own a license) — without them the game falls back automatically to the
-built-in ASCII renderer, so the tileset is never required for local dev.
-
-`docker/Dockerfile.graphics`/`docker/Dockerfile.graphics.dockerignore` are a **local-build-only**
-variant that bundles whatever tileset is present on disk, for producing a hosted playtest build.
-Never build it in CI (the tileset isn't there) and never push the resulting image to a public
-registry — it embeds proprietary, licensed assets:
-
-```
-az acr login --name <registry>
-docker build -f docker/Dockerfile.graphics -t <registry>.azurecr.io/blazorrogue:graphics .
-docker push <registry>.azurecr.io/blazorrogue:graphics
-az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.io/blazorrogue:graphics
-```
+The proprietary Ultimate Fantasy Tileset is never built into the app or its container image at
+all. `tools/AtlasPacker` (run only on a machine that owns the license) packs it into an obfuscated
+atlas bundle, deployed separately and pointed at via the `BLAZORROGUE_ART_PATH` environment
+variable; `Rendering/SpriteAtlas.cs` loads it at startup if present. Without it, the game falls
+back automatically to the built-in ASCII renderer, so the tileset is never required for local dev,
+and the single `docker/Dockerfile` is safe to build in CI and push anywhere.
 
 ## Guardrails
 
@@ -73,8 +68,9 @@ az containerapp update -n <app> -g <resource-group> --image <registry>.azurecr.i
   reference types are enabled project-wide, so handle nulls properly rather than suppressing
   warnings.
 - `master` is protected — all changes go through a PR, and CI must pass before merging.
-- Never let `wwwroot/img/uf_*` (the proprietary tileset) end up in a publicly-shipped or
-  publicly-pushed artifact — see the `docker/Dockerfile.graphics` note above.
+- Never check the licensed tileset (or anything derived from it, e.g. a generated `atlas.json`)
+  into source control or bake it into a container image — it's deployed out-of-band via
+  `BLAZORROGUE_ART_PATH`, kept separate from the app on purpose.
 - Add or update tests in `BlazorRogue.Tests` for changes to game logic (combat, configuration
   parsing, map/dungeon generation). For changes that are hard to unit test (rendering, Blazor
   components, JS interop), describe how you manually verified the change (screenshot or in-browser

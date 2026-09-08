@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using BlazorRogue;
 using BlazorRogue.Entities;
@@ -22,6 +23,13 @@ builder.Services.AddSingleton(_ =>
     return configuration;
 });
 builder.Services.AddSingleton(TimeProvider.System);
+
+// The licensed tileset's atlas (see tools/AtlasPacker) - never checked into source control.
+// BLAZORROGUE_ART_PATH points at the deployed art bundle; when unset (any contributor machine
+// without a license, and CI), SpriteAtlas.IsAvailable is false and the game falls back to the
+// ASCII renderer, same as when the loose tileset files used to be absent.
+string? artPath = Environment.GetEnvironmentVariable("BLAZORROGUE_ART_PATH");
+builder.Services.AddSingleton(_ => SpriteAtlas.Load(artPath));
 
 // Holds each browser's game in memory so it survives a page reload. Constructed explicitly rather
 // than by type so the DI container can't pick the tests-only constructor overload. Which level a
@@ -60,19 +68,43 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-// Generated once from the (immutable, already-parsed) Configuration singleton and cached for the
-// life of the process, rather than hand-duplicating one @keyframes block per hero/monster in
-// wwwroot/css/animations.css.
-var generatedAnimationsCss = new Lazy<string>(() =>
+// Generated once from the (immutable, already-parsed) Configuration/SpriteAtlas singletons and
+// cached for the life of the process: one .spr-<key> class per atlas sprite (World/Tile.cs,
+// GamePage.razor's decoration/item/HUD rendering) plus every @keyframes animation, rather than
+// hand-duplicating a block per hero/monster/liquid/torch in a static stylesheet.
+var generatedCss = new Lazy<string>(() =>
 {
     var configuration = app.Services.GetRequiredService<Configuration>();
-    return AnimationCssGenerator.Generate(
-            configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values)
-        ) + AnimationCssGenerator.Generate(configuration.LiquidTypes);
+    var atlas = app.Services.GetRequiredService<SpriteAtlas>();
+    return atlas.GenerateStaticCss()
+        + AnimationCssGenerator.Generate(
+            configuration.HeroTypes.Values.Concat(configuration.MonsterTypes.Values),
+            atlas
+        )
+        + AnimationCssGenerator.Generate(configuration.LiquidTypes, atlas)
+        + HandAuthoredSpriteAnimations.Generate(atlas);
 });
+app.MapGet("/css/generated-animations.css", () => Results.Text(generatedCss.Value, "text/css"));
+
+// Streams one obfuscated sheet's raw (still-masked) bytes; unmasking happens client-side in
+// wwwroot/atlas.js. `file` is validated against the atlas's own known sheet files rather than
+// trusted as a path fragment - it never leaves this directory regardless, but this also means a
+// request for anything else in the art path (or an art path that happens to hold more than sheet
+// bundles) gets a 404, not a 200.
 app.MapGet(
-    "/css/generated-animations.css",
-    () => Results.Text(generatedAnimationsCss.Value, "text/css")
+    "/a/{file}",
+    (string file, HttpContext context, SpriteAtlas atlas) =>
+    {
+        if (artPath is null || !atlas.IsKnownSheetFile(file))
+        {
+            return Results.NotFound();
+        }
+
+        // Immutable: a sheet's content only ever changes by a fresh deploy, which serves it under
+        // whatever new file name the next atlas-pack run assigns (see tools/AtlasPacker).
+        context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        return Results.File(Path.Combine(artPath, file), "application/octet-stream");
+    }
 );
 
 app.Run();

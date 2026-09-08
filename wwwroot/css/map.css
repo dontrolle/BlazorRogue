@@ -88,7 +88,7 @@
   height: 53px;
 }
 
-.stat-icon > img {
+.stat-icon-img {
   width: 3.8em;
   height: 3.8em;
   image-rendering: pixelated;
@@ -103,10 +103,11 @@
   color: white;
 }
 
-/* Health bar: layered pixel-art blood meter built from wwwroot/img/ui/blood_meter_*.png.
-   Pieces are absolutely positioned, right-aligned, inside this fixed-size relative container so
-   the meter drains from right to left as Wounds falls below MaxWounds. Rendered at 2x the assets'
-   native size (48x16 -> 96x32) with pixelated image-rendering to keep the pixel art crisp. */
+/* Health bar: layered pixel-art blood meter built from the blood_meter_* sprites in the tileset
+   atlas (see Rendering/SpriteAtlas.cs). Pieces are absolutely positioned, right-aligned, inside
+   this fixed-size relative container so the meter drains from right to left as Wounds falls below
+   MaxWounds. Rendered at 2x the assets' native size (48x16 -> 96x32) with pixelated
+   image-rendering to keep the pixel art crisp. */
 .health-bar {
   position: relative;
   width: 96px;
@@ -114,8 +115,10 @@
   flex-shrink: 0;
 }
 
-.health-bar img,
-.health-bar-strip {
+.health-bar-base,
+.health-bar-cap,
+.health-bar-marker,
+.health-bar-strip-unit {
   image-rendering: pixelated;
 }
 
@@ -127,8 +130,9 @@
   height: 32px;
 }
 
-/* blood_meter_empty_right_end.png is shaped to replace the bar's rounded right corner, so it sits
-   flush at the bar's rightmost position as soon as any wound is lost - the first visual sliver. */
+/* blood_meter_empty_right_end sprite is shaped to replace the bar's rounded right corner, so it
+   sits flush at the bar's rightmost position as soon as any wound is lost - the first visual
+   sliver. */
 .health-bar-cap {
   position: absolute;
   right: 0;
@@ -137,7 +141,7 @@
   height: 32px;
 }
 
-/* blood_meter_strip_full_right_end.png bridges the seam between the tiled empty strips and
+/* blood_meter_strip_full_right_end sprite bridges the seam between the tiled empty strips and
    whatever plain fill remains, positioned inline per-render at the far edge of that tiled run. */
 .health-bar-marker {
   position: absolute;
@@ -146,16 +150,23 @@
   height: 32px;
 }
 
-/* Repeatable drained strip, tiled to a width set inline per-render from Wounds/MaxWounds. Sits
-   just left of the fixed cap. */
+/* Repeatable drained strip: one .health-bar-strip-unit div per 2px-wide repeat (see
+   GamePage.razor), laid out edge-to-edge instead of a single div background-repeat-tiling a
+   standalone image - background-repeat would tile the *whole* shared atlas sheet at a 2px
+   interval, smearing neighbouring sprites across the strip rather than repeating this one small
+   sub-region of it. Sits just left of the fixed cap. */
 .health-bar-strip {
   position: absolute;
   right: 8px;
   top: 0;
   height: 32px;
-  background-image: url(/img/ui/blood_meter_strip_empty.png);
-  background-repeat: repeat-x;
-  background-size: 2px 32px;
+  display: flex;
+}
+
+.health-bar-strip-unit {
+  width: 2px;
+  height: 32px;
+  flex-shrink: 0;
 }
 
 .map {
@@ -184,12 +195,12 @@
   width: 100%;
   height: 100%;
   justify-content: center;
-  /* Scale the 48px tileset art to whatever the current cell size is (see graphicGridTileSize /
-     the +/- zoom in GamePage.razor) instead of rendering it 1:1 and clipping when zoomed out. */
-  background-size: cover;
-  background-repeat: no-repeat;
+  /* background-image/size/position come from the element's .spr-<key> (or, for an animated tile,
+     .animated_<key>) class - see Rendering/SpriteAtlas.cs - which scales the tileset art to
+     whatever the current cell size is (graphicGridTileSize / the +/- zoom in GamePage.razor)
+     instead of rendering it 1:1 and clipping when zoomed out. */
   /* Keep the pixel art crisp when it isn't at 1:1 - browser zoom, OS display scaling, or the
-     in-game zoom. Matches the UI sprites, which already opt in (see .stat-icon > img etc.). */
+     in-game zoom. Matches the UI sprites, which already opt in (see .stat-icon-img etc.). */
   image-rendering: pixelated;
 }
 
@@ -200,9 +211,7 @@
   position: absolute;
   left: 0px;
   top: 0px;
-  background-size: cover;
-  background-repeat: no-repeat;
-  /* Same as .tile: keep sprites crisp at non-1:1 scales (zoom / display scaling). */
+  /* Same as .tile: background-image/size/position come from .spr-<key>/.animated_<key>. */
   image-rendering: pixelated;
   justify-content: center;
   /* Decorations only exist to be looked at - the game has no click-to-interact step - so by

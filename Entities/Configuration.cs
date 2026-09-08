@@ -170,8 +170,6 @@ class Configuration
             ? itemType
             : throw new InvalidOperationException($"Unknown item id: {id}.");
 
-    const string DefaultStaticDecorationImgFolder = "uf_terrain";
-
     public void Parse() // Task async
     {
         var options = new JsonDocumentOptions { AllowTrailingCommas = true };
@@ -859,12 +857,6 @@ class Configuration
         string character = GetRequiredString(element, "character");
         string characterColor = GetRequiredString(element, "character_color");
 
-        string imgFolder = DefaultStaticDecorationImgFolder;
-        if (element.TryGetProperty("img_folder", out var imgFolderElement))
-        {
-            imgFolder = RequireNonNullString(imgFolderElement, "img_folder");
-        }
-
         bool blocking = false;
         if (element.TryGetProperty("blocking", out var blockingElement))
         {
@@ -892,7 +884,6 @@ class Configuration
             character,
             characterColor,
             blocking,
-            imgFolder,
             makeCoveringOffsetDecsTransparent
         );
         staticDecorativeObjectTypes.Add(id, dec);
@@ -913,7 +904,6 @@ class Configuration
             ),
         };
 
-        string imgFolder = GetRequiredString(element, "img_folder");
         string image = GetRequiredString(element, "image");
         string character = GetRequiredString(element, "character");
         string characterColor = GetRequiredString(element, "character_color");
@@ -947,7 +937,6 @@ class Configuration
             id,
             name,
             kind,
-            imgFolder,
             image,
             character,
             characterColor,

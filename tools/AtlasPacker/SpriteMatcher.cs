@@ -2,8 +2,9 @@ namespace AtlasPacker;
 
 /// <summary>
 /// Finds a sprite crop as a byte-identical sub-image somewhere in a larger sheet. Used to
-/// determine, for each currently-exported <c>wwwroot/img/uf_*</c> crop, the exact rectangle it
-/// occupies in the small vendor-supplied full sheet it was originally sliced from.
+/// determine, for each individually-cropped file under the vendor's own <c>uf_split/</c> folder,
+/// the exact rectangle it occupies in the small vendor-supplied full sheet it was originally
+/// sliced from.
 /// </summary>
 static class SpriteMatcher
 {

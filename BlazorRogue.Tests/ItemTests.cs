@@ -9,7 +9,6 @@ public class ItemTests
         id: "health_potion",
         name: "Health potion",
         kind: ItemKind.UseOnce,
-        imgFolder: "uf_items",
         image: "potion_red",
         character: "!",
         characterColor: "red",
@@ -38,7 +37,6 @@ public class ItemTests
 
         var decoration = Assert.Single(game.Map.Decorations[x, y], d => d.GameObject == item);
         Assert.Equal(HealthPotion.Image, decoration.ImageName);
-        Assert.Equal(HealthPotion.ImgFolder, decoration.ImageFolder);
         Assert.Equal(HealthPotion.Character, decoration.Character);
         Assert.Equal(HealthPotion.CharacterColor, decoration.CharacterColor);
     }

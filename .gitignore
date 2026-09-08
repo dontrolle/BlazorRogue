@@ -7,6 +7,7 @@ artifacts/
 *.binlog
 internal_backlog.md
 wwwroot/img/uf_*
+wwwroot/img/ui/
 .idea
 .claude/settings.local.json
 .claude/worktrees/
