@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Dev-machine-only tool: reads the licensed Oryx tileset (never present in CI or on a
+         contributor's machine without a license) and this repo's currently-exported
+         wwwroot/img/uf_* crops, and emits atlas.json + obfuscated sheet bundles for the main app
+         to consume at runtime. Not published, not referenced by BlazorRogue.csproj. -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>preview-All</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="4.151.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.151.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets AtlasPacker.Tests exercise the matching/obfuscation logic directly with synthetic
+         bitmaps, without needing the licensed assets this tool otherwise requires. -->
+    <InternalsVisibleTo Include="AtlasPacker.Tests" />
+  </ItemGroup>
+</Project>
