@@ -17,11 +17,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- BlazorRogue.Tests lives in a subfolder of this project; exclude it from the Web SDK's
-         default recursive globbing so its files aren't compiled into this project too. -->
+    <!-- BlazorRogue.Tests and tools/ (AtlasPacker, the licensed-tileset atlas packer) live in
+         subfolders of this project; exclude them from the Web SDK's default recursive globbing so
+         their files aren't compiled into this project too. -->
     <Compile Remove="BlazorRogue.Tests\**" />
     <Content Remove="BlazorRogue.Tests\**" />
     <None Remove="BlazorRogue.Tests\**" />
+    <Compile Remove="tools\**" />
+    <Content Remove="tools\**" />
+    <None Remove="tools\**" />
   </ItemGroup>
 
   <ItemGroup>
