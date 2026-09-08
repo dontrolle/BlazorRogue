@@ -37,11 +37,12 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     // rather than a full opaque tile in its own right.
     (TileSet TileSet, int TileIndex)? floorUnderlay;
 
+    /// <summary>Sprite atlas key for this tile's own image (a wall/floor tile is never animated,
+    /// so this is always a static <c>.spr-&lt;ImageName&gt;</c> class - see GamePage.razor).</summary>
     public string ImageName =>
         floorUnderlay is { } underlay
             ? underlay.TileSet.ImageName(underlay.TileIndex)
             : TileSet.ImageName(TileIndex);
-    public string ImageUrl => $"img/uf_terrain/{ImageName}.png";
     public TileType TileType => Liquid is not null ? TileType.Liquid : TileSet.TileType;
 
     public string Character => Liquid is not null ? LiquidType.AsciiCharacter : TileSet.Character;

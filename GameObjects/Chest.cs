@@ -99,7 +99,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
 
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, img, sdot.ImgFolder)
+                new Decoration(this, img)
                 {
                     Character = sdot.Character,
                     CharacterColor = sdot.CharacterColor,

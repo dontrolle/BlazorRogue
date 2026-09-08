@@ -34,7 +34,6 @@ sealed class ItemType(
     string id,
     string name,
     ItemKind kind,
-    string imgFolder,
     string image,
     string character,
     string characterColor,
@@ -45,7 +44,8 @@ sealed class ItemType(
     public string Id { get; } = id;
     public string Name { get; } = name;
     public ItemKind Kind { get; } = kind;
-    public string ImgFolder { get; } = imgFolder;
+
+    /// <summary>Sprite atlas key, e.g. <c>"potion_red"</c>.</summary>
     public string Image { get; } = image;
     public string Character { get; } = character;
     public string CharacterColor { get; } = characterColor;

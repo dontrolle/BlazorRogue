@@ -129,11 +129,11 @@ dotnet csharpier check .
   one run won't reproduce on the next `launch`. For anything that needs to reach a specific game
   object (an item, a monster), locate it first with `eval` reading `.decoration`'s `alt` attribute
   (format: `x,y (Name=..., Blocking=...)`) rather than hardcoding coordinates or a move sequence.
-- **The proprietary tileset happens to be installed on this machine** (`wwwroot/img/uf_*`,
-  gitignored, not in the repo). Screenshots here show real art; on a machine without it the game
-  silently falls back to the ASCII renderer (`renderAscii` in `GamePage.razor`) and screenshots
-  will look completely different (colored text glyphs, no `background-image` decorations) - that's
-  expected, not a bug, per `CLAUDE.md`.
+- **Graphics mode needs `BLAZORROGUE_ART_PATH` set before `dotnet run`** (see
+  `tools/AtlasPacker/README.md` to build the bundle it points at). Without it, the game silently
+  falls back to the ASCII renderer (`renderAscii` in `GamePage.razor`) and screenshots will look
+  completely different (colored text glyphs, no `background-image` decorations) - that's expected,
+  not a bug, per `CLAUDE.md`.
 - **No `lsof`/`fuser` on Windows/Git Bash.** Use the `Get-NetTCPConnection ... | Stop-Process`
   PowerShell one-liner above to free the port before relaunching `dotnet run`.
 

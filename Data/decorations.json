@@ -93,7 +93,6 @@
       "vertical_offset": 0,
       "character": "&",
       "character_color": "gold",
-      "img_folder": "uf_items",
       "makeCoveringOffsetDecsTransparent": true
     },
     {
@@ -108,7 +107,6 @@
       "vertical_offset": 0,
       "character": "&",
       "character_color": "silver",
-      "img_folder": "uf_items",
       "makeCoveringOffsetDecsTransparent": true
     }
   ]

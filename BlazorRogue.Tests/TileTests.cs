@@ -51,7 +51,7 @@ public class TileTests
     ) => SetUpWall(wallSetId, true, true, true, true, floorSetId);
 
     [Fact]
-    public void ImageUrlCombinesTheUfTerrainFolderWithTheTilesOwnImageName()
+    public void ImageNameCombinesTheTileSetsPrefixWithTheTilesOwnIndex()
     {
         var game = new Game();
         int x = game.Map.Width / 2;
@@ -59,7 +59,7 @@ public class TileTests
         game.Map.Tiles[x, y].TileSet = game.Configuration.WallSetById("cave");
         game.Map.Tiles[x, y].TileIndex = 7;
 
-        Assert.Equal("img/uf_terrain/wall_cave_7.png", game.Map.Tiles[x, y].ImageUrl);
+        Assert.Equal("wall_cave_7", game.Map.Tiles[x, y].ImageName);
     }
 
     [Fact]

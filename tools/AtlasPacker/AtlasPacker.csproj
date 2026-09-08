@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- Dev-machine-only tool: reads the licensed Oryx tileset (never present in CI or on a
-         contributor's machine without a license) and this repo's currently-exported
-         wwwroot/img/uf_* crops, and emits atlas.json + obfuscated sheet bundles for the main app
-         to consume at runtime. Not published, not referenced by BlazorRogue.csproj. -->
+         contributor's machine without a license - just point it at the vendor's own download, see
+         README.md) and emits atlas.json + obfuscated sheet bundles for the main app to consume at
+         runtime. Not published, not referenced by BlazorRogue.csproj. -->
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

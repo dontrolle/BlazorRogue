@@ -3,7 +3,7 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
 
-class Decoration(GameObject gameObject, string? imageName, string imageFolder = "uf_terrain")
+class Decoration(GameObject gameObject, string? imageName)
 {
     internal enum Layer
     {
@@ -13,8 +13,11 @@ class Decoration(GameObject gameObject, string? imageName, string imageFolder = 
     }
 
     public GameObject GameObject { get; private set; } = gameObject;
+
+    /// <summary>The sprite atlas key for this decoration's image, e.g. <c>"wall_dungeon_12"</c> or
+    /// <c>"chest_gold"</c> - a single flat namespace across every category (terrain, items,
+    /// heroes/monsters, UI), not a folder-qualified path.</summary>
     public string? ImageName { get; private set; } = imageName;
-    public string ImageFolder { get; private set; } = imageFolder;
     public string? AnimationClass { get; set; }
 
     /// <summary>

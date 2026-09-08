@@ -7,7 +7,6 @@ namespace BlazorRogue.GameObjects;
 class StaticDecorativeObject : GameObject
 {
     readonly string image;
-    readonly string imgFolder;
     readonly int verticalOffset;
     readonly string character;
     readonly string characterColor;
@@ -48,7 +47,6 @@ class StaticDecorativeObject : GameObject
             image = staticDecorativeObjectType.RandomImage;
         }
 
-        imgFolder = staticDecorativeObjectType.ImgFolder;
         InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
         verticalOffset = verticalOffsetOverride ?? staticDecorativeObjectType.VerticalOffset;
         character = staticDecorativeObjectType.Character;
@@ -62,7 +60,7 @@ class StaticDecorativeObject : GameObject
     public override void Render(Map map) =>
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, image, imgFolder)
+                new Decoration(this, image)
                 {
                     VerticalOffset = verticalOffset,
                     Character = character,

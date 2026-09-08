@@ -18,7 +18,7 @@ class Item(int x, int y, ItemType itemType)
     public override void Render(Map map) =>
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, ItemType.Image, ItemType.ImgFolder)
+                new Decoration(this, ItemType.Image)
                 {
                     Character = ItemType.Character,
                     CharacterColor = ItemType.CharacterColor,
