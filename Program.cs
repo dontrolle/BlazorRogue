@@ -7,12 +7,40 @@ using BlazorRogue.Rendering;
 using BlazorRogue.Sessions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+// Blazor Server circuits are stateful and GameSessionStore is in-process, so the app runs as a
+// single instance regardless of where it is hosted. A disconnected circuit pins its render tree in
+// memory until it is reclaimed or evicted, so under a burst of visitors the retained-circuit cap is
+// the memory knob that matters. Cutting it well below the framework default (100 / 3 min) is cheap
+// here because the game itself lives in GameSessionStore keyed by a localStorage id (see
+// Sessions/GameSessionStore.cs) - when a circuit is evicted, a full page reload resumes the same
+// game rather than a seamless reconnect.
+builder
+    .Services.AddRazorComponents()
+    .AddInteractiveServerComponents(options =>
+    {
+        options.DisconnectedCircuitMaxRetained = 30;
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(2);
+    });
+
+// When the app runs behind a reverse proxy that terminates TLS, it only ever sees plain HTTP.
+// Honour X-Forwarded-Proto/-For so app.UseHttpsRedirection() below sees the original "https" scheme
+// (without this it redirect-loops) and so logs record the real client IP. The known-proxy /
+// known-network allowlists are cleared rather than pinned because the proxy's address is not
+// statically known; this is safe only when the app's own port is not reachable from outside,
+// leaving the proxy as the only thing that can set these headers. If the app is ever exposed
+// directly, pin KnownProxies instead.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Parsed once and shared by every game: Configuration is immutable once parsed, and reads JSON
 // files off disk that would otherwise be re-read on every page load.
@@ -58,6 +86,10 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     _ = app.UseHsts();
 }
+
+// Ahead of UseHttpsRedirection and routing, so everything downstream sees the caller's real scheme
+// and IP when the app sits behind a proxy.
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
