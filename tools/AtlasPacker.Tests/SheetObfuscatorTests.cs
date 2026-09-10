@@ -31,7 +31,7 @@ public class SheetObfuscatorTests
         byte[] zeros = new byte[6];
         byte[] key = [1, 2];
 
-        // XOR-ing zeros with a repeating key just reproduces the key, repeated.
+        // Masking an all-zero buffer surfaces the key material, repeated to length.
         Assert.Equal([1, 2, 1, 2, 1, 2], SheetObfuscator.Mask(zeros, key));
     }
 

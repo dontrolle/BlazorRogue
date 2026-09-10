@@ -1,13 +1,10 @@
 namespace AtlasPacker;
 
 /// <summary>
-/// Maps a hero/monster's position in the small, single-pose <c>uf_heroes_simple.png</c> (used
-/// only as an offline identity lookup, never shipped) to its 4-frame animation block in the full
-/// <c>uf_heroes.png</c> sheet (the shipped source). Both sheets share the same 10-characters/row,
-/// 13-row grid; <c>uf_heroes.png</c> is 4x as wide because each character occupies a
-/// <see cref="FrameCount"/>-wide run of frames instead of a single cell (reverse-engineered and
-/// visually verified against the real sheets - see a hero's draw-bow cycle and a monster's idle
-/// wiggle come out correctly at the computed offsets).
+/// Maps a character's position in the single-pose identity-lookup sheet to its multi-frame
+/// animation block in the full, shipped hero/monster sheet. Both share a grid of
+/// <see cref="CellSize"/>px cells; the full sheet is <see cref="FrameCount"/>x wider because each
+/// character occupies a run of frames rather than one cell.
 /// </summary>
 static class HeroBlock
 {
@@ -15,13 +12,9 @@ static class HeroBlock
     public const int FrameCount = 4;
 
     /// <summary>
-    /// Converts an exact-match position in <c>uf_heroes_simple.png</c> (pixels) into the
-    /// character's grid identity (cells). Uses floor division rather than requiring exact
-    /// alignment: many exported crops are autocropped tighter than their full 48px cell (a
-    /// character's opaque content need not start flush at the cell's top-left corner), so the
-    /// matched position can legitimately land a few pixels inside its cell rather than exactly on
-    /// its boundary - a real run against the licensed assets confirmed this (e.g. a match at
-    /// x=386 belongs to the cell at col=8, not to some misaligned non-cell).
+    /// Converts a matched pixel position in the identity-lookup sheet into the character's grid
+    /// identity (cells). Floor division, not exact alignment: autocropped content can land a few
+    /// pixels inside its cell rather than flush on the boundary.
     /// </summary>
     public static (int Col, int Row) IdentityFromSimpleSheetPosition(int x, int y)
     {
@@ -38,7 +31,7 @@ static class HeroBlock
     }
 
     /// <summary>
-    /// The top-left (x, y) in <c>uf_heroes.png</c> of a given character's animation frame.
+    /// The top-left (x, y) in the full sheet of a given character's animation frame.
     /// </summary>
     public static (int X, int Y) FrameOrigin(int col, int row, int frame)
     {

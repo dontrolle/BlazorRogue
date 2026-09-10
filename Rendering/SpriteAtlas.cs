@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace BlazorRogue.Rendering;
 
-/// <summary>Dimensions and served location of one obfuscated sheet file - mirrors the shape
+/// <summary>Dimensions and served location of one sheet file - mirrors the shape
 /// <c>tools/AtlasPacker</c> writes to <c>atlas.json</c>.</summary>
 sealed record SpriteSheetInfo(int Width, int Height, string File);
 
@@ -32,18 +32,16 @@ sealed record AtlasJsonDocument(
 );
 
 /// <summary>
-/// Loads the licensed tileset's atlas manifest (produced offline by <c>tools/AtlasPacker</c> on a
-/// machine that owns the Oryx license - never checked into source control) and generates the CSS
-/// that positions each sprite within its obfuscated sheet.
+/// Loads the atlas manifest produced offline by <c>tools/AtlasPacker</c> (never checked into
+/// source control) and generates the CSS that positions each sprite within its sheet.
 ///
-/// The sheets themselves are served, still masked, from an endpoint the browser fetches directly;
-/// <see cref="GenerateStaticCss"/> only ever references them via <c>var(--atlas-N)</c> custom
-/// properties, which JS sets after unmasking into Blob URLs (see <c>wwwroot/atlas.js</c>) - this
-/// class never touches the actual pixel bytes.
+/// The sheets themselves are served, still obfuscated, from an endpoint the browser fetches
+/// directly; <see cref="GenerateStaticCss"/> only ever references them via <c>var(--atlas-N)</c>
+/// custom properties that JS sets (see <c>wwwroot/atlas.js</c>) - this class never touches the
+/// pixel bytes.
 ///
-/// When no atlas is found (no license on this machine), <see cref="IsAvailable"/> is false and the
-/// game falls back to the ASCII renderer, exactly as it already did when the loose tileset files
-/// were absent.
+/// When no atlas is found, <see cref="IsAvailable"/> is false and the game falls back to the ASCII
+/// renderer, exactly as it did when the loose tileset files were absent.
 /// </summary>
 sealed class SpriteAtlas
 {

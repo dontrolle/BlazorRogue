@@ -1,12 +1,8 @@
-// Fetches the obfuscated tileset sheets and turns them back into usable images entirely
-// client-side. The server only ever hands out masked bytes (Program.cs's "/a/{file}" endpoint) -
-// this is where they get unmasked into Blob URLs the generated CSS (Rendering/SpriteAtlas.cs)
-// references via --atlas-N custom properties. See GamePage.razor's EnsureAtlasLoadedAsync for
-// when this runs.
+// Fetches the obfuscated tileset sheets (Program.cs's "/a/{file}" endpoint) and turns them back
+// into usable images entirely client-side, exposed to the generated CSS
+// (Rendering/SpriteAtlas.cs) as --atlas-N custom properties. See GamePage.razor's
+// EnsureAtlasLoadedAsync for when this runs.
 window.blazorRogueAtlas = {
-    // Must match tools/AtlasPacker/ObfuscationKey.cs's byte sequence exactly, and is exactly as
-    // non-secret as that file's remarks describe - this isn't encryption, just enough to avoid
-    // handing out plain PNGs at a static URL.
     _key: new TextEncoder().encode("BlazorRogue-uf-tileset-v1"),
 
     // urls[i] becomes --atlas-i. Safe to call more than once (e.g. toggling ASCII -> tileset more

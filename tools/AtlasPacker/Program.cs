@@ -1,19 +1,7 @@
-// Locator/packer for the licensed Ultimate Fantasy tileset.
-//
-// Run only on a machine that owns the Oryx license and has the vendor's own download (the
-// "oryx_ultimate_fantasy" folder) - nothing else. It supplies both the full pre-packed sheets and,
-// under its own uf_split/ subfolder, every individually-cropped file needed to identify which
-// rectangle of a vendor sheet each sprite name occupies - matching runs straight against that.
-//
-// The one thing uf_split/ doesn't have is the handful of hand-picked HUD icons this project uses
-// (blood meter, gold, attack/damage/defense) - the vendor's own split naming for those categories
-// is purely numeric (e.g. "uf_skills_08.png"), not descriptive, so there's no name to match by.
-// Those are hardcoded below instead, their coordinates located once by hand and fixed from then on
-// - the underlying vendor pixels never change.
-//
-// Writes atlas.json + obfuscated sheet bundles to an output directory, for the app to load at
-// runtime via BLAZORROGUE_ART_PATH. Nothing here is checked into source control or run in CI
-// beyond this project's own unit tests (which use synthetic bitmaps, not the licensed assets).
+// Locator/packer for the licensed tileset. Run only on a machine that has the vendor download.
+// Writes atlas.json + obfuscated sheet bundles to an output directory for the app to load at
+// runtime via BLAZORROGUE_ART_PATH. Not checked into source control, not run in CI (the unit
+// tests use synthetic bitmaps, not licensed assets). See README.md.
 using System.Text.Json;
 using AtlasPacker;
 
@@ -36,9 +24,8 @@ var sheetBitmaps = new Dictionary<string, NormalizedImage>(StringComparer.Ordina
 var sheetSourcePaths = new Dictionary<string, string>(StringComparer.Ordinal);
 int misses = 0;
 
-// sourcePath defaults to the vendor's own <sheetName>.png; passing one explicitly is how a
-// "sheet" can instead be built from some other single PNG - see the cloak residuals below, each
-// of which becomes a one-sprite sheet of its own.
+// sourcePath defaults to <sheetName>.png in the vendor dir; pass one explicitly to build a
+// "sheet" from some other single PNG (see the residuals handled below).
 NormalizedImage LoadSheet(string sheetName, string? sourcePath = null)
 {
     if (!sheetBitmaps.TryGetValue(sheetName, out var image))
@@ -98,14 +85,8 @@ void MatchFolderAgainstSheet(
 
 Console.WriteLine("Matching terrain...");
 
-// floor_tile_sandy_1 sits exactly where its siblings _2/_3/_4 (matched automatically below, at
-// consecutive X positions on the same row) predict it should - but the vendor's own standalone
-// export of this one file has 3 pixels along its right edge that are a slightly different shade
-// than the master sheet at that same position, so exact-match correctly refuses to paper over the
-// discrepancy. Hardcoded here from the master sheet's own pixels (the actual rendered source
-// either way) and skipped in the pass below, rather than logged as a miss - unlike the tool's
-// other misses, this one is real, currently-unreferenced art someone might want to wire up as a
-// floorset later.
+// Hardcoded and skipped in the pass below: an exact-match discrepancy in the source export means
+// this one won't auto-match, but it's real art worth carrying rather than logging as a miss.
 sprites["floor_tile_sandy_1"] = new SpriteEntry("uf_terrain", 48, 480, 48, 48);
 MatchFolderAgainstSheet(
     "uf_terrain",
@@ -115,13 +96,8 @@ MatchFolderAgainstSheet(
 
 Console.WriteLine("Matching items...");
 
-// These 9 cloak recolors exist as their own files in the vendor's split export, but only one
-// cloak (cloak_cloth) was ever baked into the master uf_items.png sheet - checked exhaustively
-// against every sheet, not just this category's own. A real gap in the vendor's own asset
-// pipeline, not something exact-match against a sheet could ever resolve. Rather than build a
-// packer to combine them, each becomes a one-sprite "sheet" of its own, obfuscated straight from
-// its own split file - same machinery as every other sheet, just a different source PNG - and
-// skipped in the pass below, rather than logged as a miss.
+// These cloak recolors have no match on any sheet, so each becomes a one-sprite "sheet" built
+// straight from its own source PNG (same machinery, different source) and is skipped below.
 string[] residualCloaks =
 [
     "cloak_blood",
@@ -145,6 +121,7 @@ MatchFolderAgainstSheet("uf_items", "uf_items", skip: new HashSet<string>(residu
 Console.WriteLine("Matching FX impact...");
 MatchFolderAgainstSheet("uf_FX_impact", "uf_FX_impact");
 
+// HUD icons that aren't exported as named files - coordinates resolved once by hand and fixed.
 Console.WriteLine("Adding hand-mapped UI icons...");
 
 sprites["blood_meter_empty"] = new SpriteEntry("uf_interface", 56, 8, 48, 16);
@@ -161,13 +138,9 @@ LoadSheet("uf_interface");
 LoadSheet("uf_items");
 LoadSheet("uf_skills");
 
-Console.WriteLine("Matching heroes/monsters (via uf_heroes_simple.png identity lookup)...");
+Console.WriteLine("Matching heroes/monsters via identity lookup...");
 
-// These three don't exist at all in uf_heroes_simple.png (checked exhaustively), so the identity
-// lookup below can never find them - but their grid cell in uf_heroes.png itself is identifiable
-// by eye (visually confirmed: a dove, a black wolf, and - for merchant_b - a robed figure sitting
-// directly next to merchant_a's own resolved cell, one column over, in the same row). Hardcoded
-// here from that grid position rather than left unresolved.
+// Not resolvable by the identity lookup below; grid cell fixed by hand instead (see HeroBlock).
 Dictionary<string, (int Col, int Row)> heroIdentityOverrides = new(StringComparer.Ordinal)
 {
     ["bird_dove"] = (Col: 0, Row: 9),
@@ -235,8 +208,7 @@ foreach (var (baseName, (col, row)) in heroIdentityOverrides)
     }
 }
 
-// uf_heroes.png is the shipped source for hero/monster frames (uf_heroes_simple.png was only an
-// offline lookup key and must not be shipped).
+// The identity-lookup sheet is never bundled; only uf_heroes.png ships.
 if (!sheetBitmaps.ContainsKey("uf_heroes") && sprites.Values.Any(s => s.Sheet == "uf_heroes"))
 {
     _ = LoadSheet("uf_heroes");

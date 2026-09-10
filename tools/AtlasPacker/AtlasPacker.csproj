@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Dev-machine-only tool: reads the licensed Oryx tileset (never present in CI or on a
-         contributor's machine without a license - just point it at the vendor's own download, see
-         README.md) and emits atlas.json + obfuscated sheet bundles for the main app to consume at
-         runtime. Not published, not referenced by BlazorRogue.csproj. -->
+    <!-- Dev-machine-only tool: reads a licensed copy of the tileset and emits atlas.json +
+         obfuscated sheet bundles for the app to consume at runtime (see README.md). Not published,
+         not referenced by BlazorRogue.csproj, not run in CI. -->
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -21,8 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Lets AtlasPacker.Tests exercise the matching/obfuscation logic directly with synthetic
-         bitmaps, without needing the licensed assets this tool otherwise requires. -->
+    <!-- Lets AtlasPacker.Tests exercise the matching/obfuscation logic with synthetic bitmaps. -->
     <InternalsVisibleTo Include="AtlasPacker.Tests" />
   </ItemGroup>
 </Project>

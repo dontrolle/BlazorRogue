@@ -24,9 +24,9 @@ builder.Services.AddSingleton(_ =>
 });
 builder.Services.AddSingleton(TimeProvider.System);
 
-// The licensed tileset's atlas (see tools/AtlasPacker) - never checked into source control.
+// The tileset atlas (see tools/AtlasPacker) - never checked into source control.
 // BLAZORROGUE_ART_PATH points at the deployed art bundle; when unset (any contributor machine
-// without a license, and CI), SpriteAtlas.IsAvailable is false and the game falls back to the
+// without the tileset, and CI), SpriteAtlas.IsAvailable is false and the game falls back to the
 // ASCII renderer, same as when the loose tileset files used to be absent.
 string? artPath = Environment.GetEnvironmentVariable("BLAZORROGUE_ART_PATH");
 builder.Services.AddSingleton(_ => SpriteAtlas.Load(artPath));
@@ -86,11 +86,9 @@ var generatedCss = new Lazy<string>(() =>
 });
 app.MapGet("/css/generated-animations.css", () => Results.Text(generatedCss.Value, "text/css"));
 
-// Streams one obfuscated sheet's raw (still-masked) bytes; unmasking happens client-side in
-// wwwroot/atlas.js. `file` is validated against the atlas's own known sheet files rather than
-// trusted as a path fragment - it never leaves this directory regardless, but this also means a
-// request for anything else in the art path (or an art path that happens to hold more than sheet
-// bundles) gets a 404, not a 200.
+// Streams one obfuscated sheet's raw bytes; the browser reverses that in wwwroot/atlas.js.
+// `file` is validated against the atlas's own known sheet files rather than trusted as a path
+// fragment - a request for anything else in the art path gets a 404, not a 200.
 app.MapGet(
     "/a/{file}",
     (string file, HttpContext context, SpriteAtlas atlas) =>
