@@ -1,7 +1,7 @@
 namespace AtlasPacker;
 
 /// <summary>
-/// Lightweight obfuscation applied to sheet bytes before they're written to disk / served to the 
+/// Lightweight obfuscation applied to sheet bytes before they're written to disk / served to the
 /// browser. <c>wwwroot/atlas.js</c> reverses it client-side.
 /// </summary>
 static class SheetObfuscator
