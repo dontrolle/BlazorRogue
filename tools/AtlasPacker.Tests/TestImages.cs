@@ -3,7 +3,7 @@ using SkiaSharp;
 namespace AtlasPacker.Tests;
 
 /// <summary>Small helpers to build synthetic bitmaps for tests, so the matching/obfuscation logic
-/// can be exercised without the licensed Oryx assets.</summary>
+/// can be exercised without any licensed assets.</summary>
 static class TestImages
 {
     public static SKBitmap Solid(int width, int height, SKColor color)

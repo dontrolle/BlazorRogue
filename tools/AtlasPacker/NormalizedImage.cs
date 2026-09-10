@@ -5,8 +5,7 @@ namespace AtlasPacker;
 /// <summary>
 /// An RGBA8888 pixel buffer with fully-transparent pixels normalized to <c>(0,0,0,0)</c>. PNG
 /// exporters disagree on what RGB to leave behind alpha=0 pixels, which otherwise breaks
-/// byte-identity comparison between two crops of the same underlying artwork - this was the only
-/// reason "our crops vs. the vendor sheet" comparisons failed before this normalization was added.
+/// byte-identity comparison between two crops of the same underlying artwork.
 /// </summary>
 sealed class NormalizedImage
 {
