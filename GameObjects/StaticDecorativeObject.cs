@@ -55,6 +55,8 @@ class StaticDecorativeObject : GameObject
         character = staticDecorativeObjectType.Character;
         characterColor = staticDecorativeObjectType.CharacterColor;
         Blocking = staticDecorativeObjectType.Blocking;
+        BlockedEdges = staticDecorativeObjectType.BlockedEdges;
+        OccupiesTile = staticDecorativeObjectType.OccupiesTile;
         makeCoveringOffsetDecsTransparent =
             staticDecorativeObjectType.MakeCoveringOffsetDecsTransparent;
         this.decorationLayer = decorationLayer; // TODO: Shouldn't this be driven from config data.json as well?

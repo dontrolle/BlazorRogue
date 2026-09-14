@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Entities;
 
@@ -14,7 +15,9 @@ class StaticDecorativeObjectType(
     string character,
     string characterColor,
     bool blocking,
-    bool makeCoveringOffsetDecsTransparent
+    bool makeCoveringOffsetDecsTransparent,
+    Edge blockedEdges = Edge.None,
+    bool occupiesTile = false
 )
 {
     readonly Random random = new();
@@ -36,6 +39,12 @@ class StaticDecorativeObjectType(
     public string CharacterColor { get; } = characterColor;
     public bool Blocking { get; } = blocking;
     public bool MakeCoveringOffsetDecsTransparent { get; } = makeCoveringOffsetDecsTransparent;
+
+    /// <summary>See <see cref="Edge"/> - the "fence" edges this decoration blocks movement across.</summary>
+    public Edge BlockedEdges { get; } = blockedEdges;
+
+    /// <summary>See <see cref="GameObjects.GameObject.OccupiesTile"/>.</summary>
+    public bool OccupiesTile { get; } = occupiesTile;
 
     string RandomTag => imageVariants.ElementAt(random.Next(0, imageVariants.Count)).Key;
 

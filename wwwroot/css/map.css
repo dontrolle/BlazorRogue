@@ -240,6 +240,51 @@
   filter: brightness(50%);
 }
 
+/* ASCII-mode-only "fence" barrier marker (see GameObject.BlockedEdges, Map.IsMovementBlockedAcrossEdge) -
+   a thin bar straddling the shared border between two tiles, rather than sitting inside either
+   one, so the barrier itself (not one specific tile) reads as blocked. Tileset mode never needs
+   this - the art already conveys it (e.g. Statue's two-tile composite). */
+.edge-marker {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  background-color: #d8d0c0;
+}
+
+.edge-marker-north,
+.edge-marker-south {
+  left: 50%;
+  width: 50%;
+  height: 1px;
+}
+
+.edge-marker-north {
+  top: 0;
+  transform: translate(-50%, -50%);
+}
+
+.edge-marker-south {
+  bottom: 0;
+  transform: translate(-50%, 50%);
+}
+
+.edge-marker-east,
+.edge-marker-west {
+  top: 50%;
+  height: 50%;
+  width: 1px;
+}
+
+.edge-marker-west {
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.edge-marker-east {
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
 .lit {
   filter: brightness(120%);
 }

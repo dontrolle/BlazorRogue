@@ -44,6 +44,8 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_tables", 0.06);
     protected readonly double percentageChanceOfAltars = CommonSettings(settings)
         .GetDouble("percentage_chance_of_altars", 0.04);
+    protected readonly double percentageChanceOfStatues = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_statues", 0.02);
     protected readonly double percentageChanceOfSpiderWebInCorner = CommonSettings(settings)
         .GetDouble("percentage_chance_of_spider_web_in_corner", 0.25);
     protected readonly double percentageChanceOfTorch = CommonSettings(settings)
@@ -536,6 +538,7 @@ abstract class MapGeneratorBase(
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfTables
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
@@ -566,6 +569,7 @@ abstract class MapGeneratorBase(
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfAltars
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
@@ -587,6 +591,7 @@ abstract class MapGeneratorBase(
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfBarrels
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
@@ -601,10 +606,33 @@ abstract class MapGeneratorBase(
                 }
             }
 
+            // Statue's "top" half bleeds visually onto the tile above (see Statue.Render), so that
+            // tile needs to be open, empty floor too - otherwise the top would render over a wall
+            // or another decoration (e.g. a second statue stacked right below this one, its "top"
+            // landing on this one's "bottom"), and a player couldn't actually walk behind it as
+            // intended.
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfStatues
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
+                && map.Tiles[x, y - 1].TileType == TileType.Floor
+                && !MapTileContainsDoor(x, y - 1)
+                && !map.IsBlocked(x, y - 1)
+                && !map.GameObjectByCoord[x, y - 1].Any()
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    map.AddGameObject(new Statue(x, y));
+                }
+            }
+
             if (
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfGraveyardClutter
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
@@ -904,6 +932,16 @@ abstract class MapGeneratorBase(
     /// </summary>
     protected bool MapTileContainsDoor(int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
+
+    /// <summary>
+    /// Does (x,y) already hold a GameObject whose art visually fills the tile (see
+    /// GameObject.OccupiesTile) - e.g. a statue or another solid prop - so a second one shouldn't
+    /// be placed on top of it? Deliberately narrower than <see cref="Map.IsBlocked"/>: scatter
+    /// decorations (bones, runes, leaves, ...) never set OccupiesTile, so they can still coexist
+    /// on the same tile as each other, same as before this check existed.
+    /// </summary>
+    protected bool TileOccupied(int x, int y) =>
+        map.GameObjectByCoord[x, y].Any(g => g.OccupiesTile);
 
     protected T GetRandomElement<T>(T[] elements) =>
         elements[mapGenerationRandomSource.Next(0, elements.Length)];

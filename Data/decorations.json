@@ -281,6 +281,22 @@
       "vertical_offset": 0,
       "character": "",
       "character_color": ""
+    },
+    {
+      "id": "statue",
+      "name": "Statue",
+      "image": {
+        "top": "statue_top",
+        "bottom": "statue_bottom"
+      },
+      "info_text": "A weathered stone statue",
+      "vertical_offset": 0,
+      "character": "Ω",
+      "character_color": "#a19f9c",
+      "blocking": false,
+      "blocks_edges": ["north"],
+      "occupies_tile": true,
+      "makeCoveringOffsetDecsTransparent": true
     }
   ]
 }

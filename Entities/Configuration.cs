@@ -930,6 +930,40 @@ class Configuration
                 makeCoveringOffsetDecsTransparentElement.GetBoolean();
         }
 
+        // Optional "fence" primitive (see Edge/GameObject.BlockedEdges): which edge(s) of this
+        // decoration's own tile block movement across them, e.g. a statue's base blocking the
+        // step onto the tile its "top" half bleeds over. Independent of "blocking" above, which
+        // governs the tile's own occupancy.
+        var blockedEdges = Edge.None;
+        if (element.TryGetProperty("blocks_edges", out var blockedEdgesElement))
+        {
+            foreach (var edgeElem in blockedEdgesElement.EnumerateArray())
+            {
+                string edgeName = RequireNonNullString(edgeElem, "blocks_edges");
+                blockedEdges |= edgeName switch
+                {
+                    "north" => Edge.North,
+                    "south" => Edge.South,
+                    "east" => Edge.East,
+                    "west" => Edge.West,
+                    _ => throw new InvalidOperationException(
+                        $"Unknown blocks_edges value '{edgeName}' for static decoration '{id}'."
+                    ),
+                };
+            }
+        }
+
+        // Whether map generation should treat this decoration's tile as "spoken for" against other
+        // such decorations (e.g. a coffin landing on a statue's base) - independent of "blocking"
+        // (movement). Defaults to "blocking" itself, since every existing solid prop already
+        // relies on that for mutual exclusion; a decoration that isn't Blocking but still fills
+        // its tile (Statue) opts in explicitly.
+        bool occupiesTile = blocking;
+        if (element.TryGetProperty("occupies_tile", out var occupiesTileElement))
+        {
+            occupiesTile = occupiesTileElement.GetBoolean();
+        }
+
         var dec = new StaticDecorativeObjectType(
             id,
             name,
@@ -940,7 +974,9 @@ class Configuration
             character,
             characterColor,
             blocking,
-            makeCoveringOffsetDecsTransparent
+            makeCoveringOffsetDecsTransparent,
+            blockedEdges,
+            occupiesTile
         );
         staticDecorativeObjectTypes.Add(id, dec);
     }

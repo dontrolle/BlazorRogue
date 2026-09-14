@@ -97,6 +97,40 @@ public class MapTests
         Assert.False(map.IsBlocked(2, 2));
     }
 
+    // The shared "fence" primitive (see Edge/GameObject.BlockedEdges) - a GameObject blocking
+    // movement across one edge of its own tile without necessarily being Blocking itself. Statue
+    // is the first consumer; a future single-tile fence would declare the same way.
+    [Fact]
+    public void IsMovementBlockedAcrossEdgeOnlyBlocksTheDeclaredEdgeAndNeverDiagonalMoves()
+    {
+        var map = CreateMap();
+        var fenceType = new StaticDecorativeObjectType(
+            id: "test_fence",
+            name: "Test Fence",
+            image: new Dictionary<string, string> { [""] = "img" },
+            animationClasses: [],
+            infoText: "",
+            verticalOffset: 0,
+            character: "",
+            characterColor: "",
+            blocking: false,
+            makeCoveringOffsetDecsTransparent: false,
+            blockedEdges: Edge.North
+        );
+        map.AddGameObject(new StaticDecorativeObject(3, 3, fenceType));
+
+        // Blocked across the declared (North) edge, regardless of which side is "from"...
+        Assert.True(map.IsMovementBlockedAcrossEdge(3, 3, 3, 2));
+        Assert.True(map.IsMovementBlockedAcrossEdge(3, 2, 3, 3));
+
+        // ...but no other orthogonal edge of that tile is affected, and diagonal moves are never
+        // edge-blocked.
+        Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 3, 4));
+        Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 3));
+        Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 4, 3));
+        Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 2));
+    }
+
     // Death drops a blood puddle and re-renders, both of which need a real Game and a post-gen
     // map behind them - so these use a fully generated game rather than CreateMap().
     static int PuddleCount(Map map, Moveable owner) =>
