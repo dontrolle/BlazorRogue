@@ -46,6 +46,8 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_altars", 0.04);
     protected readonly double percentageChanceOfStatues = CommonSettings(settings)
         .GetDouble("percentage_chance_of_statues", 0.02);
+    protected readonly double percentageChanceOfFountains = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_fountains", 0.015);
     protected readonly double percentageChanceOfSpiderWebInCorner = CommonSettings(settings)
         .GetDouble("percentage_chance_of_spider_web_in_corner", 0.25);
     protected readonly double percentageChanceOfTorch = CommonSettings(settings)
@@ -625,6 +627,30 @@ abstract class MapGeneratorBase(
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
                     map.AddGameObject(new Statue(x, y));
+                }
+            }
+
+            // Fountain's own tile isn't Blocking either (see Fountain), so this check mirrors
+            // Statue's above in the opposite direction: instead of requiring open floor above (for
+            // Statue's own bleed), it requires a plain wall above (for Fountain's own bleed) - not
+            // a door frame, and not already carrying a torch or dust wall-piece placed by
+            // PlaceTorchIfEligible/PlaceDustIfEligible earlier in this same x-column (see
+            // AddRandomPostMapGenerationDecorations's row-by-row loop order - row y-1 is always
+            // fully processed before row y for a fixed x). No explicit !map.IsBlocked(x, y - 1)
+            // check is needed - a Wall tile is unconditionally blocked already.
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfFountains
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
+                && map.Tiles[x, y - 1].TileType == TileType.Wall
+                && !MapTileContainsDoor(x, y - 1)
+                && !map.GameObjectByCoord[x, y - 1].Any()
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    map.AddGameObject(new Fountain(x, y));
                 }
             }
 

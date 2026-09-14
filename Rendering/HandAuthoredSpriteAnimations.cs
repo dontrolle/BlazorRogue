@@ -59,6 +59,22 @@ static class HandAuthoredSpriteAnimations
             "infinite",
             [(0, "lilypad_b1"), (50, "lilypad_b2"), (100, "lilypad_b1")]
         ),
+        // Wall and floor share duration/iteration-count/keyframe percentages so they stay
+        // phase-locked as one fountain rather than drifting out of sync with each other.
+        new(
+            "animated_fountain_wall",
+            "fountain_wall",
+            "1.2s",
+            "infinite",
+            [(0, "fountain_a1"), (50, "fountain_b1"), (100, "fountain_a1")]
+        ),
+        new(
+            "animated_fountain_floor",
+            "fountain_floor",
+            "1.2s",
+            "infinite",
+            [(0, "fountaina2"), (50, "fountainb2"), (100, "fountaina2")]
+        ),
     ];
 
     public static string Generate(SpriteAtlas atlas)

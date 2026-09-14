@@ -297,6 +297,22 @@
       "blocks_edges": ["north"],
       "occupies_tile": true,
       "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "fountain",
+      "name": "Fountain",
+      "image": {
+        "pool": "fountain_pool"
+      },
+      "animation": {
+        "wall": "animated_fountain_wall",
+        "floor": "animated_fountain_floor"
+      },
+      "info_text": "A stone fountain, water jetting from its basin",
+      "vertical_offset": 0,
+      "character": "≈",
+      "character_color": "#5fa8d3",
+      "occupies_tile": true
     }
   ]
 }
