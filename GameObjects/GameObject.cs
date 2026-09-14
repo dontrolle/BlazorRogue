@@ -17,6 +17,22 @@ abstract class GameObject
     public bool Blocking { get; set; }
     public bool BlocksLight { get; set; }
 
+    /// <summary>
+    /// Edge(s) of this object's own tile that block movement across them - see <see cref="Edge"/>.
+    /// </summary>
+    public Edge BlockedEdges { get; set; } = Edge.None;
+
+    /// <summary>
+    /// Whether this object's art visually fills its own tile, so map generation shouldn't place
+    /// another OccupiesTile decoration on top of it (e.g. a coffin landing on a statue's base) -
+    /// independent of <see cref="Blocking"/> (movement). Defaults to Blocking for
+    /// StaticDecorativeObjectType-backed decorations (see
+    /// <see cref="Entities.StaticDecorativeObjectType.OccupiesTile"/>), but a non-blocking object
+    /// can still opt in - Statue does, since its footprint doesn't leave room for another prop
+    /// despite letting a moveable stand on it.
+    /// </summary>
+    public bool OccupiesTile { get; set; }
+
     public bool InvisibleOutsideFov { get; set; }
     public string Name { get; private set; }
 

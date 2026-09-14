@@ -722,7 +722,10 @@ class Map
         playerStumbled = false;
 
         // Check for blocking Walls or GameObject's
-        if (!IsBlocked(destX, destY))
+        if (
+            !IsBlocked(destX, destY)
+            && !IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY)
+        )
         {
             // Trying to leave a slow liquid (mud/water) can fail - the turn is still spent.
             if ((xDelta != 0 || yDelta != 0) && LiquidStumble(Player))
@@ -838,6 +841,39 @@ class Map
             : Tiles[x, y].Blocking
                 || gameObjectByCoord[x, y].Any(g => g.Blocking)
                 || moveables.Where(m => m.Blocking).Any(m => m.X == x && m.Y == y);
+
+    /// <summary>
+    /// True if a "fence"-like GameObject (see <see cref="Edge"/>/<see cref="GameObject.BlockedEdges"/>)
+    /// blocks stepping directly between two orthogonally-adjacent tiles - independent of whether
+    /// either tile itself is Blocking for occupancy. Either tile may carry the declaration (e.g.
+    /// Statue's base tile alone declares North blocked, for the edge shared with the tile north of
+    /// it). Only orthogonal moves can be edge-blocked; diagonal or non-adjacent pairs never are.
+    /// </summary>
+    public bool IsMovementBlockedAcrossEdge(int fromX, int fromY, int toX, int toY)
+    {
+        int dx = toX - fromX;
+        int dy = toY - fromY;
+
+        return (dx, dy) switch
+        {
+            (0, -1) => TileBlocksEdge(fromX, fromY, Edge.North)
+                || TileBlocksEdge(toX, toY, Edge.South),
+            (0, 1) => TileBlocksEdge(fromX, fromY, Edge.South)
+                || TileBlocksEdge(toX, toY, Edge.North),
+            (-1, 0) => TileBlocksEdge(fromX, fromY, Edge.West)
+                || TileBlocksEdge(toX, toY, Edge.East),
+            (1, 0) => TileBlocksEdge(fromX, fromY, Edge.East)
+                || TileBlocksEdge(toX, toY, Edge.West),
+            _ => false,
+        };
+    }
+
+    bool TileBlocksEdge(int x, int y, Edge edge) =>
+        x >= 0
+        && y >= 0
+        && x < Width
+        && y < Height
+        && gameObjectByCoord[x, y].Any(g => (g.BlockedEdges & edge) != 0);
 
     public bool BlocksLight(int x, int y) =>
         x < 0 || x >= Width || y < 0 || y >= Height || BlocksLightMap[x, y];

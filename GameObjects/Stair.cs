@@ -16,6 +16,8 @@ class Stair(int x, int y, StairDirection direction)
 {
     public StairDirection Direction { get; } = direction;
 
+    public override string InfoText => NameFor(Direction);
+
     // Weighted-picked once (see Render) and then reused on every subsequent Render call, so a
     // stair with multiple weighted image options doesn't change its displayed art between
     // re-renders.

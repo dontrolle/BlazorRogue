@@ -44,6 +44,8 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_tables", 0.06);
     protected readonly double percentageChanceOfAltars = CommonSettings(settings)
         .GetDouble("percentage_chance_of_altars", 0.04);
+    protected readonly double percentageChanceOfStatues = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_statues", 0.02);
     protected readonly double percentageChanceOfSpiderWebInCorner = CommonSettings(settings)
         .GetDouble("percentage_chance_of_spider_web_in_corner", 0.25);
     protected readonly double percentageChanceOfTorch = CommonSettings(settings)
@@ -52,6 +54,20 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_chests", 0.02);
     protected readonly double percentageChanceOfItems = CommonSettings(settings)
         .GetDouble("percentage_chance_of_items", 0.0);
+    protected readonly double percentageChanceOfBarrels = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_barrels", 0.03);
+    protected readonly double percentageChanceOfGraveyardClutter = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_graveyard_clutter", 0.02);
+    protected readonly double percentageChanceOfRunes = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_runes", 0.015);
+    protected readonly double percentageChanceOfLeaves = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_leaves", 0.03);
+    protected readonly double percentageChanceOfDust = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_dust", 0.05);
+    protected readonly double percentageChanceOfLilypad = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_lilypad", 0.15);
+    protected readonly double percentageChanceOfPuddleLarge = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_puddle_large", 0.15);
 
     // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
     // `configuration` field further down - field initializers can't reference another instance
@@ -79,7 +95,11 @@ abstract class MapGeneratorBase(
     protected static SettingsMap CommonSettings(SettingsMap settings) =>
         settings.GetMap("common", SettingsMap.Empty);
 
-    protected readonly string[] doorTypes = ["metal", "stone", "wood", "ruin"];
+    // Sourced from Data/doorsets.json rather than hardcoded, so a new door-set (e.g. a lockable
+    // type down the line) becomes available to generators automatically. Uses game.Configuration
+    // rather than the `configuration` field for the same CS0236-adjacent reason as itemTypePool
+    // above - see that field's comment.
+    protected readonly string[] doorTypes = [.. game.Configuration.DoorSets.Keys];
 
     protected readonly List<Tuple<int, int>> candidateDoors = [];
 
@@ -299,7 +319,6 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Horizontal,
                                 GetRandomBool()
                             )
@@ -321,7 +340,6 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Vertical,
                                 GetRandomBool()
                             )
@@ -486,6 +504,8 @@ abstract class MapGeneratorBase(
             for (int y = 0; y < map.Height; y++)
             {
                 PlaceTorchIfEligible(x, y);
+                PlaceDustIfEligible(x, y);
+                PlaceLilypadIfEligible(x, y);
 
                 AddRandomPostGenFloorDecorationsAt(x, y);
             }
@@ -518,15 +538,28 @@ abstract class MapGeneratorBase(
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfTables
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
+                    // mostly plain tables, occasionally an alchemy or paperwork variant
+                    string tableId = "table";
+                    int tableRoll = mapGenerationRandomSource.Next(0, 4);
+                    if (tableRoll == 1)
+                    {
+                        tableId = "table_lab";
+                    }
+                    else if (tableRoll == 2)
+                    {
+                        tableId = "table_papers";
+                    }
+
                     map.AddGameObject(
                         new StaticDecorativeObject(
                             x,
                             y,
-                            configuration.StaticDecorativeObjectTypes["table"]
+                            configuration.StaticDecorativeObjectTypes[tableId]
                         )
                     );
                 }
@@ -536,6 +569,29 @@ abstract class MapGeneratorBase(
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfAltars
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    string altarId =
+                        mapGenerationRandomSource.Next(0, 4) == 0 ? "altar_skull" : "altar_blood";
+
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes[altarId]
+                        )
+                    );
+                }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfBarrels
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
             )
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
@@ -544,7 +600,116 @@ abstract class MapGeneratorBase(
                         new StaticDecorativeObject(
                             x,
                             y,
-                            configuration.StaticDecorativeObjectTypes["altar_blood"]
+                            configuration.StaticDecorativeObjectTypes["barrel"]
+                        )
+                    );
+                }
+            }
+
+            // Statue's "top" half bleeds visually onto the tile above (see Statue.Render), so that
+            // tile needs to be open, empty floor too - otherwise the top would render over a wall
+            // or another decoration (e.g. a second statue stacked right below this one, its "top"
+            // landing on this one's "bottom"), and a player couldn't actually walk behind it as
+            // intended.
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfStatues
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
+                && map.Tiles[x, y - 1].TileType == TileType.Floor
+                && !MapTileContainsDoor(x, y - 1)
+                && !map.IsBlocked(x, y - 1)
+                && !map.GameObjectByCoord[x, y - 1].Any()
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    map.AddGameObject(new Statue(x, y));
+                }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfGraveyardClutter
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+                && !TileOccupied(x, y)
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    string clutterId = mapGenerationRandomSource.Next(0, 4) switch
+                    {
+                        0 => "grave",
+                        1 => "grave_broken",
+                        2 => "coffin",
+                        _ => "coffin_open",
+                    };
+
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes[clutterId]
+                        )
+                    );
+                }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfRunes
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                map.AddGameObject(
+                    new StaticDecorativeObject(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes["rune"]
+                    )
+                );
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfLeaves
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                string leavesId =
+                    mapGenerationRandomSource.Next(0, 2) == 0 ? "leaves_green" : "leaves_brown";
+
+                map.AddGameObject(
+                    new StaticDecorativeObject(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes[leavesId]
+                    )
+                );
+            }
+
+            // Splashes only near a liquid edge, tinted to match whichever liquid it's bordering
+            // (puddle_large has one image variant per LiquidType.Id - see decorations.json).
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfPuddleLarge
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                string? adjacentLiquidId =
+                    map.Tiles[x, y - 1].Liquid?.Id
+                    ?? map.Tiles[x, y + 1].Liquid?.Id
+                    ?? map.Tiles[x - 1, y].Liquid?.Id
+                    ?? map.Tiles[x + 1, y].Liquid?.Id;
+
+                if (adjacentLiquidId is not null)
+                {
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["puddle_large"],
+                            adjacentLiquidId
                         )
                     );
                 }
@@ -684,10 +849,99 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
+    /// Has a chance (<c>percentageChanceOfDust</c>) of adding a paired dust decoration at
+    /// (<paramref name="x"/>, <paramref name="y"/>) - one piece drawn on the wall tile itself, one
+    /// on the floor tile directly below it. Same wall-tile-with-floor-below geometry as
+    /// <see cref="PlaceTorchIfEligible"/>, but places two GameObjects instead of one. Which image
+    /// pair is used depends on whether the floor tile below is itself hugging a room corner - i.e.
+    /// a side wall sits immediately west or east of *that floor tile* (one row down, not beside the
+    /// wall tile itself - a rectangular room's top wall is a contiguous run, so the tile beside a
+    /// top-wall tile is essentially always another wall; the corner only becomes visible one row
+    /// down, next to the perpendicular side wall) - or a middle-of-the-run straight segment.
+    /// </summary>
+    protected void PlaceDustIfEligible(int x, int y)
+    {
+        if (map.Tiles[x, y].TileType != TileType.Wall)
+        {
+            return;
+        }
+
+        if (y >= map.Height - 1 || map.Tiles[x, y + 1].TileType != TileType.Floor)
+        {
+            return;
+        }
+
+        if (MapTileContainsDoor(x, y + 1) || map.IsBlocked(x, y + 1))
+        {
+            return;
+        }
+
+        if (mapGenerationRandomSource.NextDouble() < percentageChanceOfDust)
+        {
+            // A floor tile with a side wall on both sides (a 1-wide nook) is treated as a NW
+            // corner - an arbitrary but harmless tie-break, since that shape is rare.
+            bool sideWallToWest = x > 0 && map.Tiles[x - 1, y + 1].TileType == TileType.Wall;
+            bool sideWallToEast =
+                x < map.Width - 1 && map.Tiles[x + 1, y + 1].TileType == TileType.Wall;
+
+            var (wallTag, floorTag) =
+                sideWallToWest ? ("wall_nw", "floor_nw")
+                : sideWallToEast ? ("wall_ne", "floor_ne")
+                : ("wall_straight", "floor_straight");
+
+            var dustType = configuration.StaticDecorativeObjectTypes["dust"];
+            map.AddGameObject(new StaticDecorativeObject(x, y, dustType, wallTag));
+            map.AddGameObject(new StaticDecorativeObject(x, y + 1, dustType, floorTag));
+        }
+    }
+
+    /// <summary>
+    /// Has a chance (<c>percentageChanceOfLilypad</c>) of adding a lilypad at
+    /// (<paramref name="x"/>, <paramref name="y"/>) - only on a liquid tile whose
+    /// <c>LiquidType.Name</c> is "water" (blue/green/teal), never mud/acid/lava. No explicit
+    /// image tag is passed, so <see cref="StaticDecorativeObject"/> randomly picks between the two
+    /// lilypad species ("a"/"b"), each animated via its own CSS class - see
+    /// <see cref="Rendering.HandAuthoredSpriteAnimations"/>.
+    /// </summary>
+    protected void PlaceLilypadIfEligible(int x, int y)
+    {
+        if (map.Tiles[x, y].Liquid is not { Name: "water" })
+        {
+            return;
+        }
+
+        if (MapTileContainsDoor(x, y) || map.IsBlocked(x, y))
+        {
+            return;
+        }
+
+        if (mapGenerationRandomSource.NextDouble() < percentageChanceOfLilypad)
+        {
+            map.AddGameObject(
+                new StaticDecorativeObject(
+                    x,
+                    y,
+                    configuration.StaticDecorativeObjectTypes["lilypad"]
+                )
+            );
+        }
+    }
+
+    /// <summary>
     /// Does the map contain a door at (x,y)?
     /// </summary>
     protected bool MapTileContainsDoor(int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
+
+    /// <summary>
+    /// Does (x,y) already hold a GameObject whose art visually fills the tile (see
+    /// GameObject.OccupiesTile) - e.g. a statue or another solid prop - so a second one shouldn't
+    /// be placed on top of it? Deliberately narrower than <see cref="Map.IsBlocked"/>: scatter
+    /// decorations (bones, runes, leaves, ...) never set OccupiesTile, so they can still coexist
+    /// on the same tile as each other, same as before this check existed.
+    /// </summary>
+    protected bool TileOccupied(int x, int y) =>
+        map.GameObjectByCoord[x, y].Any(g => g.OccupiesTile);
 
     protected T GetRandomElement<T>(T[] elements) =>
         elements[mapGenerationRandomSource.Next(0, elements.Length)];

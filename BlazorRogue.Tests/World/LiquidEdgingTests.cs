@@ -116,15 +116,17 @@ public class LiquidEdgingTests
     [Fact]
     public void AnEdgeWithADiagonalNubAtOneEndIsASingleTile()
     {
-        // Canonical water_edging_5 is "land W + SW".
-        Assert.Equal([("water_edging_5", 0, false)], Overlays(w: true, sw: true));
+        // Canonical water_edging_5 is "land W + SE" - verified against the source art's actual
+        // alpha-channel content (per-region sampling), not just the code's own prior assumption.
+        // See LiquidEdging.cs's Combos comment for the live-game repro that caught this.
+        Assert.Equal([("water_edging_5", 0, false)], Overlays(w: true, se: true));
     }
 
     [Fact]
     public void TheMirrorImageOfEdgePlusNubUsesTheSameTileFlipped()
     {
-        // "land W + NW" is water_edging_5's chiral partner - same art, mirrored.
-        var overlays = Overlays(w: true, nw: true);
+        // "land W + NE" is water_edging_5's chiral partner - same art, mirrored.
+        var overlays = Overlays(w: true, ne: true);
 
         Assert.Single(overlays);
         Assert.Equal("water_edging_5", overlays[0].Image);
@@ -134,23 +136,40 @@ public class LiquidEdgingTests
     [Fact]
     public void AnEdgeWithNubsAtBothEndsIsASingleTile()
     {
-        Assert.Equal([("water_edging_6", 0, false)], Overlays(w: true, nw: true, sw: true));
+        // Canonical water_edging_6 is "land W + NE + SE" (both far corners) - see the art-verified
+        // comment on LiquidEdging.Combos.
+        Assert.Equal([("water_edging_6", 0, false)], Overlays(w: true, ne: true, se: true));
     }
 
     [Fact]
     public void AConvexCornerWithAFarNubIsASingleTile()
     {
-        // Canonical water_edging_7 is "land W + N + SW".
-        Assert.Equal([("water_edging_7", 0, false)], Overlays(n: true, w: true, sw: true));
+        // Canonical water_edging_7 is "land W + N + SE" - see the art-verified comment on
+        // LiquidEdging.Combos.
+        Assert.Equal([("water_edging_7", 0, false)], Overlays(n: true, w: true, se: true));
     }
 
     [Fact]
-    public void AnEdgeAndADetachedOppositeNubFallBackToTwoStackedAtomicPieces()
+    public void FourIsolatedDiagonalNubsFallBackToFourStackedAtomicPieces()
     {
-        // No single tile depicts a north edge plus a nub at the far SE corner.
-        var overlays = Overlays(n: true, se: true).OrderBy(o => o.Image).ToArray();
+        // The one neighbourhood shape with no single-sprite depiction: open water on all four
+        // orthogonals with land in all four diagonals (a "plus" of water with a land nub poking
+        // into each corner) - every edge/corner/nub combo above requires at least one orthogonal
+        // land side, so this is unreachable by any of them and always falls back to four stacked
+        // corner nubs.
+        var overlays = Overlays(nw: true, ne: true, sw: true, se: true)
+            .OrderBy(o => o.Rotation)
+            .ToArray();
 
-        Assert.Equal([("water_edging_1", 90, false), ("water_edging_9", 0, false)], overlays);
+        Assert.Equal(
+            [
+                ("water_edging_9", 0, false),
+                ("water_edging_9", 90, false),
+                ("water_edging_9", 180, false),
+                ("water_edging_9", 270, false),
+            ],
+            overlays
+        );
     }
 
     [Fact]

@@ -264,6 +264,21 @@ else
                                     </div>
                                 }
                             }
+
+                            @if (renderAscii)
+                            {
+                                // A "fence" barrier (see GameObject.BlockedEdges) sits on the border
+                                // between two tiles, not inside either one - unlike tileset mode,
+                                // where the art already conveys it (e.g. Statue's two-tile
+                                // composite), so this only needs to exist in the ASCII renderer.
+                                @foreach (var go in game.Map.GameObjectByCoord[x, y])
+                                {
+                                    @foreach (var edge in go.BlockedEdges.SetFlags())
+                                    {
+                                        <div class="@($"edge-marker edge-marker-{edge.ToString().ToLowerInvariant()} {fovClass}")"></div>
+                                    }
+                                }
+                            }
                         }
                     </div>
                 }

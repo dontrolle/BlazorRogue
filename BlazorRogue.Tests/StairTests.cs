@@ -191,7 +191,7 @@ public class StairTests
     {
         var game = new Game();
         var (x, y) = FindFreeTile(game.Map);
-        var door = new Door(x, y, "wood", 1, Orientation.Horizontal, isOpen: false);
+        var door = new Door(x, y, "wood", Orientation.Horizontal, isOpen: false);
         game.Map.AddGameObject(door);
 
         Door.Use(door);
@@ -268,6 +268,16 @@ public class StairTests
             game.Messages,
             m => m.Contains("descend", StringComparison.OrdinalIgnoreCase)
         );
+    }
+
+    [Fact]
+    public void InfoTextNamesTheStairsDirection()
+    {
+        var game = new Game();
+        var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
+
+        Assert.Equal("Stairs down", new Stair(x, y, StairDirection.Down).InfoText);
+        Assert.Equal("Stairs up", new Stair(x, y, StairDirection.Up).InfoText);
     }
 
     [Fact]

@@ -7,6 +7,7 @@ namespace BlazorRogue.GameObjects;
 class StaticDecorativeObject : GameObject
 {
     readonly string image;
+    readonly string? animationClass;
     readonly int verticalOffset;
     readonly string character;
     readonly string characterColor;
@@ -40,11 +41,13 @@ class StaticDecorativeObject : GameObject
             }
 
             image = imageVariant;
+            animationClass = staticDecorativeObjectType.AnimationClassForTag(imageTag);
         }
         else
         {
-            // if no tag is given, select a random image among the variants given
-            image = staticDecorativeObjectType.RandomImage;
+            // if no tag is given, select a random image (and whichever animation class shares its
+            // tag) among the variants given
+            (image, animationClass) = staticDecorativeObjectType.RandomImageWithAnimationClass;
         }
 
         InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;
@@ -52,6 +55,8 @@ class StaticDecorativeObject : GameObject
         character = staticDecorativeObjectType.Character;
         characterColor = staticDecorativeObjectType.CharacterColor;
         Blocking = staticDecorativeObjectType.Blocking;
+        BlockedEdges = staticDecorativeObjectType.BlockedEdges;
+        OccupiesTile = staticDecorativeObjectType.OccupiesTile;
         makeCoveringOffsetDecsTransparent =
             staticDecorativeObjectType.MakeCoveringOffsetDecsTransparent;
         this.decorationLayer = decorationLayer; // TODO: Shouldn't this be driven from config data.json as well?
@@ -60,8 +65,12 @@ class StaticDecorativeObject : GameObject
     public override void Render(Map map) =>
         map.Decorations[X, Y]
             .Add(
-                new Decoration(this, image)
+                // Matches Torch/Tile.RenderLiquid: an animated decoration's keyframes drive
+                // background-position themselves, so no separate static spr-<image> class is
+                // wanted alongside them.
+                new Decoration(this, animationClass is null ? image : null)
                 {
+                    AnimationClass = animationClass,
                     VerticalOffset = verticalOffset,
                     Character = character,
                     CharacterColor = characterColor,

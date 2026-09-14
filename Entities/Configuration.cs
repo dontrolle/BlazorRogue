@@ -41,6 +41,11 @@ class Configuration
         "Data",
         "wallsets.json"
     );
+    static readonly string DoorSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "doorsets.json"
+    );
     static readonly string LiquidSetsFileName = Path.Combine(
         AppContext.BaseDirectory,
         "Data",
@@ -154,6 +159,19 @@ class Configuration
             ? wallSet
             : throw new InvalidOperationException($"Unknown wall-tile-set id: {id}.");
 
+    readonly Dictionary<string, DoorSet> doorSetsById = [];
+    public IReadOnlyDictionary<string, DoorSet> DoorSets => doorSetsById;
+
+    /// <summary>
+    /// Looks up a door-set by id (the <c>doorType</c> a <see cref="GameObjects.Door"/> is
+    /// constructed with). Validated to exist by <see cref="Parse"/>, so callers operating on
+    /// already-parsed doors can rely on this never throwing.
+    /// </summary>
+    public DoorSet DoorSetById(string id) =>
+        doorSetsById.TryGetValue(id, out var doorSet)
+            ? doorSet
+            : throw new InvalidOperationException($"Unknown door-set id: {id}.");
+
     readonly Dictionary<int, LevelConfiguration> levels = [];
     public IReadOnlyDictionary<int, LevelConfiguration> Levels => levels.AsReadOnly();
 
@@ -183,6 +201,7 @@ class Configuration
         );
         ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
         ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
+        ParseDataFile(options, DoorSetsFileName, "door_sets", ParseDoorSetType);
         ParseDataFile(options, LiquidSetsFileName, "liquid_sets", ParseLiquidType);
         ParseDataFile(
             options,
@@ -525,6 +544,26 @@ class Configuration
         }
     }
 
+    void ParseDoorSetType(JsonElement element)
+    {
+        string id = GetRequiredString(element, "id");
+        string imgPrefix = GetRequiredString(element, "img_prefix");
+        string infoText = GetRequiredString(element, "info_text");
+
+        bool alwaysSeeThrough = false;
+        if (element.TryGetProperty("always_see_through", out var alwaysSeeThroughElement))
+        {
+            alwaysSeeThrough = alwaysSeeThroughElement.GetBoolean();
+        }
+
+        var doorSet = new DoorSet(id, imgPrefix, alwaysSeeThrough, infoText);
+
+        if (!doorSetsById.TryAdd(id, doorSet))
+        {
+            throw new InvalidOperationException($"Found another door-set with id: {id}.");
+        }
+    }
+
     void ParseWallSetType(JsonElement element)
     {
         string id,
@@ -852,6 +891,22 @@ class Configuration
             );
         }
 
+        // Optional: a tag -> animated CSS class map (see HandAuthoredSpriteAnimations), for
+        // decorations with a per-tag animated variant (e.g. lilypad's "a"/"b" species). A tag with
+        // no entry here just renders its static image - most decorations have no "animation" at all.
+        var animationClasses = new Dictionary<string, string>();
+        const string animationPropertyName = "animation";
+        if (element.TryGetProperty(animationPropertyName, out var animationProperty))
+        {
+            foreach (var aElem in animationProperty.EnumerateObject())
+            {
+                animationClasses.Add(
+                    aElem.Name,
+                    RequireNonNullString(aElem.Value, $"{animationPropertyName}.{aElem.Name}")
+                );
+            }
+        }
+
         string infoText = GetRequiredString(element, "info_text");
         int verticalOffset = element.GetProperty("vertical_offset").GetInt32();
         string character = GetRequiredString(element, "character");
@@ -875,16 +930,53 @@ class Configuration
                 makeCoveringOffsetDecsTransparentElement.GetBoolean();
         }
 
+        // Optional "fence" primitive (see Edge/GameObject.BlockedEdges): which edge(s) of this
+        // decoration's own tile block movement across them, e.g. a statue's base blocking the
+        // step onto the tile its "top" half bleeds over. Independent of "blocking" above, which
+        // governs the tile's own occupancy.
+        var blockedEdges = Edge.None;
+        if (element.TryGetProperty("blocks_edges", out var blockedEdgesElement))
+        {
+            foreach (var edgeElem in blockedEdgesElement.EnumerateArray())
+            {
+                string edgeName = RequireNonNullString(edgeElem, "blocks_edges");
+                blockedEdges |= edgeName switch
+                {
+                    "north" => Edge.North,
+                    "south" => Edge.South,
+                    "east" => Edge.East,
+                    "west" => Edge.West,
+                    _ => throw new InvalidOperationException(
+                        $"Unknown blocks_edges value '{edgeName}' for static decoration '{id}'."
+                    ),
+                };
+            }
+        }
+
+        // Whether map generation should treat this decoration's tile as "spoken for" against other
+        // such decorations (e.g. a coffin landing on a statue's base) - independent of "blocking"
+        // (movement). Defaults to "blocking" itself, since every existing solid prop already
+        // relies on that for mutual exclusion; a decoration that isn't Blocking but still fills
+        // its tile (Statue) opts in explicitly.
+        bool occupiesTile = blocking;
+        if (element.TryGetProperty("occupies_tile", out var occupiesTileElement))
+        {
+            occupiesTile = occupiesTileElement.GetBoolean();
+        }
+
         var dec = new StaticDecorativeObjectType(
             id,
             name,
             images,
+            animationClasses,
             infoText,
             verticalOffset,
             character,
             characterColor,
             blocking,
-            makeCoveringOffsetDecsTransparent
+            makeCoveringOffsetDecsTransparent,
+            blockedEdges,
+            occupiesTile
         );
         staticDecorativeObjectTypes.Add(id, dec);
     }

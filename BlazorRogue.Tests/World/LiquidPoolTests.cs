@@ -11,7 +11,10 @@ namespace BlazorRogue.Tests.World;
 /// <summary>
 /// Covers liquid pool tiles: <see cref="Map.SetLiquidTile"/> and the hazard behaviour hanging off
 /// it (instakill on entry, per-turn acid damage, slow-on-exit), the AI treating lava as
-/// impassable, and generator placement via <c>MapGeneratorBase.AddLiquidPools</c>.
+/// impassable, generator placement via <c>MapGeneratorBase.AddLiquidPools</c>, and the two
+/// liquid-adjacent decorations that hang off it: <c>PlaceLilypadIfEligible</c> (water tiles only)
+/// and the puddle_large splash placed in <c>AddRandomPostGenFloorDecorationsAt</c> (any liquid
+/// edge, tinted to match).
 /// </summary>
 public class LiquidPoolTests
 {
@@ -364,9 +367,15 @@ public class LiquidPoolTests
             }
         );
 
-        // Stairs, the player and monsters were all placed after the pools and must have avoided them.
+        // Stairs, the player and monsters were all placed after the pools and must have avoided
+        // them. Lilypads are the sole deliberate exception - they're placed directly on water tiles
+        // (see MapGeneratorBase.PlaceLilypadIfEligible) - so they're excluded here rather than
+        // asserted against.
         Assert.Null(map.Tiles[map.Player.X, map.Player.Y].Liquid);
-        Assert.All(map.GameObjects, go => Assert.Null(map.Tiles[go.X, go.Y].Liquid));
+        Assert.All(
+            map.GameObjects.Where(go => go.Name != "Lilypad"),
+            go => Assert.Null(map.Tiles[go.X, go.Y].Liquid)
+        );
         Assert.All(map.Monsters, m => Assert.Null(map.Tiles[m.X, m.Y].Liquid));
     }
 
@@ -427,5 +436,120 @@ public class LiquidPoolTests
                 Assert.Null(map.Tiles[x, y].Liquid);
             }
         }
+    }
+
+    // A small, guaranteed-to-generate pool of a single liquid type, plus whatever extra "common"
+    // knobs (percentage_chance_of_lilypad/puddle_large) a test wants forced.
+    static SettingsMap SettingsWithForcedLiquidType(
+        string liquidId,
+        Dictionary<string, object>? extraCommon = null
+    )
+    {
+        var common = new Dictionary<string, object>
+        {
+            ["liquid_pools"] = new SettingsMap(
+                new Dictionary<string, object>
+                {
+                    ["count_min"] = 4,
+                    ["count_max"] = 4,
+                    ["radius_min"] = 2,
+                    ["radius_max"] = 2,
+                    ["types"] = new List<(string, double)> { (liquidId, 1.0) },
+                }
+            ),
+        };
+        foreach (var (key, value) in extraCommon ?? [])
+        {
+            common[key] = value;
+        }
+
+        return new SettingsMap(
+            new Dictionary<string, object> { ["common"] = new SettingsMap(common) }
+        );
+    }
+
+    [Theory]
+    [InlineData("water_mud")]
+    [InlineData("water_bubbling")]
+    [InlineData("water_lava")]
+    public void LilypadNeverSpawnsOnNonWaterLiquidTypes(string liquidId)
+    {
+        var game = new Game();
+        var settings = SettingsWithForcedLiquidType(
+            liquidId,
+            new Dictionary<string, object> { ["percentage_chance_of_lilypad"] = 1.0 }
+        );
+
+        var map = MapGeneratorFactory.Create(LevelWithSettings(settings), game).GenerateMap();
+
+        Assert.DoesNotContain(map.GameObjects, go => go.Name == "Lilypad");
+    }
+
+    [Fact]
+    public void LilypadAlwaysSpawnsOnWaterLiquidTilesWhenItsChanceIsForced()
+    {
+        var game = new Game();
+        var settings = SettingsWithForcedLiquidType(
+            "water_blue",
+            new Dictionary<string, object> { ["percentage_chance_of_lilypad"] = 1.0 }
+        );
+
+        var map = MapGeneratorFactory.Create(LevelWithSettings(settings), game).GenerateMap();
+
+        var lilypads = map.GameObjects.Where(go => go.Name == "Lilypad").ToList();
+        Assert.NotEmpty(lilypads);
+        Assert.All(lilypads, go => Assert.Equal("water", map.Tiles[go.X, go.Y].Liquid?.Name));
+    }
+
+    [Fact]
+    public void PuddleLargeOnlySpawnsAdjacentToLiquidAndUsesTheMatchingLiquidsColorTag()
+    {
+        var game = new Game();
+        var settings = SettingsWithForcedLiquidType(
+            "water_lava",
+            new Dictionary<string, object>
+            {
+                ["percentage_chance_of_puddle_large"] = 1.0,
+                ["percentage_chance_of_lilypad"] = 0.0,
+            }
+        );
+
+        var map = MapGeneratorFactory.Create(LevelWithSettings(settings), game).GenerateMap();
+
+        var splashes = map.GameObjects.Where(go => go.Name == "Splash").ToList();
+        Assert.NotEmpty(splashes);
+        Assert.All(
+            splashes,
+            go =>
+            {
+                bool adjacentToLiquid =
+                    map.Tiles[go.X, go.Y - 1].Liquid is not null
+                    || map.Tiles[go.X, go.Y + 1].Liquid is not null
+                    || map.Tiles[go.X - 1, go.Y].Liquid is not null
+                    || map.Tiles[go.X + 1, go.Y].Liquid is not null;
+                Assert.True(adjacentToLiquid);
+
+                // "puddle_large_6" is the lava-colored variant - see Data/decorations.json.
+                Assert.Contains(map.Decorations[go.X, go.Y], d => d.ImageName == "puddle_large_6");
+            }
+        );
+    }
+
+    [Fact]
+    public void PuddleLargeNeverSpawnsWhenTheLevelHasNoLiquid()
+    {
+        var game = new Game();
+        var settings = new SettingsMap(
+            new Dictionary<string, object>
+            {
+                ["common"] = new SettingsMap(
+                    new Dictionary<string, object> { ["percentage_chance_of_puddle_large"] = 1.0 }
+                ),
+            }
+        );
+
+        var map = MapGeneratorFactory.Create(LevelWithSettings(settings), game).GenerateMap();
+
+        Assert.DoesNotContain(map.GameObjects, go => go.Name == "Splash");
     }
 }

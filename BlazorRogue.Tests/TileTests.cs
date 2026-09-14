@@ -239,9 +239,7 @@ public class TileTests
         game.Map.Tiles[x, y + 1].TileSet = wallSet;
         game.Map.Tiles[x - 1, y].TileSet = wallSet;
         game.Map.Tiles[x + 1, y].TileSet = wallSet;
-        game.Map.AddGameObject(
-            new Door(x, y - 1, "wood", 1, Orientation.Horizontal, isOpen: false)
-        );
+        game.Map.AddGameObject(new Door(x, y - 1, "wood", Orientation.Horizontal, isOpen: false));
         game.Map.Decorations[x, y].Clear();
 
         game.Map.Tiles[x, y].Render(game.Map);
@@ -269,9 +267,7 @@ public class TileTests
         game.Map.Tiles[x, y + 1].TileSet = floorSet;
         game.Map.Tiles[x - 1, y].TileSet = wallSet;
         game.Map.Tiles[x + 1, y].TileSet = wallSet;
-        game.Map.AddGameObject(
-            new Door(x, y + 1, "wood", 1, Orientation.Horizontal, isOpen: false)
-        );
+        game.Map.AddGameObject(new Door(x, y + 1, "wood", Orientation.Horizontal, isOpen: false));
         game.Map.Decorations[x, y].Clear();
 
         game.Map.Tiles[x, y].Render(game.Map);

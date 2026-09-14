@@ -22,7 +22,11 @@ class SimpleAIComponent(Map map) : AIComponent(map)
 
         // Lava (and any future instakill liquid) is treated as impassable for pathing - the AI has
         // no terrain awareness yet, so this just stops monsters walking to their death.
-        if (!map.IsBlocked(destX, destY) && !map.IsLethalLiquid(destX, destY))
+        if (
+            !map.IsBlocked(destX, destY)
+            && !map.IsLethalLiquid(destX, destY)
+            && !map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY)
+        )
         {
             // Trying to leave a slow liquid can fail - the turn is spent standing still.
             if (map.LiquidStumble(Owner!))

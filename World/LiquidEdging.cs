@@ -41,15 +41,24 @@ static class LiquidEdging
     // Canonical land-direction set for each water_edging_* tile. 1/2/8/9 double as the atomic
     // straight-edge / convex-corner / enclosed / concave-corner pieces; 3-7 and 10-12 are the
     // hand-authored combos.
+    //
+    // 5/6/7's nub side was verified against the actual art (per-region alpha-channel sampling of
+    // the source PNGs): every "has a W edge" tile paints a full west-column baseline (NW+W+SW), so
+    // that baseline can never be what distinguishes one W-edge combo from another - only a nub
+    // *beyond* the baseline can. 5 and 7's real nub sits at SE (not SW), and 6's real nubs sit at
+    // NE+SE (not NW+SW, which - being baseline - would carry no extra information at all). Filed
+    // after a live-game reproduction: a tile with land at W+NW+SW (a plain thick west wall, no
+    // NE/SE land at all) incorrectly rendered as water_edging_6 instead of the plain water_edging_1
+    // edge.
     static readonly (string Image, int Land)[] Combos =
     [
         ("water_edging_1", Mask(Ww)),
         ("water_edging_2", Mask(Nn, Ww)),
         ("water_edging_3", Mask(Ww, Ee)),
         ("water_edging_4", Mask(Ww, Nn, Ee)),
-        ("water_edging_5", Mask(Ww, SWi)),
-        ("water_edging_6", Mask(Ww, NWi, SWi)),
-        ("water_edging_7", Mask(Ww, Nn, SWi)),
+        ("water_edging_5", Mask(Ww, SEi)),
+        ("water_edging_6", Mask(Ww, NEi, SEi)),
+        ("water_edging_7", Mask(Ww, Nn, SEi)),
         ("water_edging_8", Mask(Nn, Ee, Ss, Ww)),
         ("water_edging_9", Mask(SEi)),
         ("water_edging_10", Mask(SWi, SEi)),

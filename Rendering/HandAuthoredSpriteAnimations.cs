@@ -45,6 +45,20 @@ static class HandAuthoredSpriteAnimations
             "1",
             [(0, "uf_FX_impact_09"), (33, "uf_FX_impact_08"), (66, "uf_FX_impact_07")]
         ),
+        new(
+            "animated_lilypad_a",
+            "lilypad_a",
+            "2.4s",
+            "infinite",
+            [(0, "lilypad_a1"), (50, "lilypad_a2"), (100, "lilypad_a1")]
+        ),
+        new(
+            "animated_lilypad_b",
+            "lilypad_b",
+            "2.4s",
+            "infinite",
+            [(0, "lilypad_b1"), (50, "lilypad_b2"), (100, "lilypad_b1")]
+        ),
     ];
 
     public static string Generate(SpriteAtlas atlas)
