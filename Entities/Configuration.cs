@@ -891,6 +891,22 @@ class Configuration
             );
         }
 
+        // Optional: a tag -> animated CSS class map (see HandAuthoredSpriteAnimations), for
+        // decorations with a per-tag animated variant (e.g. lilypad's "a"/"b" species). A tag with
+        // no entry here just renders its static image - most decorations have no "animation" at all.
+        var animationClasses = new Dictionary<string, string>();
+        const string animationPropertyName = "animation";
+        if (element.TryGetProperty(animationPropertyName, out var animationProperty))
+        {
+            foreach (var aElem in animationProperty.EnumerateObject())
+            {
+                animationClasses.Add(
+                    aElem.Name,
+                    RequireNonNullString(aElem.Value, $"{animationPropertyName}.{aElem.Name}")
+                );
+            }
+        }
+
         string infoText = GetRequiredString(element, "info_text");
         int verticalOffset = element.GetProperty("vertical_offset").GetInt32();
         string character = GetRequiredString(element, "character");
@@ -918,6 +934,7 @@ class Configuration
             id,
             name,
             images,
+            animationClasses,
             infoText,
             verticalOffset,
             character,

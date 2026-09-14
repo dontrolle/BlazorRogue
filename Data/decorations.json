@@ -249,6 +249,38 @@
       "vertical_offset": 0,
       "character": "",
       "character_color": ""
+    },
+    {
+      "id": "lilypad",
+      "name": "Lilypad",
+      "image": {
+        "a": "lilypad_a1",
+        "b": "lilypad_b1"
+      },
+      "animation": {
+        "a": "animated_lilypad_a",
+        "b": "animated_lilypad_b"
+      },
+      "info_text": "A lilypad floating on the water",
+      "vertical_offset": 0,
+      "character": "o",
+      "character_color": "green"
+    },
+    {
+      "id": "puddle_large",
+      "name": "Splash",
+      "image": {
+        "water_teal": "puddle_large_1",
+        "water_mud": "puddle_large_2",
+        "water_green": "puddle_large_3",
+        "water_blue": "puddle_large_4",
+        "water_bubbling": "puddle_large_5",
+        "water_lava": "puddle_large_6"
+      },
+      "info_text": "A splash of liquid near the water's edge",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
     }
   ]
 }

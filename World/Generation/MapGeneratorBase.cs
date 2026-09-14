@@ -62,6 +62,10 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_leaves", 0.03);
     protected readonly double percentageChanceOfDust = CommonSettings(settings)
         .GetDouble("percentage_chance_of_dust", 0.05);
+    protected readonly double percentageChanceOfLilypad = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_lilypad", 0.15);
+    protected readonly double percentageChanceOfPuddleLarge = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_puddle_large", 0.15);
 
     // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
     // `configuration` field further down - field initializers can't reference another instance
@@ -499,6 +503,7 @@ abstract class MapGeneratorBase(
             {
                 PlaceTorchIfEligible(x, y);
                 PlaceDustIfEligible(x, y);
+                PlaceLilypadIfEligible(x, y);
 
                 AddRandomPostGenFloorDecorationsAt(x, y);
             }
@@ -653,6 +658,33 @@ abstract class MapGeneratorBase(
                         configuration.StaticDecorativeObjectTypes[leavesId]
                     )
                 );
+            }
+
+            // Splashes only near a liquid edge, tinted to match whichever liquid it's bordering
+            // (puddle_large has one image variant per LiquidType.Id - see decorations.json).
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfPuddleLarge
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                string? adjacentLiquidId =
+                    map.Tiles[x, y - 1].Liquid?.Id
+                    ?? map.Tiles[x, y + 1].Liquid?.Id
+                    ?? map.Tiles[x - 1, y].Liquid?.Id
+                    ?? map.Tiles[x + 1, y].Liquid?.Id;
+
+                if (adjacentLiquidId is not null)
+                {
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["puddle_large"],
+                            adjacentLiquidId
+                        )
+                    );
+                }
             }
 
             if (
@@ -832,6 +864,38 @@ abstract class MapGeneratorBase(
             var dustType = configuration.StaticDecorativeObjectTypes["dust"];
             map.AddGameObject(new StaticDecorativeObject(x, y, dustType, wallTag));
             map.AddGameObject(new StaticDecorativeObject(x, y + 1, dustType, floorTag));
+        }
+    }
+
+    /// <summary>
+    /// Has a chance (<c>percentageChanceOfLilypad</c>) of adding a lilypad at
+    /// (<paramref name="x"/>, <paramref name="y"/>) - only on a liquid tile whose
+    /// <c>LiquidType.Name</c> is "water" (blue/green/teal), never mud/acid/lava. No explicit
+    /// image tag is passed, so <see cref="StaticDecorativeObject"/> randomly picks between the two
+    /// lilypad species ("a"/"b"), each animated via its own CSS class - see
+    /// <see cref="Rendering.HandAuthoredSpriteAnimations"/>.
+    /// </summary>
+    protected void PlaceLilypadIfEligible(int x, int y)
+    {
+        if (map.Tiles[x, y].Liquid is not { Name: "water" })
+        {
+            return;
+        }
+
+        if (MapTileContainsDoor(x, y) || map.IsBlocked(x, y))
+        {
+            return;
+        }
+
+        if (mapGenerationRandomSource.NextDouble() < percentageChanceOfLilypad)
+        {
+            map.AddGameObject(
+                new StaticDecorativeObject(
+                    x,
+                    y,
+                    configuration.StaticDecorativeObjectTypes["lilypad"]
+                )
+            );
         }
     }
 
