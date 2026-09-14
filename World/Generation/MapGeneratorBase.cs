@@ -52,6 +52,12 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_chests", 0.02);
     protected readonly double percentageChanceOfItems = CommonSettings(settings)
         .GetDouble("percentage_chance_of_items", 0.0);
+    protected readonly double percentageChanceOfBarrels = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_barrels", 0.03);
+    protected readonly double percentageChanceOfGraveyardClutter = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_graveyard_clutter", 0.02);
+    protected readonly double percentageChanceOfRunes = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_runes", 0.015);
 
     // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
     // `configuration` field further down - field initializers can't reference another instance
@@ -522,11 +528,23 @@ abstract class MapGeneratorBase(
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
+                    // mostly plain tables, occasionally an alchemy or paperwork variant
+                    string tableId = "table";
+                    int tableRoll = mapGenerationRandomSource.Next(0, 4);
+                    if (tableRoll == 1)
+                    {
+                        tableId = "table_lab";
+                    }
+                    else if (tableRoll == 2)
+                    {
+                        tableId = "table_papers";
+                    }
+
                     map.AddGameObject(
                         new StaticDecorativeObject(
                             x,
                             y,
-                            configuration.StaticDecorativeObjectTypes["table"]
+                            configuration.StaticDecorativeObjectTypes[tableId]
                         )
                     );
                 }
@@ -540,14 +558,76 @@ abstract class MapGeneratorBase(
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
+                    string altarId =
+                        mapGenerationRandomSource.Next(0, 4) == 0 ? "altar_skull" : "altar_blood";
+
                     map.AddGameObject(
                         new StaticDecorativeObject(
                             x,
                             y,
-                            configuration.StaticDecorativeObjectTypes["altar_blood"]
+                            configuration.StaticDecorativeObjectTypes[altarId]
                         )
                     );
                 }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfBarrels
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes["barrel"]
+                        )
+                    );
+                }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfGraveyardClutter
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                if (NumberOfSurroundingBlockingSpots(x, y) < 4)
+                {
+                    string clutterId = mapGenerationRandomSource.Next(0, 4) switch
+                    {
+                        0 => "grave",
+                        1 => "grave_broken",
+                        2 => "coffin",
+                        _ => "coffin_open",
+                    };
+
+                    map.AddGameObject(
+                        new StaticDecorativeObject(
+                            x,
+                            y,
+                            configuration.StaticDecorativeObjectTypes[clutterId]
+                        )
+                    );
+                }
+            }
+
+            if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfRunes
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                map.AddGameObject(
+                    new StaticDecorativeObject(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes["rune"]
+                    )
+                );
             }
 
             if (

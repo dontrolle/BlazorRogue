@@ -7,13 +7,12 @@
         "bones1",
         "bones_2",
         "bones_3",
-        "bones_4",
-        "bones_5"
+        "bones_4"
       ],
-      "info_text": "",
+      "info_text": "Bones",
       "vertical_offset": 0,
-      "character": "",
-      "character_color": ""
+      "character": "…",
+      "character_color": "#e6e0d1"
     },
     {
       "id": "corner_spiderweb",
@@ -24,16 +23,16 @@
         "SE": "web_3",
         "NE": "web_4"
       },
-      "info_text": "",
+      "info_text": "Spider web",
       "vertical_offset": 0,
-      "character": "",
-      "character_color": ""
+      "character": "⁙",
+      "character_color": "whitesmoke"
     },
     {
       "id": "puddle",
       "name": "Puddle",
       "image": "puddle_small_6",
-      "info_text": "",
+      "info_text": "Blood puddle",
       "vertical_offset": 0,
       "character": "",
       "character_color": "",
@@ -43,10 +42,10 @@
       "id": "spiderweb",
       "name": "Spider web",
       "image": "web_5",
-      "info_text": "",
+      "info_text": "Spider web",
       "vertical_offset": 0,
-      "character": "",
-      "character_color": ""
+      "character": "⁙",
+      "character_color": "whitesmoke"
     },
     {
       "id": "crate",
@@ -108,6 +107,106 @@
       "character": "&",
       "character_color": "silver",
       "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "barrel",
+      "name": "Barrel",
+      "image": "barrel",
+      "info_text": "Barrel",
+      "vertical_offset": 0,
+      "character": "◍",
+      "character_color": "sienna",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "grave",
+      "name": "Grave",
+      "image": "grave",
+      "info_text": "Weathered gravestone",
+      "vertical_offset": 0,
+      "character": "⨹",
+      "character_color": "#a19f9c",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "grave_broken",
+      "name": "Broken grave",
+      "image": "grave_broken",
+      "info_text": "A shattered gravestone",
+      "vertical_offset": 0,
+      "character": "⩘",
+      "character_color": "#a19f9c",
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "altar_skull",
+      "name": "Skull altar",
+      "image": "altar_skull",
+      "info_text": "Altar adorned with a skull",
+      "vertical_offset": 0,
+      "character": "▄",
+      "character_color": "whitesmoke",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "table_lab",
+      "name": "Alchemy table",
+      "image": "table_lab",
+      "info_text": "A table cluttered with alchemical apparatus",
+      "vertical_offset": 0,
+      "character": "╦",
+      "character_color": "darkslategray",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "table_papers",
+      "name": "Table with papers",
+      "image": "table_papers",
+      "info_text": "A table strewn with papers",
+      "vertical_offset": 0,
+      "character": "╦",
+      "character_color": "tan",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "coffin",
+      "name": "Coffin",
+      "image": "coffin",
+      "info_text": "A closed coffin",
+      "vertical_offset": 0,
+      "character": "▯",
+      "character_color": "saddlebrown",
+      "blocking": true,
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "coffin_open",
+      "name": "Open coffin",
+      "image": "coffin_open",
+      "info_text": "An open, empty coffin",
+      "vertical_offset": 0,
+      "character": "▭",
+      "character_color": "dimgray",
+      "makeCoveringOffsetDecsTransparent": true
+    },
+    {
+      "id": "rune",
+      "name": "Rune",
+      "image": [
+        "rune_1",
+        "rune_2",
+        "rune_3",
+        "rune_4"
+      ],
+      "info_text": "A faintly glowing rune etched into the floor",
+      "vertical_offset": 0,
+      "character": "ᾡ",
+      "character_color": "lightgray"
     }
   ]
 }

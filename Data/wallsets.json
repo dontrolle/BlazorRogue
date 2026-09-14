@@ -367,6 +367,78 @@
       "img_freestanding": 14,
       "character": "#",
       "character_color": "#86af2c"
+    },
+    {
+      "id": "stone",
+      "level_type": "outdoor",
+      "img_prefix": "wall_stone",
+      "img_base": [
+        [
+          7,
+          1.0
+        ],
+        [
+          8,
+          0.1
+        ],
+        [
+          9,
+          0.1
+        ],
+        [
+          10,
+          0.1
+        ],
+        [
+          11,
+          0.1
+        ],
+        [
+          12,
+          0.1
+        ]
+      ],
+      "img_base_edge_south": [
+        [
+          14,
+          1.0
+        ],
+        [
+          15,
+          0.1
+        ],
+        [
+          16,
+          0.1
+        ],
+        [
+          17,
+          0.1
+        ],
+        [
+          18,
+          0.1
+        ],
+        [
+          19,
+          0.1
+        ]
+      ],
+      "img_edge_north": {
+        "simple": [
+          1,
+          2,
+          3,
+          5,
+          6
+        ],
+        "decorated": [
+          4
+        ]
+      },
+      "img_freestanding": 13,
+      "character": "#",
+      "character_color": "#6b7d6b"
     }
   ]
 }

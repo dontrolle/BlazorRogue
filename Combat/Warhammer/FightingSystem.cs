@@ -62,8 +62,9 @@ class FightingSystem(Game game) : IFightingSystem
             bool singularVerb = attacker.Owner!.Singular && !attackerIsPlayer;
             string hitTerm = $"hit{(singularVerb ? "s" : "")}";
             string missTerm = $"miss{(singularVerb ? "es" : "")}";
+            string dealTerm = $"deal{(singularVerb ? "s" : "")}";
             string description = hit ? hitTerm : missTerm;
-            string damageDescription = damage > 0 ? $" and deals {damage} damage" : "";
+            string damageDescription = damage > 0 ? $" and {dealTerm} {damage} damage" : "";
             Game.AddMessage($"{attackerName} {description} {defenderName}{damageDescription}.");
 
             if (Game.DebugMode)

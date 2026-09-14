@@ -26,6 +26,9 @@
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.06,
             "percentage_chance_of_altars": 0.04,
+            "percentage_chance_of_barrels": 0.03,
+            "percentage_chance_of_graveyard_clutter": 0.02,
+            "percentage_chance_of_runes": 0.015,
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
@@ -71,7 +74,8 @@
         "parameters": {
           "common": {
             "wall_tile_set": [
-              [ "hedge" , 1 ]
+              [ "hedge" , 2 ],
+              [ "stone", 1 ]
             ],
             "floor_tile_set": {
               "common": [
@@ -82,6 +86,9 @@
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0,
             "percentage_chance_of_altars": 0,
+            "percentage_chance_of_barrels": 0,
+            "percentage_chance_of_graveyard_clutter": 0,
+            "percentage_chance_of_runes": 0,
             "percentage_chance_of_spider_web_in_corner": 0,
             "percentage_chance_of_torch": 0,
             "percentage_chance_of_chests": 0,
@@ -149,6 +156,9 @@
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.06,
             "percentage_chance_of_altars": 0.04,
+            "percentage_chance_of_barrels": 0.03,
+            "percentage_chance_of_graveyard_clutter": 0.02,
+            "percentage_chance_of_runes": 0.015,
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
@@ -211,6 +221,9 @@
             "percentage_chance_of_bones": 0.05,
             "percentage_chance_of_tables": 0.01,
             "percentage_chance_of_altars": 0.01,
+            "percentage_chance_of_barrels": 0.01,
+            "percentage_chance_of_graveyard_clutter": 0.005,
+            "percentage_chance_of_runes": 0.005,
             "percentage_chance_of_spider_web_in_corner": 0.30,
             "percentage_chance_of_torch": 0.15,
             "percentage_chance_of_chests": 0.02,
