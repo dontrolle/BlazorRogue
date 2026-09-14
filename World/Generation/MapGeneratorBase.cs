@@ -58,6 +58,10 @@ abstract class MapGeneratorBase(
         .GetDouble("percentage_chance_of_graveyard_clutter", 0.02);
     protected readonly double percentageChanceOfRunes = CommonSettings(settings)
         .GetDouble("percentage_chance_of_runes", 0.015);
+    protected readonly double percentageChanceOfLeaves = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_leaves", 0.03);
+    protected readonly double percentageChanceOfDust = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_dust", 0.05);
 
     // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
     // `configuration` field further down - field initializers can't reference another instance
@@ -494,6 +498,7 @@ abstract class MapGeneratorBase(
             for (int y = 0; y < map.Height; y++)
             {
                 PlaceTorchIfEligible(x, y);
+                PlaceDustIfEligible(x, y);
 
                 AddRandomPostGenFloorDecorationsAt(x, y);
             }
@@ -633,6 +638,24 @@ abstract class MapGeneratorBase(
             }
 
             if (
+                mapGenerationRandomSource.NextDouble() < percentageChanceOfLeaves
+                && !MapTileContainsDoor(x, y)
+                && !map.IsBlocked(x, y)
+            )
+            {
+                string leavesId =
+                    mapGenerationRandomSource.Next(0, 2) == 0 ? "leaves_green" : "leaves_brown";
+
+                map.AddGameObject(
+                    new StaticDecorativeObject(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes[leavesId]
+                    )
+                );
+            }
+
+            if (
                 mapGenerationRandomSource.NextDouble() < percentageChanceOfChests
                 && !MapTileContainsDoor(x, y)
                 && !map.IsBlocked(x, y)
@@ -762,6 +785,53 @@ abstract class MapGeneratorBase(
         if (mapGenerationRandomSource.NextDouble() < percentageChanceOfTorch)
         {
             map.AddGameObject(new Torch(x, y));
+        }
+    }
+
+    /// <summary>
+    /// Has a chance (<c>percentageChanceOfDust</c>) of adding a paired dust decoration at
+    /// (<paramref name="x"/>, <paramref name="y"/>) - one piece drawn on the wall tile itself, one
+    /// on the floor tile directly below it. Same wall-tile-with-floor-below geometry as
+    /// <see cref="PlaceTorchIfEligible"/>, but places two GameObjects instead of one. Which image
+    /// pair is used depends on whether the floor tile below is itself hugging a room corner - i.e.
+    /// a side wall sits immediately west or east of *that floor tile* (one row down, not beside the
+    /// wall tile itself - a rectangular room's top wall is a contiguous run, so the tile beside a
+    /// top-wall tile is essentially always another wall; the corner only becomes visible one row
+    /// down, next to the perpendicular side wall) - or a middle-of-the-run straight segment.
+    /// </summary>
+    protected void PlaceDustIfEligible(int x, int y)
+    {
+        if (map.Tiles[x, y].TileType != TileType.Wall)
+        {
+            return;
+        }
+
+        if (y >= map.Height - 1 || map.Tiles[x, y + 1].TileType != TileType.Floor)
+        {
+            return;
+        }
+
+        if (MapTileContainsDoor(x, y + 1) || map.IsBlocked(x, y + 1))
+        {
+            return;
+        }
+
+        if (mapGenerationRandomSource.NextDouble() < percentageChanceOfDust)
+        {
+            // A floor tile with a side wall on both sides (a 1-wide nook) is treated as a NW
+            // corner - an arbitrary but harmless tie-break, since that shape is rare.
+            bool sideWallToWest = x > 0 && map.Tiles[x - 1, y + 1].TileType == TileType.Wall;
+            bool sideWallToEast =
+                x < map.Width - 1 && map.Tiles[x + 1, y + 1].TileType == TileType.Wall;
+
+            var (wallTag, floorTag) =
+                sideWallToWest ? ("wall_nw", "floor_nw")
+                : sideWallToEast ? ("wall_ne", "floor_ne")
+                : ("wall_straight", "floor_straight");
+
+            var dustType = configuration.StaticDecorativeObjectTypes["dust"];
+            map.AddGameObject(new StaticDecorativeObject(x, y, dustType, wallTag));
+            map.AddGameObject(new StaticDecorativeObject(x, y + 1, dustType, floorTag));
         }
     }
 

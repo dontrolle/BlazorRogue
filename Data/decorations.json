@@ -207,6 +207,48 @@
       "vertical_offset": 0,
       "character": "ᾡ",
       "character_color": "lightgray"
+    },
+    {
+      "id": "leaves_green",
+      "name": "Leaves",
+      "image": [
+        "leaves_green_1",
+        "leaves_green_2",
+        "leaves_green_3"
+      ],
+      "info_text": "A scatter of leaves",
+      "vertical_offset": 0,
+      "character": ",",
+      "character_color": "green"
+    },
+    {
+      "id": "leaves_brown",
+      "name": "Leaves",
+      "image": [
+        "leaves_brown_1",
+        "leaves_brown_2",
+        "leaves_brown_3"
+      ],
+      "info_text": "A scatter of dead leaves",
+      "vertical_offset": 0,
+      "character": ",",
+      "character_color": "brown"
+    },
+    {
+      "id": "dust",
+      "name": "Dust",
+      "image": {
+        "wall_straight": "dust_1",
+        "wall_ne": "dust_2",
+        "wall_nw": "dust_3",
+        "floor_straight": "dust_4",
+        "floor_ne": "dust_5",
+        "floor_nw": "dust_6"
+      },
+      "info_text": "A pile of dust along the wall",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
     }
   ]
 }

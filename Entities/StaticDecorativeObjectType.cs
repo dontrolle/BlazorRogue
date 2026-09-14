@@ -30,7 +30,7 @@ class StaticDecorativeObjectType(
     public bool Blocking { get; } = blocking;
     public bool MakeCoveringOffsetDecsTransparent { get; } = makeCoveringOffsetDecsTransparent;
 
-    int RandomImageVariantIndex => random.Next(0, imageVariants.Count - 1);
+    int RandomImageVariantIndex => random.Next(0, imageVariants.Count);
 
     public string RandomImage => imageVariants.ElementAt(RandomImageVariantIndex).Value;
 }
