@@ -1,0 +1,34 @@
+{
+  "door_sets": [
+    {
+      "id": "wood",
+      "img_prefix": "door_wood",
+      "always_see_through": false,
+      "info_text": "A sturdy wooden door"
+    },
+    {
+      "id": "metal",
+      "img_prefix": "door_metal",
+      "always_see_through": false,
+      "info_text": "A reinforced metal door"
+    },
+    {
+      "id": "stone",
+      "img_prefix": "door_stone",
+      "always_see_through": false,
+      "info_text": "A heavy stone door"
+    },
+    {
+      "id": "ruin",
+      "img_prefix": "door_ruin",
+      "always_see_through": false,
+      "info_text": "A crumbling, weathered door"
+    },
+    {
+      "id": "gate",
+      "img_prefix": "door_gate",
+      "always_see_through": true,
+      "info_text": "A wrought-iron gate - you can see through it, even closed"
+    }
+  ]
+}

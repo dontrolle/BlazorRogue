@@ -11,7 +11,7 @@
       ],
       "info_text": "Bones",
       "vertical_offset": 0,
-      "character": "…",
+      "character": "‥",
       "character_color": "#e6e0d1"
     },
     {
@@ -75,7 +75,7 @@
       "image": "altar_blood",
       "info_text": "Altar splattered with blood",
       "vertical_offset": 0,
-      "character": "▄",
+      "character": "⩎",
       "character_color": "LightSlateGrey",
       "blocking": true,
       "makeCoveringOffsetDecsTransparent": true      
@@ -179,7 +179,7 @@
       "image": "coffin",
       "info_text": "A closed coffin",
       "vertical_offset": 0,
-      "character": "▯",
+      "character": "▰",
       "character_color": "saddlebrown",
       "blocking": true,
       "makeCoveringOffsetDecsTransparent": true
@@ -190,7 +190,7 @@
       "image": "coffin_open",
       "info_text": "An open, empty coffin",
       "vertical_offset": 0,
-      "character": "▭",
+      "character": "▱",
       "character_color": "dimgray",
       "makeCoveringOffsetDecsTransparent": true
     },

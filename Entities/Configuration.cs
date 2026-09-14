@@ -41,6 +41,11 @@ class Configuration
         "Data",
         "wallsets.json"
     );
+    static readonly string DoorSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "doorsets.json"
+    );
     static readonly string LiquidSetsFileName = Path.Combine(
         AppContext.BaseDirectory,
         "Data",
@@ -154,6 +159,19 @@ class Configuration
             ? wallSet
             : throw new InvalidOperationException($"Unknown wall-tile-set id: {id}.");
 
+    readonly Dictionary<string, DoorSet> doorSetsById = [];
+    public IReadOnlyDictionary<string, DoorSet> DoorSets => doorSetsById;
+
+    /// <summary>
+    /// Looks up a door-set by id (the <c>doorType</c> a <see cref="GameObjects.Door"/> is
+    /// constructed with). Validated to exist by <see cref="Parse"/>, so callers operating on
+    /// already-parsed doors can rely on this never throwing.
+    /// </summary>
+    public DoorSet DoorSetById(string id) =>
+        doorSetsById.TryGetValue(id, out var doorSet)
+            ? doorSet
+            : throw new InvalidOperationException($"Unknown door-set id: {id}.");
+
     readonly Dictionary<int, LevelConfiguration> levels = [];
     public IReadOnlyDictionary<int, LevelConfiguration> Levels => levels.AsReadOnly();
 
@@ -183,6 +201,7 @@ class Configuration
         );
         ParseDataFile(options, FloorSetsFileName, "uf_floor_sets", ParseFloorSetType);
         ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
+        ParseDataFile(options, DoorSetsFileName, "door_sets", ParseDoorSetType);
         ParseDataFile(options, LiquidSetsFileName, "liquid_sets", ParseLiquidType);
         ParseDataFile(
             options,
@@ -522,6 +541,26 @@ class Configuration
         if (!liquidTypesById.TryAdd(id, liquidType))
         {
             throw new InvalidOperationException($"Found another liquid-set with id: {id}.");
+        }
+    }
+
+    void ParseDoorSetType(JsonElement element)
+    {
+        string id = GetRequiredString(element, "id");
+        string imgPrefix = GetRequiredString(element, "img_prefix");
+        string infoText = GetRequiredString(element, "info_text");
+
+        bool alwaysSeeThrough = false;
+        if (element.TryGetProperty("always_see_through", out var alwaysSeeThroughElement))
+        {
+            alwaysSeeThrough = alwaysSeeThroughElement.GetBoolean();
+        }
+
+        var doorSet = new DoorSet(id, imgPrefix, alwaysSeeThrough, infoText);
+
+        if (!doorSetsById.TryAdd(id, doorSet))
+        {
+            throw new InvalidOperationException($"Found another door-set with id: {id}.");
         }
     }
 

@@ -1,33 +1,45 @@
 ﻿using System;
 using System.Linq;
 using BlazorRogue.Components;
+using BlazorRogue.Entities;
 using BlazorRogue.World;
 
 namespace BlazorRogue.GameObjects;
 
+/// <summary>
+/// An openable door - may be see-through.
+/// </summary>
+/// <remarks>
+/// This class is a bit more hard-wired than others for graphical tileset rendering parts.
+/// </remarks>
 class Door : GameObject
 {
     public string DoorType { get; private set; }
-    public int HalfWallIndex { get; private set; }
     public Orientation Orientation { get; private set; }
     public bool IsOpen { get; private set; }
-    string ImagePrefix => "door_" + DoorType + "_";
 
-    public Door(
-        int x,
-        int y,
-        string doorType,
-        int halfWallIndex,
-        Orientation orientation,
-        bool isOpen
-    )
+    readonly DoorSet doorSet;
+    string ImagePrefix => doorSet.ImgPrefix + "_";
+
+    public override string InfoText => $"{doorSet.InfoText} ({(IsOpen ? "open" : "closed")})";
+
+    public Door(int x, int y, string doorType, Orientation orientation, bool isOpen)
         : base(x, y, "Door", null, null, new UseableComponent(Use))
     {
         DoorType = doorType;
-        HalfWallIndex = halfWallIndex;
+        doorSet = References.Configuration.DoorSetById(doorType);
         Orientation = orientation;
         IsOpen = isOpen;
-        Blocking = BlocksLight = !isOpen;
+        UpdateBlockingState();
+    }
+
+    // A door always blocks movement while closed; whether it also blocks light/vision while closed
+    // depends on its door-set (see DoorSet.AlwaysSeeThrough, e.g. a wrought-iron gate you can see
+    // through but not walk through).
+    void UpdateBlockingState()
+    {
+        Blocking = !IsOpen;
+        BlocksLight = !IsOpen && !doorSet.AlwaysSeeThrough;
     }
 
     public override void Render(Map map)
@@ -126,8 +138,7 @@ class Door : GameObject
         if (go is Door door)
         {
             door.IsOpen = !door.IsOpen;
-            door.Blocking = !door.Blocking;
-            door.BlocksLight = !door.BlocksLight;
+            door.UpdateBlockingState();
             References.SoundManager.PlayDoorSound(door.IsOpen);
         }
         else

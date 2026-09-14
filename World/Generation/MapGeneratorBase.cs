@@ -85,7 +85,11 @@ abstract class MapGeneratorBase(
     protected static SettingsMap CommonSettings(SettingsMap settings) =>
         settings.GetMap("common", SettingsMap.Empty);
 
-    protected readonly string[] doorTypes = ["metal", "stone", "wood", "ruin"];
+    // Sourced from Data/doorsets.json rather than hardcoded, so a new door-set (e.g. a lockable
+    // type down the line) becomes available to generators automatically. Uses game.Configuration
+    // rather than the `configuration` field for the same CS0236-adjacent reason as itemTypePool
+    // above - see that field's comment.
+    protected readonly string[] doorTypes = [.. game.Configuration.DoorSets.Keys];
 
     protected readonly List<Tuple<int, int>> candidateDoors = [];
 
@@ -305,7 +309,6 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Horizontal,
                                 GetRandomBool()
                             )
@@ -327,7 +330,6 @@ abstract class MapGeneratorBase(
                                 x,
                                 y,
                                 GetRandomElement(doorTypes),
-                                mapGenerationRandomSource.Next(1, 4),
                                 Orientation.Vertical,
                                 GetRandomBool()
                             )
