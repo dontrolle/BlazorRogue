@@ -92,26 +92,13 @@ class FenceGalleryMapGenerator(
 
         // The same 3x3 enclosure (north wall + gate, west/east walls, south wall) validated by the
         // composite mockups and the Stage 1 manual check - confirms the shapes still compose
-        // correctly as the catalog grows.
-        const int enclosureX = 3;
-        const int enclosureY = 8;
-        PlaceFence(enclosureX, enclosureY, "fence_end_west");
-        PlaceFence(enclosureX + 1, enclosureY, "fence_opening");
-        PlaceFence(enclosureX + 2, enclosureY, "fence_end_east");
-        PlaceFence(enclosureX, enclosureY + 1, "fence_wall_west");
-        PlaceFence(enclosureX + 2, enclosureY + 1, "fence_wall_east");
-        PlaceFence(enclosureX, enclosureY + 2, "fence_corner_sw");
-        PlaceFence(enclosureX + 1, enclosureY + 2, "fence_straight");
-        PlaceFence(enclosureX + 2, enclosureY + 2, "fence_corner_se");
+        // correctly as the catalog grows. Now the same PlaceFenceEnclosure the real procedural
+        // placement pass (MapGeneratorBase.AddFenceEnclosures) uses.
+        PlaceFenceEnclosure(x0: 3, y0: 8, width: 3, height: 3, gateColumn: 1);
 
         // Sight radius is only Map.PlayerSightRadius (6) - too small to see the whole gallery from
         // one spot regardless, but this puts the swatch row mostly in view on arrival, with the
         // enclosure a short walk south.
         return Tuple.Create(8, 6);
     }
-
-    void PlaceFence(int x, int y, string typeId) =>
-        map.AddGameObject(
-            new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes[typeId])
-        );
 }

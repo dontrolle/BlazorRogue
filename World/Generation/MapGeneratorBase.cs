@@ -187,6 +187,12 @@ abstract class MapGeneratorBase(
 
         AddDoors();
         AddRandomPostMapGenerationDecorations();
+
+        // After decorations, so its own eligibility check naturally steers clear of tiles they
+        // already claimed - before stairs/monsters, see AddFenceEnclosures' own doc comment for
+        // the accepted (pre-existing, not new) risk that leaves open.
+        AddFenceEnclosures(playerPos);
+
         AddStairs();
 
         AddPlayer(playerPos, existingPlayer);
@@ -495,6 +501,174 @@ abstract class MapGeneratorBase(
         // keep the player's start tile and the ring around it clear of hazards
         return Math.Abs(x - playerPos.Item1) > 1 || Math.Abs(y - playerPos.Item2) > 1;
     }
+
+    /// <summary>
+    /// Places a few rectangular fence enclosures (see Data/decorations.json's fence_* types and
+    /// PlaceFenceEnclosure below, dontrolle/BlazorRogue-internal#86) if the level's
+    /// <c>common.fence_enclosures</c> settings ask for them - absent settings (or a zero
+    /// <c>count_max</c>) mean none, same "opt in explicitly" default as <see cref="AddLiquidPools"/>.
+    /// Each enclosure is a rough rectangle sampled over existing floor tiles only, never over
+    /// walls, existing game objects, or the player's start - same sampling strategy as
+    /// AddLiquidPools/TryFindPoolCentre, just over a rectangle instead of a disc.
+    /// </summary>
+    protected virtual void AddFenceEnclosures(Tuple<int, int> playerPos)
+    {
+        var fenceSettings = CommonSettings(settings).GetMap("fence_enclosures", SettingsMap.Empty);
+        int countMax = fenceSettings.GetInt("count_max", 0);
+        if (countMax <= 0)
+        {
+            return;
+        }
+
+        int countMin = fenceSettings.GetInt("count_min", 0);
+        int widthMin = fenceSettings.GetInt("width_min", 3);
+        int widthMax = fenceSettings.GetInt("width_max", 3);
+        int heightMin = fenceSettings.GetInt("height_min", 3);
+        int heightMax = fenceSettings.GetInt("height_max", 3);
+
+        int count = mapGenerationRandomSource.Next(countMin, countMax + 1);
+        for (int i = 0; i < count; i++)
+        {
+            int width = mapGenerationRandomSource.Next(widthMin, widthMax + 1);
+            int height = mapGenerationRandomSource.Next(heightMin, heightMax + 1);
+
+            if (TryFindFenceEnclosureOrigin(width, height, playerPos, out int x0, out int y0))
+            {
+                int gateColumn = mapGenerationRandomSource.Next(1, width - 1);
+                PlaceFenceEnclosure(x0, y0, width, height, gateColumn);
+            }
+        }
+    }
+
+    bool TryFindFenceEnclosureOrigin(
+        int width,
+        int height,
+        Tuple<int, int> playerPos,
+        out int x0,
+        out int y0
+    )
+    {
+        for (int attempt = 0; attempt < 200; attempt++)
+        {
+            int cx = mapGenerationRandomSource.Next(0, map.Width);
+            int cy = mapGenerationRandomSource.Next(0, map.Height);
+            if (IsFenceEnclosureEligible(cx, cy, width, height, playerPos))
+            {
+                x0 = cx;
+                y0 = cy;
+                return true;
+            }
+        }
+
+        x0 = 0;
+        y0 = 0;
+        return false;
+    }
+
+    bool IsFenceEnclosureEligible(int x0, int y0, int width, int height, Tuple<int, int> playerPos)
+    {
+        for (int x = x0; x < x0 + width; x++)
+        {
+            for (int y = y0; y < y0 + height; y++)
+            {
+                if (!IsPoolEligible(x, y, playerPos))
+                {
+                    // Reuses IsPoolEligible's exact bounds/floor/blocking/occupied/player-buffer
+                    // checks - a fence tile has the same eligibility requirements a liquid pool
+                    // tile does, despite the unrelated name.
+                    return false;
+                }
+            }
+        }
+
+        // The north and south wall rows use the tall-picket "Infront" shapes (fence_end_west/
+        // fence_opening/fence_end_east/fence_straight/fence_corner_sw/fence_corner_se, see
+        // PlaceFenceEnclosure) - that art isn't designed to coexist with a real dungeon wall's own
+        // decoration bleeding onto the same tile (Tile.RenderHalfWall bleeds a wall's cap onto the
+        // tile north of it; RenderShadow bleeds a shadow onto the tile south of it - both a
+        // VerticalOffset trick, unrelated to fences, universal to every wall in the game). Keep
+        // both wall rows clear of an adjacent real wall. The west/east side walls (thin vertical
+        // posts, not "Infront") don't have this problem, so aren't checked here.
+        for (int x = x0; x < x0 + width; x++)
+        {
+            if (IsWall(x, y0 - 1) || IsWall(x, y0 + height))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool IsWall(int x, int y) =>
+        x >= 0
+        && y >= 0
+        && x < map.Width
+        && y < map.Height
+        && map.Tiles[x, y].TileType == TileType.Wall;
+
+    /// <summary>
+    /// Draws a complete rectangular fence enclosure with its top-left corner at
+    /// (<paramref name="x0"/>, <paramref name="y0"/>): fence_end_west/fence_straight-or-
+    /// fence_opening-repeated/fence_end_east along the top, fence_wall_west/fence_wall_east
+    /// repeated down both sides, fence_corner_sw/fence_straight-repeated/fence_corner_se along the
+    /// bottom - the same shape validated by FenceGalleryMapGenerator's fixed 3x3 example and the
+    /// composite mockups in dontrolle/BlazorRogue-internal#86. <paramref name="gateColumn"/> is
+    /// 1-indexed from the west wall (so 0 and width-1, always the corners, aren't valid gate
+    /// positions). Pure drawing - no eligibility checking; callers must ensure the whole
+    /// <paramref name="width"/> x <paramref name="height"/> footprint is free first (see
+    /// AddFenceEnclosures). Requires width &gt;= 3 and height &gt;= 3 - the only sizes with a gate
+    /// and a corner-to-cap vertical run actually validated.
+    /// </summary>
+    protected void PlaceFenceEnclosure(int x0, int y0, int width, int height, int gateColumn)
+    {
+        if (width < 3 || height < 3)
+        {
+            throw new ArgumentException(
+                $"A fence enclosure needs to be at least 3x3 (got {width}x{height})."
+            );
+        }
+        if (gateColumn < 1 || gateColumn > width - 2)
+        {
+            throw new ArgumentException(
+                $"gateColumn must be between 1 and width - 2 (got {gateColumn} for width {width})."
+            );
+        }
+
+        for (int dx = 0; dx < width; dx++)
+        {
+            string typeId =
+                dx == 0 ? "fence_end_west"
+                : dx == width - 1 ? "fence_end_east"
+                : dx == gateColumn ? "fence_opening"
+                : "fence_straight";
+            PlaceFence(x0 + dx, y0, typeId);
+        }
+
+        for (int dy = 1; dy < height - 1; dy++)
+        {
+            PlaceFence(x0, y0 + dy, "fence_wall_west");
+            PlaceFence(x0 + width - 1, y0 + dy, "fence_wall_east");
+        }
+
+        for (int dx = 0; dx < width; dx++)
+        {
+            string typeId =
+                dx == 0 ? "fence_corner_sw"
+                : dx == width - 1 ? "fence_corner_se"
+                : "fence_straight";
+            PlaceFence(x0 + dx, y0 + height - 1, typeId);
+        }
+    }
+
+    /// <summary>
+    /// Places one fence_* decoration (see Data/decorations.json, dontrolle/BlazorRogue-internal#86)
+    /// by id at (<paramref name="x"/>, <paramref name="y"/>).
+    /// </summary>
+    protected void PlaceFence(int x, int y, string typeId) =>
+        map.AddGameObject(
+            new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes[typeId])
+        );
 
     /// <summary>
     /// Adds decorations randomly on walls and floors.

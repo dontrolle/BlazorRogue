@@ -186,6 +186,14 @@
                 [ "water_bubbling", 1 ],
                 [ "water_lava", 1 ]
               ]
+            },
+            "fence_enclosures": {
+              "count_min": 3,
+              "count_max": 3,
+              "width_min": 3,
+              "width_max": 5,
+              "height_min": 3,
+              "height_max": 5
             }
           },
           "layout": {
@@ -262,6 +270,14 @@
                 [ "water_bubbling", 1 ],
                 [ "water_lava", 1 ]
               ]
+            },
+            "fence_enclosures": {
+              "count_min": 0,
+              "count_max": 1,
+              "width_min": 3,
+              "width_max": 5,
+              "height_min": 3,
+              "height_max": 5
             }
           },
           "layout": {

@@ -844,10 +844,11 @@ class Map
 
     /// <summary>
     /// True if a "fence"-like GameObject (see <see cref="Edge"/>/<see cref="GameObject.BlockedEdges"/>)
-    /// blocks stepping directly between two orthogonally-adjacent tiles - independent of whether
-    /// either tile itself is Blocking for occupancy. Either tile may carry the declaration (e.g.
-    /// Statue's base tile alone declares North blocked, for the edge shared with the tile north of
-    /// it). Only orthogonal moves can be edge-blocked; diagonal or non-adjacent pairs never are.
+    /// blocks stepping directly between two adjacent tiles - independent of whether either tile
+    /// itself is Blocking for occupancy. Either tile may carry the declaration (e.g. Statue's base
+    /// tile alone declares North blocked, for the edge shared with the tile north of it). Handles
+    /// orthogonal and diagonal moves (see <see cref="IsDiagonalCornerSealed"/> for the latter);
+    /// non-adjacent pairs are never blocked.
     /// </summary>
     public bool IsMovementBlockedAcrossEdge(int fromX, int fromY, int toX, int toY)
     {
@@ -864,8 +865,33 @@ class Map
                 || TileBlocksEdge(toX, toY, Edge.East),
             (1, 0) => TileBlocksEdge(fromX, fromY, Edge.East)
                 || TileBlocksEdge(toX, toY, Edge.West),
+            (not 0, not 0) => IsDiagonalCornerSealed(fromX, fromY, toX, toY),
             _ => false,
         };
+    }
+
+    /// <summary>
+    /// A diagonal move spans a 2x2 square with two other corners - (toX, fromY) and (fromX, toY) -
+    /// each reachable from "from" by one straight-line detour around the corner. Blocked only when
+    /// *both* detours are themselves blocked somewhere along their own two legs - i.e. fences seal
+    /// the corner from both sides, not just touch it from one. Without this, a mover could step
+    /// diagonally straight onto/through a corner tile whose two blocked edges (e.g.
+    /// fence_corner_sw's West+South, or a north corner's two separate wall-end/side-wall tiles)
+    /// would each individually block the equivalent orthogonal approach - bypassing both at once.
+    /// A single-edge object (e.g. Statue) can only ever seal one of the two detours, so this never
+    /// adds a new restriction there - recursing into the orthogonal cases above means it composes
+    /// correctly with edges declared across any number of separate GameObjects, not just one corner
+    /// tile in isolation.
+    /// </summary>
+    bool IsDiagonalCornerSealed(int fromX, int fromY, int toX, int toY)
+    {
+        bool viaHorizontalFirst =
+            IsMovementBlockedAcrossEdge(fromX, fromY, toX, fromY)
+            || IsMovementBlockedAcrossEdge(toX, fromY, toX, toY);
+        bool viaVerticalFirst =
+            IsMovementBlockedAcrossEdge(fromX, fromY, fromX, toY)
+            || IsMovementBlockedAcrossEdge(fromX, toY, toX, toY);
+        return viaHorizontalFirst && viaVerticalFirst;
     }
 
     bool TileBlocksEdge(int x, int y, Edge edge) =>

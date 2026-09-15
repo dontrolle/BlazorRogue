@@ -101,7 +101,7 @@ public class MapTests
     // movement across one edge of its own tile without necessarily being Blocking itself. Statue
     // is the first consumer; a future single-tile fence would declare the same way.
     [Fact]
-    public void IsMovementBlockedAcrossEdgeOnlyBlocksTheDeclaredEdgeAndNeverDiagonalMoves()
+    public void IsMovementBlockedAcrossEdgeOnlyBlocksTheDeclaredEdgeAndNeverAnUnsealedDiagonal()
     {
         var map = CreateMap();
         var fenceType = new StaticDecorativeObjectType(
@@ -123,12 +123,51 @@ public class MapTests
         Assert.True(map.IsMovementBlockedAcrossEdge(3, 3, 3, 2));
         Assert.True(map.IsMovementBlockedAcrossEdge(3, 2, 3, 3));
 
-        // ...but no other orthogonal edge of that tile is affected, and diagonal moves are never
-        // edge-blocked.
+        // ...but no other orthogonal edge of that tile is affected. A single blocked edge can only
+        // ever seal one of a diagonal's two detour paths (see IsDiagonalCornerSealed) - never both -
+        // so diagonal moves stay open around it too.
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 3, 4));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 3));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 4, 3));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 2));
+    }
+
+    // A diagonal move that would otherwise cut straight through a sealed corner - both detours
+    // around it blocked - must be denied too, or a mover can bypass two blocked edges at once by
+    // stepping onto/through the corner tile diagonally. Reported live: a monster walked diagonally
+    // through a fence enclosure corner (dontrolle/BlazorRogue-internal#86).
+    [Fact]
+    public void IsMovementBlockedAcrossEdgeDeniesADiagonalThatCutsASealedCorner()
+    {
+        var map = CreateMap();
+        // A corner like fence_corner_sw: one GameObject blocking two edges of its own tile (West
+        // and South), at (3,3). Interior is north/east of it; exterior is south/west.
+        var cornerType = new StaticDecorativeObjectType(
+            id: "test_corner",
+            name: "Test Corner",
+            image: new Dictionary<string, string> { [""] = "img" },
+            animationClasses: [],
+            infoText: "",
+            verticalOffset: 0,
+            character: "",
+            characterColor: "",
+            blocking: false,
+            makeCoveringOffsetDecsTransparent: false,
+            blockedEdges: Edge.West | Edge.South
+        );
+        map.AddGameObject(new StaticDecorativeObject(3, 3, cornerType));
+
+        // From exterior (2,4), southwest of the corner, straight onto the corner tile (3,3) - both
+        // straight-line detours around it (via (3,4) then north, or via (2,3) then east) are
+        // blocked by the corner's own South/West edges, so the shortcut must be denied too.
+        Assert.True(map.IsMovementBlockedAcrossEdge(2, 4, 3, 3));
+        Assert.True(map.IsMovementBlockedAcrossEdge(3, 3, 2, 4));
+
+        // Approaching the same corner tile diagonally from the southeast (interior-ish side) stays
+        // open: the vertical-first detour ((4,4)->(4,3)->(3,3)) is fully clear even though the
+        // horizontal-first one isn't, so only one of the two detours is blocked, not both - this
+        // isn't a blanket "diagonals near a fence are blocked" rule, only a fully sealed corner is.
+        Assert.False(map.IsMovementBlockedAcrossEdge(4, 4, 3, 3));
     }
 
     // Death drops a blood puddle and re-renders, both of which need a real Game and a post-gen
