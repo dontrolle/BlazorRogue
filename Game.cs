@@ -27,9 +27,6 @@ class Game
 
     const int MaxMessages = 5;
 
-    // Data/levels.json's "fence_gallery" entry - see ToggleFenceGalleryDebugView.
-    const int FenceGalleryLevelNumber = -1002;
-
     /// <summary>
     /// <c>Game.DebugMode</c> controls various settings, e.g. verbose combat logging
     /// (dice rolls in the message log - see <c>FightingSystem</c>). Seeded from
@@ -119,33 +116,42 @@ class Game
         AddMessage($"You {verb} {levelConfig.Name}.");
     }
 
-    // Where to return to when toggling out of the fence gallery (see ToggleFenceGalleryDebugView) -
-    // null whenever the player isn't currently in it.
-    int? preGalleryLevelNumber;
-    int preGalleryPlayerX;
-    int preGalleryPlayerY;
+    // Where to return to when toggling out of the debug level (see ToggleDebugLevelView) - null
+    // whenever the player isn't currently in it.
+    int? preDebugLevelNumber;
+    int preDebugLevelPlayerX;
+    int preDebugLevelPlayerY;
 
     /// <summary>
-    /// Dev-only jump into (and back out of) Data/levels.json's "fence_gallery" level (see
-    /// FenceGalleryMapGenerator) - Ctrl+G while <see cref="DebugMode"/> is on, see
+    /// Dev-only jump into (and back out of) whichever level <see cref="Entities.Configuration.DebugLevelNumber"/>
+    /// names (<c>Data/game-config.json</c>'s <c>debug_level</c> - e.g. "fence_gallery",
+    /// "test_level", "liquid_edging_test_level") - Ctrl+G while <see cref="DebugMode"/> is on, see
     /// GamePage.OnKeyPress. Unlike <see cref="TransitionToLevel"/>, this isn't a stairs-direction
-    /// move - the gallery has no stairs - so it remembers the player's exact prior level and
-    /// position instead of relying on GetStair, and regenerates the gallery fresh every visit so
-    /// it's always a clean, up-to-date reference rather than a stale cached one.
+    /// move - a debug level need not have any stairs - so it remembers the player's exact prior
+    /// level and position instead of relying on GetStair, and regenerates the debug level fresh
+    /// every visit so it's always a clean, up-to-date reference rather than a stale cached one.
     /// </summary>
-    internal void ToggleFenceGalleryDebugView()
+    /// <returns>Whether a level switch actually happened - false only when no debug level is
+    /// configured, in which case a message explains that rather than silently doing nothing.</returns>
+    internal bool ToggleDebugLevelView()
     {
+        if (preDebugLevelNumber is null && Configuration.DebugLevelNumber is null)
+        {
+            AddMessage("No debug level configured - see game-config.json's 'debug_level'.");
+            return false;
+        }
+
         var player = Map.Player;
         Map.DetachPlayer();
 
-        if (preGalleryLevelNumber is int returnLevelNumber)
+        if (preDebugLevelNumber is int returnLevelNumber)
         {
             var returnLevelConfig = Configuration.Levels[returnLevelNumber];
             var returnMap = visitedLevels[returnLevelNumber];
-            returnMap.ReattachPlayer(player, preGalleryPlayerX, preGalleryPlayerY);
+            returnMap.ReattachPlayer(player, preDebugLevelPlayerX, preDebugLevelPlayerY);
             Map = returnMap;
             CurrentLevelNumber = returnLevelNumber;
-            preGalleryLevelNumber = null;
+            preDebugLevelNumber = null;
 
             References.Map = Map;
             References.SoundManager.PlayBackgroundMusic(returnLevelConfig.BackgroundSoundtrack);
@@ -153,21 +159,24 @@ class Game
         }
         else
         {
-            var galleryConfig = Configuration.Levels[FenceGalleryLevelNumber];
+            int debugLevelNumber = Configuration.DebugLevelNumber!.Value;
+            var debugLevelConfig = Configuration.Levels[debugLevelNumber];
 
-            preGalleryLevelNumber = CurrentLevelNumber;
-            preGalleryPlayerX = player.X;
-            preGalleryPlayerY = player.Y;
+            preDebugLevelNumber = CurrentLevelNumber;
+            preDebugLevelPlayerX = player.X;
+            preDebugLevelPlayerY = player.Y;
             visitedLevels[CurrentLevelNumber] = Map;
 
-            MapGenerator = MapGeneratorFactory.Create(galleryConfig, this);
+            MapGenerator = MapGeneratorFactory.Create(debugLevelConfig, this);
             Map = MapGenerator.GenerateMap(player);
-            CurrentLevelNumber = FenceGalleryLevelNumber;
+            CurrentLevelNumber = debugLevelNumber;
 
             References.Map = Map;
-            References.SoundManager.PlayBackgroundMusic(galleryConfig.BackgroundSoundtrack);
-            AddMessage("You peek into the fence gallery (debug).");
+            References.SoundManager.PlayBackgroundMusic(debugLevelConfig.BackgroundSoundtrack);
+            AddMessage($"You peek into {debugLevelConfig.Name} (debug).");
         }
+
+        return true;
     }
 
     static StairDirection Opposite(StairDirection direction) =>

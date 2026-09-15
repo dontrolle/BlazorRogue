@@ -9,7 +9,8 @@ namespace BlazorRogue.World.Generation;
 /// dontrolle/BlazorRogue-internal#86) - a swatch row (one tile per shape, in decorations.json's
 /// declaration order) plus the validated 3x3 rectangular enclosure, so a new fence addition can be
 /// eyeballed for regressions without hand-splicing test placement code. Reached in a running game
-/// via Ctrl+D (debug mode) then Ctrl+G (see GamePage.razor); never part of normal level
+/// via Ctrl+D (debug mode) then Ctrl+G (see Game.ToggleDebugLevelView, GamePage.razor) whenever
+/// game-config.json's "debug_level" points at this level's number; never part of normal level
 /// progression - see Data/levels.json's "fence_gallery" entry.
 /// </summary>
 /// <remarks>

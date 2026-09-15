@@ -7,7 +7,7 @@ using BlazorRogue.World.Generation;
 namespace BlazorRogue.Tests.World.Generation;
 
 /// <summary>
-/// A regression guard for the fence gallery debug level (see Game.ToggleFenceGalleryDebugView,
+/// A regression guard for the fence gallery debug level (see Game.ToggleDebugLevelView,
 /// dontrolle/BlazorRogue-internal#86): as the fence catalog grows, a new type that makes
 /// FenceGalleryMapGenerator run off the map edge or throw should fail here rather than only being
 /// noticed the next time someone actually looks at the gallery in-browser.

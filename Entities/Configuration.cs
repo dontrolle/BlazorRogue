@@ -131,6 +131,16 @@ class Configuration
     /// </summary>
     public bool DebugMode { get; private set; }
 
+    /// <summary>
+    /// Level number (a level's <c>no</c> in <c>levels.json</c>) that Ctrl+G jumps into/out of while
+    /// <see cref="DebugMode"/> is on (see <c>Game.ToggleDebugLevelView</c>) - from
+    /// <c>Data/game-config.json</c>'s <c>debug_level</c>. Null (the default) if unset, in which case
+    /// Ctrl+G does nothing. Not tied to any one debug level's content - point it at whichever
+    /// dev-only level (e.g. "fence_gallery", "test_level", "liquid_edging_test_level") is useful to
+    /// have a quick look at right now.
+    /// </summary>
+    public int? DebugLevelNumber { get; private set; }
+
     // Set by Parse() once all floorsets are loaded and validated; used as the stair image source
     // for any floorset that doesn't define its own "img_stairs" (see Stair.Render). null! avoids
     // forcing nullable-checks on every consumer, since Parse() always runs first.
@@ -289,6 +299,12 @@ class Configuration
                 $"game-config.json 'starting_level' is {StartingLevelNumber}, but levels.json defines no level with that number."
             );
         }
+        if (DebugLevelNumber is int debugLevelNumber && !levels.ContainsKey(debugLevelNumber))
+        {
+            throw new InvalidOperationException(
+                $"game-config.json 'debug_level' is {debugLevelNumber}, but levels.json defines no level with that number."
+            );
+        }
 
         DefaultStairsFloorSet = FloorSetById(DefaultStairsFloorSetId);
         if (DefaultStairsFloorSet.StairImages is null)
@@ -348,6 +364,10 @@ class Configuration
         if (root.TryGetProperty("debug_mode", out var debugModeElement))
         {
             DebugMode = debugModeElement.GetBoolean();
+        }
+        if (root.TryGetProperty("debug_level", out var debugLevelElement))
+        {
+            DebugLevelNumber = RequireNonNullInt(debugLevelElement, "debug_level");
         }
     }
 

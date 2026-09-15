@@ -53,4 +53,23 @@ public class GameTests
             Assert.NotNull(game.Map.Player);
         }
     }
+
+    [Fact]
+    public void ToggleDebugLevelViewRoundTripsToTheConfiguredDebugLevelAndBack()
+    {
+        // Data/game-config.json ships debug_level: -1002 (the fence gallery, see
+        // FenceGalleryMapGenerator) - exercises the real configured value, not a synthetic one.
+        var game = new Game();
+        int originalLevelNumber = game.CurrentLevelNumber;
+        int originalPlayerX = game.Map.Player.X;
+        int originalPlayerY = game.Map.Player.Y;
+
+        Assert.True(game.ToggleDebugLevelView());
+        Assert.Equal(game.Configuration.DebugLevelNumber, game.CurrentLevelNumber);
+
+        Assert.True(game.ToggleDebugLevelView());
+        Assert.Equal(originalLevelNumber, game.CurrentLevelNumber);
+        Assert.Equal(originalPlayerX, game.Map.Player.X);
+        Assert.Equal(originalPlayerY, game.Map.Player.Y);
+    }
 }

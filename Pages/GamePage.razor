@@ -838,17 +838,18 @@ else
             return;
         }
 
-        // Ctrl+G jumps into (and back out of) the fence gallery debug level - see
-        // Game.ToggleFenceGalleryDebugView. Only live while DebugMode is on, so it can never
+        // Ctrl+G jumps into (and back out of) whichever level game-config.json's "debug_level"
+        // names - see Game.ToggleDebugLevelView. Only live while DebugMode is on, so it can never
         // surprise a normal player even if they happen to hit Ctrl+G. Swaps the whole map, like a
-        // stair transition, so re-fits the viewport the same way (see the OnKeyPress caller below).
+        // stair transition, so re-fits the viewport the same way (see the OnKeyPress caller below) -
+        // but only when a switch actually happened (a no-op when no debug_level is configured, e.g.
+        // in production, shouldn't disturb the viewport).
         // The browser's native Ctrl+G ("find next") is suppressed in registerKeyup's keydown
         // handler in blazorrogue.js.
         if (ctrlKey && key.Equals("g", StringComparison.OrdinalIgnoreCase))
         {
-            if (game.DebugMode)
+            if (game.DebugMode && game.ToggleDebugLevelView())
             {
-                game.ToggleFenceGalleryDebugView();
                 await FitMapToViewportAsync();
             }
             return;
