@@ -28,29 +28,34 @@ public class FenceTests
         return References.Configuration.StaticDecorativeObjectTypes[id];
     }
 
-    // (expectedBlocksNorth, expectedBlocksEast, expectedBlocksSouth, expectedBlocksWest) - avoids
-    // the internal Edge enum in this public Theory's signature; combined into an Edge inside the
-    // method body, which is fine since that's not part of the public signature.
+    // (expectedBlocksNorth, expectedBlocksEast, expectedBlocksSouth, expectedBlocksWest,
+    // expectedInfront) - avoids the internal Edge/Decoration.Layer enums in this public Theory's
+    // signature; combined into their real types inside the method body, which is fine since that's
+    // not part of the public signature. expectedInfront is true for the shapes with a tall
+    // horizontal picket panel (straight/end caps/corners/tjunction) - they need to draw in front of
+    // a moveable standing on their own (non-blocking) tile, not behind it; plain vertical runs, the
+    // opening, and the pillar stay at the Middleground default.
     [Theory]
-    [InlineData("fence_straight", "fence_13", false, false, false, true, false)]
-    [InlineData("fence_end_west", "fence_2", false, false, false, true, false)]
-    [InlineData("fence_end_east", "fence_4", false, false, false, true, false)]
-    [InlineData("fence_opening", "fence_3", false, false, false, false, false)]
-    [InlineData("fence_wall_west", "fence_7", false, false, false, false, true)]
-    [InlineData("fence_wall_east", "fence_6", false, false, true, false, false)]
-    [InlineData("fence_corner_sw", "fence_12", false, false, false, true, true)]
-    [InlineData("fence_corner_se", "fence_14", false, false, true, true, false)]
-    [InlineData("fence_tjunction", "fence_10", false, false, true, true, true)]
-    [InlineData("fence_pillar_west", "fence_8", true, false, false, false, false)]
-    [InlineData("fence_pillar_east", "fence_9", true, false, false, false, false)]
-    public void FenceTypesParseWithExpectedImageBlockingAndBlockedEdges(
+    [InlineData("fence_straight", "fence_13", false, false, false, true, false, true)]
+    [InlineData("fence_end_west", "fence_2", false, false, false, true, false, true)]
+    [InlineData("fence_end_east", "fence_4", false, false, false, true, false, true)]
+    [InlineData("fence_opening", "fence_3", false, false, false, false, false, false)]
+    [InlineData("fence_wall_west", "fence_7", false, false, false, false, true, false)]
+    [InlineData("fence_wall_east", "fence_6", false, false, true, false, false, false)]
+    [InlineData("fence_corner_sw", "fence_12", false, false, false, true, true, true)]
+    [InlineData("fence_corner_se", "fence_14", false, false, true, true, false, true)]
+    [InlineData("fence_tjunction", "fence_10", false, false, true, true, true, true)]
+    [InlineData("fence_pillar_west", "fence_8", false, false, false, false, false, false)]
+    [InlineData("fence_pillar_east", "fence_9", false, false, false, false, false, false)]
+    public void FenceTypesParseWithExpectedImageBlockingBlockedEdgesAndLayer(
         string id,
         string expectedImage,
         bool expectedBlocking,
         bool expectedBlocksNorth,
         bool expectedBlocksEast,
         bool expectedBlocksSouth,
-        bool expectedBlocksWest
+        bool expectedBlocksWest,
+        bool expectedInfront
     )
     {
         var sdot = FenceType(id);
@@ -72,10 +77,14 @@ public class FenceTests
         {
             expectedBlockedEdges |= Edge.West;
         }
+        var expectedLayer = expectedInfront
+            ? Decoration.Layer.Infront
+            : Decoration.Layer.Middleground;
 
         Assert.Equal(expectedImage, sdot.RandomImage);
         Assert.Equal(expectedBlocking, sdot.Blocking);
         Assert.Equal(expectedBlockedEdges, sdot.BlockedEdges);
+        Assert.Equal(expectedLayer, sdot.DecorationLayer);
     }
 
     // Builds the same 3x3 enclosure (north wall with a center gate, west/east side walls, south
@@ -118,10 +127,35 @@ public class FenceTests
         Assert.False(map.IsMovementBlockedAcrossEdge(2, 2, 2, 3));
     }
 
+    // The type-level default (see FenceTypesParseWithExpectedImageBlockingBlockedEdgesAndLayer)
+    // needs to actually reach a rendered Decoration when a placement doesn't override it - that's
+    // StaticDecorativeObject's job (decorationLayerOverride ?? staticDecorativeObjectType.DecorationLayer).
     [Fact]
-    public void FreestandingPillarIsTwoIndependentBlockingHalvesWithNoEdgeBlocking()
+    public void PlacingWithoutAnOverrideUsesTheTypesDefaultLayer()
     {
         var map = CreateMap();
+        var fence = new StaticDecorativeObject(4, 4, FenceType("fence_straight"));
+        map.AddGameObject(fence);
+        fence.Render(map);
+
+        Assert.Contains(
+            map.Decorations[4, 4],
+            d => d.ImageName == "fence_13" && d.DecorationLayer == Decoration.Layer.Infront
+        );
+    }
+
+    // The pillar reads as too slight visually to justify blocking anything (see
+    // dontrolle/BlazorRogue-internal#86 discussion) - purely a decorative two-tile flourish, with
+    // no gameplay effect at all. MapGeneratorBase.PlaceFencePillar is the intended way to place it.
+    [Fact]
+    public void FreestandingPillarIsPurelyDecorativeAndBlocksNothing()
+    {
+        var map = CreateMap();
+        // Fresh test tiles start out as blocking placeholders (see MapTests) until carved - excavate
+        // them first so IsBlocked below reflects the pillar's own Blocking, not the raw tile state.
+        map.Tiles[5, 5].Blocking = false;
+        map.Tiles[6, 5].Blocking = false;
+
         var west = new StaticDecorativeObject(5, 5, FenceType("fence_pillar_west"));
         var east = new StaticDecorativeObject(6, 5, FenceType("fence_pillar_east"));
         map.AddGameObject(west);
@@ -129,16 +163,16 @@ public class FenceTests
         west.Render(map);
         east.Render(map);
 
-        Assert.True(west.Blocking);
-        Assert.True(east.Blocking);
+        Assert.False(west.Blocking);
+        Assert.False(east.Blocking);
         Assert.Equal(Edge.None, west.BlockedEdges);
         Assert.Equal(Edge.None, east.BlockedEdges);
 
         Assert.Contains(map.Decorations[5, 5], d => d.ImageName == "fence_8");
         Assert.Contains(map.Decorations[6, 5], d => d.ImageName == "fence_9");
 
-        // No edge-blocking between the two halves or to their neighbours - Blocking (tile
-        // occupancy) is what keeps a mover off each post, not BlockedEdges.
         Assert.False(map.IsMovementBlockedAcrossEdge(5, 5, 6, 5));
+        Assert.False(map.IsBlocked(5, 5));
+        Assert.False(map.IsBlocked(6, 5));
     }
 }

@@ -17,7 +17,8 @@ class StaticDecorativeObjectType(
     bool blocking,
     bool makeCoveringOffsetDecsTransparent,
     Edge blockedEdges = Edge.None,
-    bool occupiesTile = false
+    bool occupiesTile = false,
+    Decoration.Layer decorationLayer = Decoration.Layer.Middleground
 )
 {
     readonly Random random = new();
@@ -45,6 +46,11 @@ class StaticDecorativeObjectType(
 
     /// <summary>See <see cref="GameObjects.GameObject.OccupiesTile"/>.</summary>
     public bool OccupiesTile { get; } = occupiesTile;
+
+    /// <summary>Default rendering layer for this decoration - see <see cref="Decoration.DecorationLayer"/>,
+    /// and <see cref="GameObjects.StaticDecorativeObject"/>'s constructor for how a specific
+    /// placement can still override it.</summary>
+    public Decoration.Layer DecorationLayer { get; } = decorationLayer;
 
     string RandomTag => imageVariants.ElementAt(random.Next(0, imageVariants.Count)).Key;
 

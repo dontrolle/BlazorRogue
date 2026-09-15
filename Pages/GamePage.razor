@@ -163,6 +163,11 @@ else
                                 <div class="@tileClass spr-@tile.ImageName" alt="@x,@y (@tile.TileType)"> </div>
                             }
 
+                            @if (game.DebugMode)
+                            {
+                                <div class="cell-coords">@x,@y</div>
+                            }
+
                             @foreach (var decoration in game.Map.AllDecorations(x, y))
                             {
                                 // skip invisibles outside of fov
@@ -830,6 +835,22 @@ else
         {
             game.DebugMode = !game.DebugMode;
             game.AddMessage($"Debug mode {(game.DebugMode ? "on" : "off")}.");
+            return;
+        }
+
+        // Ctrl+G jumps into (and back out of) the fence gallery debug level - see
+        // Game.ToggleFenceGalleryDebugView. Only live while DebugMode is on, so it can never
+        // surprise a normal player even if they happen to hit Ctrl+G. Swaps the whole map, like a
+        // stair transition, so re-fits the viewport the same way (see the OnKeyPress caller below).
+        // The browser's native Ctrl+G ("find next") is suppressed in registerKeyup's keydown
+        // handler in blazorrogue.js.
+        if (ctrlKey && key.Equals("g", StringComparison.OrdinalIgnoreCase))
+        {
+            if (game.DebugMode)
+            {
+                game.ToggleFenceGalleryDebugView();
+                await FitMapToViewportAsync();
+            }
             return;
         }
 

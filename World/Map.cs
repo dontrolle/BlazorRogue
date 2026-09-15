@@ -463,7 +463,7 @@ class Map
             puddleType,
             nameOverride: killed.Name + "_puddle",
             infoTextOverride: $"Blood puddle of {killed.Name}",
-            decorationLayer: Decoration.Layer.Behind
+            decorationLayerOverride: Decoration.Layer.Behind
         );
 
         AddGameObject(puddleObject);

@@ -320,9 +320,10 @@
       "image": "fence_13",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "─",
-      "character_color": "#4a4238",
-      "blocks_edges": ["south"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_end_west",
@@ -330,9 +331,10 @@
       "image": "fence_2",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "─",
-      "character_color": "#4a4238",
-      "blocks_edges": ["south"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_end_east",
@@ -340,9 +342,10 @@
       "image": "fence_4",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "─",
-      "character_color": "#4a4238",
-      "blocks_edges": ["south"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_opening",
@@ -350,8 +353,8 @@
       "image": "fence_3",
       "info_text": "A gap in the fence",
       "vertical_offset": 0,
-      "character": "·",
-      "character_color": "#4a4238"
+      "character": "",
+      "character_color": ""
     },
     {
       "id": "fence_wall_west",
@@ -359,8 +362,8 @@
       "image": "fence_7",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "│",
-      "character_color": "#4a4238",
+      "character": "",
+      "character_color": "",
       "blocks_edges": ["west"]
     },
     {
@@ -369,8 +372,8 @@
       "image": "fence_6",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "│",
-      "character_color": "#4a4238",
+      "character": "",
+      "character_color": "",
       "blocks_edges": ["east"]
     },
     {
@@ -379,9 +382,10 @@
       "image": "fence_12",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "└",
-      "character_color": "#4a4238",
-      "blocks_edges": ["west", "south"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["west", "south"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_corner_se",
@@ -389,9 +393,10 @@
       "image": "fence_14",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "┘",
-      "character_color": "#4a4238",
-      "blocks_edges": ["east", "south"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["east", "south"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_tjunction",
@@ -399,9 +404,10 @@
       "image": "fence_10",
       "info_text": "A wrought-iron fence",
       "vertical_offset": 0,
-      "character": "┬",
-      "character_color": "#4a4238",
-      "blocks_edges": ["west", "south", "east"]
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["west", "south", "east"],
+      "decoration_layer": "infront"
     },
     {
       "id": "fence_pillar_west",
@@ -409,9 +415,8 @@
       "image": "fence_8",
       "info_text": "A fence post",
       "vertical_offset": 0,
-      "character": "¦",
-      "character_color": "#4a4238",
-      "blocking": true
+      "character": "",
+      "character_color": ""
     },
     {
       "id": "fence_pillar_east",
@@ -419,9 +424,8 @@
       "image": "fence_9",
       "info_text": "A fence post",
       "vertical_offset": 0,
-      "character": "¦",
-      "character_color": "#4a4238",
-      "blocking": true
+      "character": "",
+      "character_color": ""
     }
   ]
 }

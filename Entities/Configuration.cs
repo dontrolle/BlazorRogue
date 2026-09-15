@@ -953,6 +953,29 @@ class Configuration
             }
         }
 
+        // Optional default rendering layer (see Decoration.Layer/Decoration.DecorationLayer) - most
+        // decorations are fine with the Middleground default, but e.g. a fence shape with a tall
+        // horizontal picket panel needs to draw in front of a moveable standing on its own
+        // (non-blocking) tile, not behind it. A specific placement can still override this per-call
+        // (see StaticDecorativeObject's constructor).
+        var decorationLayer = Decoration.Layer.Middleground;
+        if (element.TryGetProperty("decoration_layer", out var decorationLayerElement))
+        {
+            string decorationLayerName = RequireNonNullString(
+                decorationLayerElement,
+                "decoration_layer"
+            );
+            decorationLayer = decorationLayerName switch
+            {
+                "infront" => Decoration.Layer.Infront,
+                "middleground" => Decoration.Layer.Middleground,
+                "behind" => Decoration.Layer.Behind,
+                _ => throw new InvalidOperationException(
+                    $"Unknown decoration_layer value '{decorationLayerName}' for static decoration '{id}'."
+                ),
+            };
+        }
+
         // Whether map generation should treat this decoration's tile as "spoken for" against other
         // such decorations (e.g. a coffin landing on a statue's base) - independent of "blocking"
         // (movement). Defaults to "blocking" itself, since every existing solid prop already
@@ -976,7 +999,8 @@ class Configuration
             blocking,
             makeCoveringOffsetDecsTransparent,
             blockedEdges,
-            occupiesTile
+            occupiesTile,
+            decorationLayer
         );
         staticDecorativeObjectTypes.Add(id, dec);
     }

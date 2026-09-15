@@ -1039,4 +1039,30 @@ abstract class MapGeneratorBase(
         map.Tiles[x, y].TileIndex = GetRandomElement(floorSet.ImageBaseIndexes);
         map.Tiles[x, y].Blocking = false;
     }
+
+    /// <summary>
+    /// Places a freestanding decorative fence pillar spanning (<paramref name="x"/>,
+    /// <paramref name="y"/>) and the tile immediately east of it - the "fence_pillar_west"/
+    /// "fence_pillar_east" pair (see Data/decorations.json, dontrolle/BlazorRogue-internal#86) only
+    /// reads correctly as two adjacent tiles, and doesn't block movement or light at all (it's too
+    /// slight visually to justify either) - purely a decorative flourish, unrelated to any actual
+    /// fence line. Callers must ensure both tiles are free floor themselves.
+    /// </summary>
+    protected void PlaceFencePillar(int x, int y)
+    {
+        map.AddGameObject(
+            new StaticDecorativeObject(
+                x,
+                y,
+                configuration.StaticDecorativeObjectTypes["fence_pillar_west"]
+            )
+        );
+        map.AddGameObject(
+            new StaticDecorativeObject(
+                x + 1,
+                y,
+                configuration.StaticDecorativeObjectTypes["fence_pillar_east"]
+            )
+        );
+    }
 }

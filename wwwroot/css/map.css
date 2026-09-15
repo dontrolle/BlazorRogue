@@ -240,6 +240,23 @@
   filter: brightness(50%);
 }
 
+/* Debug-mode-only tile coordinate label (see Game.DebugMode, GamePage.razor) - small enough to sit
+   in the corner without obscuring the tile/decoration art beneath it, but still legible at typical
+   zoom levels, so a bug report can just name the tile instead of counting cells in a screenshot. */
+.cell-coords {
+  position: absolute;
+  z-index: 4;
+  top: 0px;
+  left: 0px;
+  padding: 0px 1px;
+  font-size: 8px;
+  line-height: 1;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 /* ASCII-mode-only "fence" barrier marker (see GameObject.BlockedEdges, Map.IsMovementBlockedAcrossEdge) -
    a thin bar straddling the shared border between two tiles, rather than sitting inside either
    one, so the barrier itself (not one specific tile) reads as blocked. Tileset mode never needs
