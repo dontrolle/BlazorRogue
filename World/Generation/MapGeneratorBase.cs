@@ -256,7 +256,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Basic simple method for placing some random monsters in a generated map. Subclasses with a
     /// room structure typically override this to distribute monsters room-by-room (see
-    /// <c>BSPMapGenerator</c>); <see cref="AddMonsterAt"/> is the shared spawn helper.
+    /// <c>BSPMapGenerator</c>); <see cref="AddMonsterAt(int, int)"/> is the shared spawn helper.
     /// </summary>
     protected virtual void AddMonsters()
     {
@@ -274,9 +274,16 @@ abstract class MapGeneratorBase(
     /// (<paramref name="x"/>, <paramref name="y"/>), wires up its AI component, and registers it
     /// with the map. Does not check whether the tile is free - the caller owns that.
     /// </summary>
-    protected Moveable AddMonsterAt(int x, int y)
+    protected Moveable AddMonsterAt(int x, int y) =>
+        AddMonsterAt(x, y, GetRandomElement(configuration.MonsterTypes).Value);
+
+    /// <summary>
+    /// Same as the random overload, but with a specific <paramref name="monsterType"/>
+    /// instead of a uniformly-random one - e.g. for a deterministic dev-only level that wants a
+    /// known, repeatable monster (see FenceGalleryMapGenerator).
+    /// </summary>
+    protected Moveable AddMonsterAt(int x, int y, MoveableType monsterType)
     {
-        var monsterType = GetRandomElement(configuration.MonsterTypes).Value;
         var monster = new Moveable(
             Tuple.Create(x, y),
             AIComponentFactory.Create(
@@ -509,7 +516,10 @@ abstract class MapGeneratorBase(
     /// <c>count_max</c>) mean none, same "opt in explicitly" default as <see cref="AddLiquidPools"/>.
     /// Each enclosure is a rough rectangle sampled over existing floor tiles only, never over
     /// walls, existing game objects, or the player's start - same sampling strategy as
-    /// AddLiquidPools/TryFindPoolCentre, just over a rectangle instead of a disc.
+    /// AddLiquidPools/TryFindPoolCentre, just over a rectangle instead of a disc. The enclosure's
+    /// actual footprint needs one extra free column of floor on each side beyond its own
+    /// width x height (see IsFenceEnclosureEligible) for the non-blocking companion decorations
+    /// that complete the west/east wall art (see PlaceFenceEnclosure).
     /// </summary>
     protected virtual void AddFenceEnclosures(Tuple<int, int> playerPos)
     {
@@ -597,6 +607,21 @@ abstract class MapGeneratorBase(
             }
         }
 
+        // Every shape along the west/east sides - the two side walls, the north row's end caps, and
+        // the south row's corners - reads as a single spindly line/post on its own; the source art
+        // is designed to be composited with a mirrored companion tile immediately outside the
+        // enclosure on that row (see PlaceFenceEnclosure), so both full outer columns must be free.
+        for (int dy = 0; dy < height; dy++)
+        {
+            if (
+                !IsPoolEligible(x0 - 1, y0 + dy, playerPos)
+                || !IsPoolEligible(x0 + width, y0 + dy, playerPos)
+            )
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -613,12 +638,19 @@ abstract class MapGeneratorBase(
     /// fence_opening-repeated/fence_end_east along the top, fence_wall_west/fence_wall_east
     /// repeated down both sides, fence_corner_sw/fence_straight-repeated/fence_corner_se along the
     /// bottom - the same shape validated by FenceGalleryMapGenerator's fixed 3x3 example and the
-    /// composite mockups in dontrolle/BlazorRogue-internal#86. <paramref name="gateColumn"/> is
-    /// 1-indexed from the west wall (so 0 and width-1, always the corners, aren't valid gate
-    /// positions). Pure drawing - no eligibility checking; callers must ensure the whole
-    /// <paramref name="width"/> x <paramref name="height"/> footprint is free first (see
-    /// AddFenceEnclosures). Requires width &gt;= 3 and height &gt;= 3 - the only sizes with a gate
-    /// and a corner-to-cap vertical run actually validated.
+    /// composite mockups in dontrolle/BlazorRogue-internal#86. Also places a non-blocking companion
+    /// tile one column outside the footprint for every shape along the west/east sides - the side
+    /// walls (fence_wall_east_companion/fence_wall_west_companion), the top row's end caps
+    /// (fence_post_east/fence_post_west), and the bottom row's corners (fence_corner_sw_companion/
+    /// fence_corner_se_companion, using the "continues" dimpled art since the corner's own rail
+    /// continues into it) - completing each shape's own single-line/dangling art into a proper
+    /// double-rail. Only the west/east wall columns actually block movement; every companion is
+    /// purely cosmetic. <paramref name="gateColumn"/> is 1-indexed from the west wall (so 0 and
+    /// width-1, always the corners, aren't valid gate positions). Pure drawing - no eligibility
+    /// checking; callers must ensure the whole <paramref name="width"/> x <paramref name="height"/>
+    /// footprint, plus one extra column on each side for the companions, is free first (see
+    /// AddFenceEnclosures/IsFenceEnclosureEligible). Requires width &gt;= 3 and height &gt;= 3 - the
+    /// only sizes with a gate and a corner-to-cap vertical run actually validated.
     /// </summary>
     protected void PlaceFenceEnclosure(int x0, int y0, int width, int height, int gateColumn)
     {
@@ -645,10 +677,25 @@ abstract class MapGeneratorBase(
             PlaceFence(x0 + dx, y0, typeId);
         }
 
+        // fence_end_west/fence_end_east's own art dangles with no cap on their outer side - the
+        // non-blocking fence_post_east/fence_post_west companions complete it, one column outside
+        // the footprint (same treatment as the side walls' companions below).
+        PlaceFence(x0 - 1, y0, "fence_post_east");
+        PlaceFence(x0 + width, y0, "fence_post_west");
+
         for (int dy = 1; dy < height - 1; dy++)
         {
             PlaceFence(x0, y0 + dy, "fence_wall_west");
             PlaceFence(x0 + width - 1, y0 + dy, "fence_wall_east");
+
+            // fence_wall_west's rail sits at its own west edge and fence_wall_east's at its own
+            // east edge - each reads as a spindly single line alone, but the two interlock into a
+            // proper double-rail once adjacent (confirmed by compositing the source art, see
+            // dontrolle/BlazorRogue-internal#86). These companions are the same images, placed one
+            // column outside the enclosure's own footprint, but non-blocking - the enclosure's real
+            // blocking edge is still just the fence_wall_west/east column placed above.
+            PlaceFence(x0 - 1, y0 + dy, "fence_wall_east_companion");
+            PlaceFence(x0 + width, y0 + dy, "fence_wall_west_companion");
         }
 
         for (int dx = 0; dx < width; dx++)
@@ -659,6 +706,13 @@ abstract class MapGeneratorBase(
                 : "fence_straight";
             PlaceFence(x0 + dx, y0 + height - 1, typeId);
         }
+
+        // Same non-blocking-companion treatment as the top row's end caps, one column outside the
+        // footprint - the corners' own vertical rail continues into fence_corner_sw/fence_corner_se
+        // from outside, so their companions use the dimpled "continues" variants (fence_11/fence_15)
+        // rather than the plain fence_6/fence_7 the side walls use.
+        PlaceFence(x0 - 1, y0 + height - 1, "fence_corner_sw_companion");
+        PlaceFence(x0 + width, y0 + height - 1, "fence_corner_se_companion");
     }
 
     /// <summary>

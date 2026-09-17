@@ -43,7 +43,13 @@ class SimpleAIComponent(Map map) : AIComponent(map)
         }
         else
         {
-            if (map.Player.X == destX && map.Player.Y == destY)
+            // A blocked edge (e.g. a fence) blocks combat the same way it blocks movement - can't
+            // reach through it to attack the player standing just beyond it.
+            if (
+                map.Player.X == destX
+                && map.Player.Y == destY
+                && !map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY)
+            )
             {
                 bool hit = map.Game.FightingSystem.CloseCombatAttack(
                     Owner.CombatComponent!,

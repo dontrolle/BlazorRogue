@@ -16,8 +16,11 @@ namespace BlazorRogue.World.Generation;
 /// <remarks>
 /// Unlike <see cref="TestMapGenerator"/>, this overrides <see cref="GenerateMap"/> itself rather
 /// than just <see cref="CreateLayout"/>, skipping doors/liquid pools/random decorations/monsters
-/// entirely - the gallery should stay quiet so the fence rows are the only thing to look at. Uses a
-/// fixed (not randomly-weighted) floor/wall set so repeat visits render identically.
+/// entirely - the gallery should stay quiet so the fence rows are the only thing to look at, with
+/// one deliberate exception: a single goblin standing on the enclosure's west wall tile, for
+/// manually checking that a blocked edge blocks combat as well as movement (see
+/// dontrolle/BlazorRogue-internal#86 follow-up). Uses a fixed (not randomly-weighted) floor/wall
+/// set so repeat visits render identically.
 /// </remarks>
 class FenceGalleryMapGenerator(
     int width,
@@ -86,7 +89,42 @@ class FenceGalleryMapGenerator(
         foreach (string typeId in SwatchTypeIds)
         {
             PlaceFence(swatchX, swatchRowY, typeId);
-            swatchX += 2;
+
+            // Every shape along the west/east sides of a real enclosure gets a non-blocking
+            // companion tile one column outside it, completing its own single-line/dangling art
+            // into a proper double-rail (see PlaceFenceEnclosure). Mirrors that here for each
+            // shape's standalone swatch, reusing the row's existing 1-tile gaps so it doesn't
+            // disturb the row's spacing.
+            if (typeId == "fence_end_west")
+            {
+                PlaceFence(swatchX - 1, swatchRowY, "fence_post_east");
+            }
+            else if (typeId == "fence_end_east")
+            {
+                PlaceFence(swatchX + 1, swatchRowY, "fence_post_west");
+            }
+            else if (typeId == "fence_wall_west")
+            {
+                PlaceFence(swatchX - 1, swatchRowY, "fence_wall_east_companion");
+            }
+            else if (typeId == "fence_wall_east")
+            {
+                PlaceFence(swatchX + 1, swatchRowY, "fence_wall_west_companion");
+            }
+            else if (typeId == "fence_corner_sw")
+            {
+                PlaceFence(swatchX - 1, swatchRowY, "fence_corner_sw_companion");
+            }
+            else if (typeId == "fence_corner_se")
+            {
+                PlaceFence(swatchX + 1, swatchRowY, "fence_corner_se_companion");
+            }
+
+            // fence_wall_east's own companion sits at its usual +1 gap, but fence_wall_east is
+            // immediately followed by fence_corner_sw, whose own companion sits at swatchX-1 of
+            // *its* tile - with the standard 2-tile spacing that's the same gap tile. Widen just
+            // this one gap by 1 so the two companions don't collide.
+            swatchX += typeId == "fence_wall_east" ? 3 : 2;
         }
         PlaceFencePillar(swatchX, swatchRowY);
 
@@ -94,7 +132,24 @@ class FenceGalleryMapGenerator(
         // composite mockups and the Stage 1 manual check - confirms the shapes still compose
         // correctly as the catalog grows. Now the same PlaceFenceEnclosure the real procedural
         // placement pass (MapGeneratorBase.AddFenceEnclosures) uses.
-        PlaceFenceEnclosure(x0: 3, y0: 8, width: 3, height: 3, gateColumn: 1);
+        const int enclosureX0 = 3;
+        const int enclosureY0 = 8;
+        PlaceFenceEnclosure(x0: enclosureX0, y0: enclosureY0, width: 3, height: 3, gateColumn: 1);
+
+        // A goblin (simple_ai - it will path toward and attack the player, including fleeing
+        // through the gate rather than sitting still) standing on the east wall tile itself. That
+        // tile isn't Blocking for occupancy, only edge-blocked on its *outward* (east) side, so
+        // this is a legitimate reachable position, not a synthetic one - the same situation a
+        // wandering monster can end up in during real play. On the east side (close to the
+        // player's arrival point above) rather than the west, so there's less time for it to path
+        // out through the gate before you reach it. Walk to the companion tile immediately outside
+        // it (enclosureX0 + 3, enclosureY0 + 1) and press the move-west key: the goblin should be
+        // neither attackable nor able to attack back, even though it's directly adjacent, because
+        // the fence's blocked edge sits between the two tiles (dontrolle/BlazorRogue-internal#86
+        // follow-up). If it's already slipped out through the gate by the time you arrive, that's
+        // the gate working as intended (fully walkable) - leave and re-enter the gallery (Ctrl+G
+        // twice) for a fresh goblin and try approaching more directly.
+        _ = AddMonsterAt(enclosureX0 + 2, enclosureY0 + 1, configuration.MonsterTypes["goblin"]);
 
         // Sight radius is only Map.PlayerSightRadius (6) - too small to see the whole gallery from
         // one spot regardless, but this puts the swatch row mostly in view on arrival, with the

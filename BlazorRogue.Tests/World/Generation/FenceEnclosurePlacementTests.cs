@@ -111,12 +111,18 @@ public class FenceEnclosurePlacementTests
         Assert.Equal(1, images.Count(i => i == "fence_2")); // end_west
         Assert.Equal(1, images.Count(i => i == "fence_4")); // end_east
         Assert.Equal(1, images.Count(i => i == "fence_3")); // opening/gate
-        Assert.Equal(1, images.Count(i => i == "fence_7")); // wall_west (height 3 => one row)
-        Assert.Equal(1, images.Count(i => i == "fence_6")); // wall_east
+        Assert.Equal(1, images.Count(i => i == "fence_1")); // end_west's fence_post_east companion
+        Assert.Equal(1, images.Count(i => i == "fence_5")); // end_east's fence_post_west companion
+        // wall_west (height 3 => one row) + its wall_east_companion, one tile outside the enclosure
+        Assert.Equal(2, images.Count(i => i == "fence_7"));
+        // wall_east + its wall_west_companion, one tile outside the enclosure
+        Assert.Equal(2, images.Count(i => i == "fence_6"));
         Assert.Equal(1, images.Count(i => i == "fence_12")); // corner_sw
         Assert.Equal(1, images.Count(i => i == "fence_14")); // corner_se
         Assert.Equal(1, images.Count(i => i == "fence_13")); // straight (south wall middle)
-        Assert.Equal(8, images.Count);
+        Assert.Equal(1, images.Count(i => i == "fence_11")); // corner_sw's companion
+        Assert.Equal(1, images.Count(i => i == "fence_15")); // corner_se's companion
+        Assert.Equal(14, images.Count);
     }
 
     [Fact]

@@ -751,22 +751,27 @@ class Map
                 return true;
             }
 
-            // handle moveables - I take a copy as moveables may be modified, because of death
-            // TODO: FIX, THIS IS CLUNKY AS HELL...
-            foreach (var mo in moveables.Where(m => m.X == destX && m.Y == destY).ToList())
+            // A blocked edge (e.g. a fence) blocks combat the same way it blocks movement - can't
+            // reach through it to attack a moveable standing just beyond it.
+            if (!IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY))
             {
-                // what to do if it doesn't have a CombatComponent?
-                if (mo.CombatComponent != null)
+                // handle moveables - I take a copy as moveables may be modified, because of death
+                // TODO: FIX, THIS IS CLUNKY AS HELL...
+                foreach (var mo in moveables.Where(m => m.X == destX && m.Y == destY).ToList())
                 {
-                    bool hit = Game.FightingSystem.CloseCombatAttack(
-                        Player.CombatComponent!,
-                        mo.CombatComponent
-                    );
-                    References.SoundManager.PlayCombatSound(hit);
-                    References.EffectsSystem.Shake = hit;
-                    UpdateBlockMovement(destX, destY);
-                    stateChanged = true;
-                    playerAttacked = true;
+                    // what to do if it doesn't have a CombatComponent?
+                    if (mo.CombatComponent != null)
+                    {
+                        bool hit = Game.FightingSystem.CloseCombatAttack(
+                            Player.CombatComponent!,
+                            mo.CombatComponent
+                        );
+                        References.SoundManager.PlayCombatSound(hit);
+                        References.EffectsSystem.Shake = hit;
+                        UpdateBlockMovement(destX, destY);
+                        stateChanged = true;
+                        playerAttacked = true;
+                    }
                 }
             }
         }
