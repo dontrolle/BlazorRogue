@@ -22,6 +22,15 @@ is fine for geometry helpers but **not** for anything that kills a `Moveable`: d
 puddle (needs `Game.Configuration`) and re-renders (needs a post-gen map). Use `new Game()` for
 those — it generates a real dungeon in a few ms, as `GameTests` already does.
 
+For a deterministic turn-based scenario (AI pathing, combat, liquid hazards) where a randomly
+generated dungeon would make the exact tile layout unpredictable, build a small bare *all-floor*
+`Map` wired to a real `Game` instead — see `LiquidPoolTests.BareFloorMap`/`NewCreature` (reused by
+`MapTests` for the blocked-edge-combat tests below): `new Game()` for `Game.FightingSystem`/
+`AddMessage`, then `new Map(size, size, wallSet, game)` with every tile force-set to a non-blocking
+floor `TileSet`, and `References.Map = map` so `Moveable.Move`'s enter-hook and friends target it.
+Exact adjacency/positions are then fully under the test's control via `PlaceAt`/`AddMonster`/
+`AddMoveable`, unlike hunting for a suitable spot in a real generated level.
+
 `ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
 dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and
 locking in a specific number (e.g. an ogre's exact wounds) makes an unrelated balance change break an
@@ -36,8 +45,27 @@ JSON — keeping it independent of how `SettingsMap`/parsing evolves.
 ## Verifying in the browser
 
 Session, rendering and input behaviour can't be unit tested, so it gets checked by driving the real
-app (`dotnet run --urls http://localhost:5000`). Hard-won notes:
+app. The `run-blazorrogue` skill (`.claude/skills/run-blazorrogue/SKILL.md`) is the current way to
+do this for an agent - it wraps a small Playwright-based REPL (`driver.mjs`) that starts the dev
+server, dispatches synthetic key events, takes screenshots, and reads the DOM/message log, covering
+every technique below; see that file for the driver's own commands and gotchas (notably: a
+`messages` query can lag one round-trip behind the actual game state - issue an extra, throwaway
+`messages` call and re-check before trusting what it reports as the latest line). Hard-won notes:
 
+- **A dedicated dev-only debug level is worth it for anything with many shapes/variants to eyeball
+  at once**, rather than hand-splicing placement code per manual check - see
+  `FenceGalleryMapGenerator` for the pattern (a fixed, deterministic `IMapGenerator` wired to
+  `Data/game-config.json`'s `debug_level`, reached in a running game via Ctrl+D then Ctrl+G - see
+  `Game.ToggleDebugLevelView`, and the *Edge-blocking* entry in [`ARCHITECTURE.md`](ARCHITECTURE.md)
+  for the kind of behavioral (not just visual) check this level also enabled: a monster placed
+  deliberately across a fence line to confirm combat, not just movement, is blocked by it).
+- **Crop and upscale a screenshot region (nearest-neighbor) when checking a pixel-thin visual
+  detail** - a full-map screenshot compresses a 1-2px difference (e.g. two adjacent decorations
+  interlocking into a slightly thicker line) below what's visible at a glance. A quick
+  `System.Drawing` crop via the `PowerShell` tool, scaled up 3-4x with
+  `InterpolationMode.NearestNeighbor` (so pixels stay sharp-edged rather than blurring together),
+  makes the difference legible; plain eyeballing the original screenshot at that point is
+  unreliable enough to draw the wrong conclusion from.
 - **Drive the game with synthetic key events, not real keypresses.** Real keypresses can be flaky in
   automation (focus can land somewhere unexpected between steps). Dispatching on `document` matches
   what the game actually listens to and works regardless of focus, and can be looped in a single
