@@ -136,6 +136,11 @@ dotnet csharpier check .
   not a bug, per `CLAUDE.md`.
 - **No `lsof`/`fuser` on Windows/Git Bash.** Use the `Get-NetTCPConnection ... | Stop-Process`
   PowerShell one-liner above to free the port before relaunching `dotnet run`.
+- **`messages` can lag one round-trip behind the actual game state.** A `key`/`keys` command that
+  triggers a new message (e.g. a level transition, an awake notification) isn't guaranteed to be
+  reflected in the very next `messages` call - issue a second, throwaway `messages` call first to
+  let it settle, and trust that one instead. This bit real verification runs more than once:
+  checking too early looked like the action hadn't happened at all.
 
 ## Troubleshooting
 

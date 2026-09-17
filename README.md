@@ -1,6 +1,6 @@
 # BlazorRogue
 
-[![CI](https://github.com/dontrolle/BlazorRogue/actions/workflows/CI.yml/badge.svg)](https://github.com/dontrolle/BlazorRogue/actions/workflows/build.yml)
+[![CI](https://github.com/dontrolle/BlazorRogue/actions/workflows/CI.yml/badge.svg)](https://github.com/dontrolle/BlazorRogue/actions/workflows/CI.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -22,6 +22,7 @@ A small rogue-like built from the bottom up in a custom game engine on C#/Blazor
 ## Features
 
 - Procedural dungeon generation, including animated liquid pools — water, mud, acid and lava; walkable, but mud/water slow you, acid burns, and lava is instant death.
+- Procedurally-placed fence enclosures — walkable-blocking but see-through, using a generalized edge-blocking primitive (also used by statues) that blocks movement and close combat across a fence line, independent of the tile itself.
 - A variety of monsters, animated using CSS animations, with mouse-over descriptions.
 - Sounds and music, plus a screen-shake effect on hits.
 - Useable environment objects (doors, chests) and field-of-view/vision.
@@ -72,12 +73,12 @@ By default the app listens on `https://localhost:5001` (see `Properties/launchSe
 dotnet test
 ```
 
-There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build` followed by `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/build.yml`).
+There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build`, `dotnet csharpier check .` (formatting), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet csharpier format .` locally before committing to match it.
 
 ### Docker
 
 ```
-docker build -t blazorrogue .
+docker build -f docker/Dockerfile -t blazorrogue .
 docker run -p 8080:8080 blazorrogue
 ```
 
@@ -157,7 +158,7 @@ Most game content is data, not code — new monsters, heroes, floor/wall sets, a
 - `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
 - `Data/items.json` — pickup-able items: name, kind (`use_once` / `equipable`), sprite + ASCII glyph, and effect (`heal` / `armour_bonus`) with a magnitude.
 - `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
-- `Data/game-config.json` — optional local knobs: `starting_level` (the level `no` a new game starts on, default `0`; set to `-1000` to start on the test level) and `debug_mode` (initial value of the in-game Ctrl-D debug toggle, default `false`). The file, or either key, may be omitted.
+- `Data/game-config.json` — optional local knobs: `starting_level` (the level `no` a new game starts on, default `0`; set to `-1000` to start on the test level), `debug_mode` (initial value of the in-game Ctrl-D debug toggle, default `false`), and `debug_level` (the level `no` Ctrl-G jumps to/from once debug mode is on — e.g. `-1002` for the fence gallery; omitted by default, in which case Ctrl-G does nothing). The file, or any key, may be omitted.
 
 These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind — follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.
 

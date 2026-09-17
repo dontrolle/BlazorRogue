@@ -86,6 +86,21 @@ how to test changes in these areas.
   earlier version rendered moveables *before* `PlayerTookTurn()`, which delayed a monster's moved
   position from becoming visible until the *following* turn — by which point it might also be
   attacking, making a two-turn move-then-attack look like it happened in one turn.
+- **Edge-blocking** (`World/Edge.cs`, `GameObject.BlockedEdges`): a `GameObject` can declare which of
+  its own tile's four edges block crossing between it and the adjacent tile, independent of whether
+  either tile is `Blocking` for occupancy and independent of light-blocking — `Statue` was the first
+  consumer, the `fence_*` decoration types in `Data/decorations.json` are the main one now.
+  `Map.IsMovementBlockedAcrossEdge(fromX, fromY, toX, toY)` is the single source of truth — either
+  side of the edge may carry the declaration — and additionally denies a diagonal move that would
+  cut through a sealed corner (`IsDiagonalCornerSealed`: both straight-line detours around the
+  corner blocked, not just one, so a single-edge object like `Statue` is unaffected). **Gotcha**:
+  this primitive blocks close combat as well as movement, but only where a caller explicitly checks
+  it - `Map.HandlePlayerMove` and `SimpleAIComponent.TakeTurn` both independently fell into the same
+  trap (movement blocked → "nothing to step onto, so attack whatever's on that tile" → attacked
+  straight through a fence, since the target moveable's own occupancy already explained the blocked
+  move without the edge ever being consulted). Any new code path that turns "can't move there" into
+  "attack what's there" must separately check `IsMovementBlockedAcrossEdge` too - it is not implied
+  by `IsBlocked`.
 - **Input**: keys drive the game via a `document`-level `keyup` listener
   (`blazorroguefuncs.registerKeyup` in `wwwroot/blazorrogue.js`), not a Blazor `@onkeyup` on the map
   div — so movement works no matter what has focus (or nothing does), with no click-to-focus step.
