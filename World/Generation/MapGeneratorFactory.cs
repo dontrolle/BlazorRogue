@@ -19,6 +19,8 @@ static class MapGeneratorFactory
         [BSPMapGenerator.Id] = (w, h, n, g, s) => new BSPMapGenerator(w, h, n, g, s),
         [CaveGenerator.Id] = (w, h, n, g, s) => new CaveGenerator(w, h, n, g, s),
         [TestMapGenerator.Id] = (w, h, n, g, s) => new TestMapGenerator(w, h, n, g, s),
+        [FenceGalleryMapGenerator.Id] = (w, h, n, g, s) =>
+            new FenceGalleryMapGenerator(w, h, n, g, s),
     };
 
     /// <summary>

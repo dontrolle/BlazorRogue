@@ -380,12 +380,13 @@ public class ConfigurationTests
     [Fact]
     public void ParseLoadsGameConfigDefaults()
     {
-        // The committed Data/game-config.json ships the defaults; this locks in that Parse() reads
-        // them rather than leaving the properties unset.
+        // The committed Data/game-config.json ships these; this locks in that Parse() reads them
+        // rather than leaving the properties unset.
         var configuration = ParseConfiguration();
 
         Assert.Equal(0, configuration.StartingLevelNumber);
         Assert.False(configuration.DebugMode);
+        Assert.Equal(-1002, configuration.DebugLevelNumber);
     }
 
     [Fact]
@@ -397,6 +398,17 @@ public class ConfigurationTests
         var configuration = ParseConfiguration();
 
         Assert.True(configuration.Levels.ContainsKey(configuration.StartingLevelNumber));
+    }
+
+    [Fact]
+    public void ParseValidatesDebugLevelNumberNamesAnExistingLevel()
+    {
+        // Same guard as ParseValidatesStartingLevelNumberNamesAnExistingLevel, but for the optional
+        // debug_level - an out-of-range value would have thrown inside ParseConfiguration() above.
+        var configuration = ParseConfiguration();
+
+        Assert.NotNull(configuration.DebugLevelNumber);
+        Assert.True(configuration.Levels.ContainsKey(configuration.DebugLevelNumber.Value));
     }
 
     [Fact]

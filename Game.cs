@@ -116,6 +116,69 @@ class Game
         AddMessage($"You {verb} {levelConfig.Name}.");
     }
 
+    // Where to return to when toggling out of the debug level (see ToggleDebugLevelView) - null
+    // whenever the player isn't currently in it.
+    int? preDebugLevelNumber;
+    int preDebugLevelPlayerX;
+    int preDebugLevelPlayerY;
+
+    /// <summary>
+    /// Dev-only jump into (and back out of) whichever level <see cref="Entities.Configuration.DebugLevelNumber"/>
+    /// names (<c>Data/game-config.json</c>'s <c>debug_level</c> - e.g. "fence_gallery",
+    /// "test_level", "liquid_edging_test_level") - Ctrl+G while <see cref="DebugMode"/> is on, see
+    /// GamePage.OnKeyPress. Unlike <see cref="TransitionToLevel"/>, this isn't a stairs-direction
+    /// move - a debug level need not have any stairs - so it remembers the player's exact prior
+    /// level and position instead of relying on GetStair, and regenerates the debug level fresh
+    /// every visit so it's always a clean, up-to-date reference rather than a stale cached one.
+    /// </summary>
+    /// <returns>Whether a level switch actually happened - false only when no debug level is
+    /// configured, in which case a message explains that rather than silently doing nothing.</returns>
+    internal bool ToggleDebugLevelView()
+    {
+        if (preDebugLevelNumber is null && Configuration.DebugLevelNumber is null)
+        {
+            AddMessage("No debug level configured - see game-config.json's 'debug_level'.");
+            return false;
+        }
+
+        var player = Map.Player;
+        Map.DetachPlayer();
+
+        if (preDebugLevelNumber is int returnLevelNumber)
+        {
+            var returnLevelConfig = Configuration.Levels[returnLevelNumber];
+            var returnMap = visitedLevels[returnLevelNumber];
+            returnMap.ReattachPlayer(player, preDebugLevelPlayerX, preDebugLevelPlayerY);
+            Map = returnMap;
+            CurrentLevelNumber = returnLevelNumber;
+            preDebugLevelNumber = null;
+
+            References.Map = Map;
+            References.SoundManager.PlayBackgroundMusic(returnLevelConfig.BackgroundSoundtrack);
+            AddMessage($"You return to {returnLevelConfig.Name}.");
+        }
+        else
+        {
+            int debugLevelNumber = Configuration.DebugLevelNumber!.Value;
+            var debugLevelConfig = Configuration.Levels[debugLevelNumber];
+
+            preDebugLevelNumber = CurrentLevelNumber;
+            preDebugLevelPlayerX = player.X;
+            preDebugLevelPlayerY = player.Y;
+            visitedLevels[CurrentLevelNumber] = Map;
+
+            MapGenerator = MapGeneratorFactory.Create(debugLevelConfig, this);
+            Map = MapGenerator.GenerateMap(player);
+            CurrentLevelNumber = debugLevelNumber;
+
+            References.Map = Map;
+            References.SoundManager.PlayBackgroundMusic(debugLevelConfig.BackgroundSoundtrack);
+            AddMessage($"You peek into {debugLevelConfig.Name} (debug).");
+        }
+
+        return true;
+    }
+
     static StairDirection Opposite(StairDirection direction) =>
         direction == StairDirection.Down ? StairDirection.Up : StairDirection.Down;
 

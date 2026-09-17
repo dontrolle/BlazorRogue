@@ -22,7 +22,7 @@ class StaticDecorativeObject : GameObject
         int? verticalOffsetOverride = null,
         string? nameOverride = null,
         string? infoTextOverride = null,
-        Decoration.Layer decorationLayer = Decoration.Layer.Middleground
+        Decoration.Layer? decorationLayerOverride = null
     )
         : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
     {
@@ -59,7 +59,8 @@ class StaticDecorativeObject : GameObject
         OccupiesTile = staticDecorativeObjectType.OccupiesTile;
         makeCoveringOffsetDecsTransparent =
             staticDecorativeObjectType.MakeCoveringOffsetDecsTransparent;
-        this.decorationLayer = decorationLayer; // TODO: Shouldn't this be driven from config data.json as well?
+        this.decorationLayer =
+            decorationLayerOverride ?? staticDecorativeObjectType.DecorationLayer;
     }
 
     public override void Render(Map map) =>

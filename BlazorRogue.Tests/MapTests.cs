@@ -1,4 +1,5 @@
-﻿using BlazorRogue.Entities;
+﻿using BlazorRogue.AI;
+using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;
 
@@ -11,6 +12,62 @@ public class MapTests
         var wallSet = new TileSet("test_wall", TileType.Wall, "test", [0]);
         return new Map(width, height, wallSet, game: null!);
     }
+
+    // A small all-floor map wired to a real Game (so Game.FightingSystem/AddMessage work) - same
+    // technique as LiquidPoolTests.BareFloorMap, needed for the two combat-across-a-blocked-edge
+    // tests below since they exercise the full HandlePlayerAction/SimpleAIComponent.TakeTurn paths,
+    // not just the IsMovementBlockedAcrossEdge primitive.
+    static Map BareFloorMap(Game game, int size = 10)
+    {
+        var wallSet = new TileSet("w", TileType.Wall, "w", [0]);
+        var floorSet = new TileSet("f", TileType.Floor, "f", [0]);
+        var map = new Map(size, size, wallSet, game);
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                map.Tiles[x, y].TileSet = floorSet;
+                map.Tiles[x, y].Blocking = false;
+            }
+        }
+        References.Map = map;
+        return map;
+    }
+
+    static Moveable NewCreature(int x, int y, AIComponent? ai = null)
+    {
+        var type = new MoveableType(
+            id: "dummy",
+            name: "Dummy",
+            animationClass: "animated_dummy",
+            asciiCharacter: "d",
+            asciiColour: "white",
+            weaponSkill: 30,
+            weaponDamage: 5,
+            toughness: 0,
+            armour: 0,
+            wounds: 20,
+            aiComponentId: AIComponentFactory.DefaultId,
+            aiComponentSettings: SettingsMap.Empty,
+            singular: true
+        );
+        return new Moveable(x, y, ai, type);
+    }
+
+    static StaticDecorativeObjectType TestFence(Edge blockedEdges) =>
+        new(
+            id: "test_fence",
+            name: "Test Fence",
+            image: new Dictionary<string, string> { [""] = "img" },
+            animationClasses: [],
+            infoText: "",
+            verticalOffset: 0,
+            character: "",
+            characterColor: "",
+            blocking: false,
+            makeCoveringOffsetDecsTransparent: false,
+            blockedEdges: blockedEdges
+        );
 
     [Theory]
     [InlineData(0, 0, 0)]
@@ -101,7 +158,7 @@ public class MapTests
     // movement across one edge of its own tile without necessarily being Blocking itself. Statue
     // is the first consumer; a future single-tile fence would declare the same way.
     [Fact]
-    public void IsMovementBlockedAcrossEdgeOnlyBlocksTheDeclaredEdgeAndNeverDiagonalMoves()
+    public void IsMovementBlockedAcrossEdgeOnlyBlocksTheDeclaredEdgeAndNeverAnUnsealedDiagonal()
     {
         var map = CreateMap();
         var fenceType = new StaticDecorativeObjectType(
@@ -123,12 +180,105 @@ public class MapTests
         Assert.True(map.IsMovementBlockedAcrossEdge(3, 3, 3, 2));
         Assert.True(map.IsMovementBlockedAcrossEdge(3, 2, 3, 3));
 
-        // ...but no other orthogonal edge of that tile is affected, and diagonal moves are never
-        // edge-blocked.
+        // ...but no other orthogonal edge of that tile is affected. A single blocked edge can only
+        // ever seal one of a diagonal's two detour paths (see IsDiagonalCornerSealed) - never both -
+        // so diagonal moves stay open around it too.
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 3, 4));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 3));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 4, 3));
         Assert.False(map.IsMovementBlockedAcrossEdge(3, 3, 2, 2));
+    }
+
+    // A diagonal move that would otherwise cut straight through a sealed corner - both detours
+    // around it blocked - must be denied too, or a mover can bypass two blocked edges at once by
+    // stepping onto/through the corner tile diagonally. Reported live: a monster walked diagonally
+    // through a fence enclosure corner (dontrolle/BlazorRogue-internal#86).
+    [Fact]
+    public void IsMovementBlockedAcrossEdgeDeniesADiagonalThatCutsASealedCorner()
+    {
+        var map = CreateMap();
+        // A corner like fence_corner_sw: one GameObject blocking two edges of its own tile (West
+        // and South), at (3,3). Interior is north/east of it; exterior is south/west.
+        var cornerType = new StaticDecorativeObjectType(
+            id: "test_corner",
+            name: "Test Corner",
+            image: new Dictionary<string, string> { [""] = "img" },
+            animationClasses: [],
+            infoText: "",
+            verticalOffset: 0,
+            character: "",
+            characterColor: "",
+            blocking: false,
+            makeCoveringOffsetDecsTransparent: false,
+            blockedEdges: Edge.West | Edge.South
+        );
+        map.AddGameObject(new StaticDecorativeObject(3, 3, cornerType));
+
+        // From exterior (2,4), southwest of the corner, straight onto the corner tile (3,3) - both
+        // straight-line detours around it (via (3,4) then north, or via (2,3) then east) are
+        // blocked by the corner's own South/West edges, so the shortcut must be denied too.
+        Assert.True(map.IsMovementBlockedAcrossEdge(2, 4, 3, 3));
+        Assert.True(map.IsMovementBlockedAcrossEdge(3, 3, 2, 4));
+
+        // Approaching the same corner tile diagonally from the southeast (interior-ish side) stays
+        // open: the vertical-first detour ((4,4)->(4,3)->(3,3)) is fully clear even though the
+        // horizontal-first one isn't, so only one of the two detours is blocked, not both - this
+        // isn't a blanket "diagonals near a fence are blocked" rule, only a fully sealed corner is.
+        Assert.False(map.IsMovementBlockedAcrossEdge(4, 4, 3, 3));
+    }
+
+    // A blocked edge (e.g. a fence) is supposed to block reaching *through* it, not just walking
+    // through it - reported live: a moveable standing just across a fence line could still be
+    // attacked, because the player-move handler only checked IsBlocked(dest) (true here regardless
+    // of the fence, since the target moveable itself blocks the tile) before falling into "nothing
+    // to move onto, try attacking what's there" - it never re-checked the edge for the attack case.
+    [Fact]
+    public void HandlePlayerActionDoesNotAttackAMoveableAcrossABlockedEdge()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        map.AddPlayer(NewCreature(4, 4));
+
+        // Blocks the East edge of the player's own tile - the shared "fence" primitive (see
+        // Edge/GameObject.BlockedEdges), not tied to the real fence_* catalog.
+        map.AddGameObject(new StaticDecorativeObject(4, 4, TestFence(Edge.East)));
+
+        var target = NewCreature(5, 4);
+        map.AddMoveable(target);
+
+        int messageCountBefore = game.Messages.Count;
+
+        map.HandlePlayerAction(shiftKey: false, numKey: '6'); // '6' = move/attack east
+
+        Assert.Equal((4, 4), (map.Player.X, map.Player.Y)); // the edge blocks the move too
+        Assert.Equal(target.CombatComponent!.MaxWounds, target.CombatComponent.Wounds); // never hit
+        Assert.Equal(messageCountBefore, game.Messages.Count); // CloseCombatAttack never even ran
+    }
+
+    // Same bug, the other direction: a monster adjacent to the player across a blocked edge must
+    // not be able to attack through it either (SimpleAIComponent.TakeTurn had the identical gap).
+    [Fact]
+    public void SimpleAiCannotAttackThePlayerAcrossABlockedEdge()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        map.AddPlayer(NewCreature(5, 4));
+
+        // Blocks the West edge of the player's own tile, the edge shared with the monster at (4,4).
+        map.AddGameObject(new StaticDecorativeObject(5, 4, TestFence(Edge.West)));
+
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(4, 4, ai);
+        ai.Wake();
+
+        int messageCountBefore = game.Messages.Count;
+
+        ai.TakeTurn();
+
+        Assert.Equal((4, 4), (monster.X, monster.Y)); // the edge blocks the move too
+        Assert.Equal(map.Player.CombatComponent!.MaxWounds, map.Player.CombatComponent.Wounds); // never hit
+        Assert.Equal(messageCountBefore, game.Messages.Count); // CloseCombatAttack never even ran
     }
 
     // Death drops a blood puddle and re-renders, both of which need a real Game and a post-gen

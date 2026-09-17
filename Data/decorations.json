@@ -313,6 +313,173 @@
       "character": "≈",
       "character_color": "#5fa8d3",
       "occupies_tile": true
+    },
+    {
+      "id": "fence_straight",
+      "name": "Fence",
+      "image": "fence_13",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_end_west",
+      "name": "Fence",
+      "image": "fence_2",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_end_east",
+      "name": "Fence",
+      "image": "fence_4",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["south"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_opening",
+      "name": "Fence opening",
+      "image": "fence_3",
+      "info_text": "A gap in the fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_wall_west",
+      "name": "Fence",
+      "image": "fence_7",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["west"]
+    },
+    {
+      "id": "fence_wall_east",
+      "name": "Fence",
+      "image": "fence_6",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["east"]
+    },
+    {
+      "id": "fence_wall_west_companion",
+      "name": "Fence",
+      "image": "fence_7",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_wall_east_companion",
+      "name": "Fence",
+      "image": "fence_6",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_corner_sw",
+      "name": "Fence",
+      "image": "fence_12",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["west", "south"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_corner_se",
+      "name": "Fence",
+      "image": "fence_14",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["east", "south"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_corner_sw_companion",
+      "name": "Fence",
+      "image": "fence_11",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_corner_se_companion",
+      "name": "Fence",
+      "image": "fence_15",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_tjunction",
+      "name": "Fence",
+      "image": "fence_10",
+      "info_text": "A wrought-iron fence",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": "",
+      "blocks_edges": ["west", "south", "east"],
+      "decoration_layer": "infront"
+    },
+    {
+      "id": "fence_post_east",
+      "name": "Fence post",
+      "image": "fence_1",
+      "info_text": "A fence post",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_post_west",
+      "name": "Fence post",
+      "image": "fence_5",
+      "info_text": "A fence post",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_pillar_west",
+      "name": "Fence pillar",
+      "image": "fence_8",
+      "info_text": "A fence post",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
+    },
+    {
+      "id": "fence_pillar_east",
+      "name": "Fence pillar",
+      "image": "fence_9",
+      "info_text": "A fence post",
+      "vertical_offset": 0,
+      "character": "",
+      "character_color": ""
     }
   ]
 }

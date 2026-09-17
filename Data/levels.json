@@ -117,6 +117,18 @@
       }
     },
     {
+      "no": -1002,
+      "id": "fence_gallery",
+      "name": "Fence Gallery",
+      "height": 20,
+      "width": 30,
+      "background_soundtrack": "Ambience_Cave_00.mp3",
+      "map_generator": {
+        "generator_id": "fence_gallery_map_generator",
+        "parameters": {}
+      }
+    },
+    {
       "no": 0,
       "id": "level0",
       "name": "The Wilds",
@@ -174,6 +186,14 @@
                 [ "water_bubbling", 1 ],
                 [ "water_lava", 1 ]
               ]
+            },
+            "fence_enclosures": {
+              "count_min": 0,
+              "count_max": 2,
+              "width_min": 3,
+              "width_max": 5,
+              "height_min": 3,
+              "height_max": 5
             }
           },
           "layout": {
@@ -250,6 +270,14 @@
                 [ "water_bubbling", 1 ],
                 [ "water_lava", 1 ]
               ]
+            },
+            "fence_enclosures": {
+              "count_min": 0,
+              "count_max": 1,
+              "width_min": 3,
+              "width_max": 5,
+              "height_min": 3,
+              "height_max": 5
             }
           },
           "layout": {
