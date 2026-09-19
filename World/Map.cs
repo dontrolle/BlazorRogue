@@ -531,6 +531,10 @@ class Map
             return false;
         }
 
+        // Turn-scoped, not render-scoped: keeps Shake correct as this turn's outcome regardless of
+        // whether/when a UI ever renders it. Distinct from EffectsSystem.ConsumeShake(), which
+        // GamePage uses to make sure a hit's shake plays on only the one render that follows it -
+        // don't remove this as "redundant" with that.
         References.EffectsSystem.Reset();
 
         bool stateChanged;
