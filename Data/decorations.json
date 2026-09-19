@@ -263,7 +263,7 @@
       },
       "info_text": "A lilypad floating on the water",
       "vertical_offset": 0,
-      "character": "o",
+      "character": "≎",
       "character_color": "green"
     },
     {
@@ -310,7 +310,7 @@
       },
       "info_text": "A stone fountain, water jetting from its basin",
       "vertical_offset": 0,
-      "character": "≈",
+      "character": "≅",
       "character_color": "#5fa8d3",
       "occupies_tile": true
     },
