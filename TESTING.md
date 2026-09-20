@@ -29,9 +29,9 @@ generated dungeon would make the exact tile layout unpredictable, build a small 
 `Game.FightingSystem`/`AddMessage`, then `new Map(size, size, wallSet, game)` with every tile
 force-set to a non-blocking floor `TileSet`, and `game.Map = map` (an `internal`-settable property
 kept for exactly this) so `Moveable.Move`'s enter-hook and friends - which reach the current map via
-`References.Map`, a pass-through onto `References.Game.Map` - target it too. Exact adjacency/
-positions are then fully under the test's control via `PlaceAt`/`AddMonster`/`AddMoveable`, unlike
-hunting for a suitable spot in a real generated level.
+`References.Game.Map` - target it too. Exact adjacency/positions are then fully under the test's
+control via `PlaceAt`/`AddMonster`/`AddMoveable`, unlike hunting for a suitable spot in a real
+generated level.
 
 `ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
 dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and

@@ -20,12 +20,12 @@ public class FenceTests
         return new Map(width, height, wallSet, game: null!);
     }
 
-    // Constructing a Game parses the real Data/*.json and populates References.Configuration (see
+    // Constructing a Game parses the real Data/*.json and points References.Game at it (see
     // Game(), Game.cs) - the same mechanism StatuePlacementTests relies on via map generation.
     static StaticDecorativeObjectType FenceType(string id)
     {
         _ = new Game();
-        return References.Configuration.StaticDecorativeObjectTypes[id];
+        return References.Game.Configuration.StaticDecorativeObjectTypes[id];
     }
 
     // (expectedBlocksNorth, expectedBlocksEast, expectedBlocksSouth, expectedBlocksWest,

@@ -8,7 +8,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
     : GameObject(
         x,
         y,
-        References.Configuration.StaticDecorativeObjectTypes[id].Name,
+        References.Game.Configuration.StaticDecorativeObjectTypes[id].Name,
         useableComponent: new UseableComponent(Use),
         inventoryComponent: content
     )
@@ -16,7 +16,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
     readonly string id = id;
 
     public override string InfoText =>
-        $"{References.Configuration.StaticDecorativeObjectTypes[id].InfoText} ({ChestStateToString(this)})";
+        $"{References.Game.Configuration.StaticDecorativeObjectTypes[id].InfoText} ({ChestStateToString(this)})";
 
     internal enum ChestState
     {
@@ -52,7 +52,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
                 case ChestState.Open:
                     if (chest.InventoryComponent.Gold > 0)
                     {
-                        References.Map.Player.InventoryComponent!.Gold += chest
+                        References.Game.Map.Player.InventoryComponent!.Gold += chest
                             .InventoryComponent
                             .Gold;
                         chest.InventoryComponent.Gold = 0;
@@ -78,7 +78,7 @@ class Chest(int x, int y, string id, InventoryComponent content)
 
     public override void Render(Map map)
     {
-        var sdot = References.Configuration.StaticDecorativeObjectTypes[id];
+        var sdot = References.Game.Configuration.StaticDecorativeObjectTypes[id];
 
         string img = "";
         switch (State)

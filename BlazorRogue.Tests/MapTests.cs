@@ -16,8 +16,8 @@ public class MapTests
     // A small all-floor map wired to a real Game (so Game.FightingSystem/AddMessage work) - same
     // technique as LiquidPoolTests.BareFloorMap, needed for the two combat-across-a-blocked-edge
     // tests below since they exercise the full HandlePlayerAction/SimpleAIComponent.TakeTurn paths,
-    // not just the IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map also repoints
-    // References.Map, a pass-through onto References.Game.
+    // not just the IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map means
+    // References.Game.Map resolves to it too.
     static Map BareFloorMap(Game game, int size = 10)
     {
         var wallSet = new TileSet("w", TileType.Wall, "w", [0]);

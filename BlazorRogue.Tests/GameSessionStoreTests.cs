@@ -99,19 +99,18 @@ public class GameSessionStoreTests
         var a = store.GetOrCreate("browser-a");
         var b = store.GetOrCreate("browser-b");
 
-        // Constructing b's game left the statics pointing at it; activating a must take them back,
-        // which is what stops one player's actions landing in another player's game.
+        // Constructing b's game left References.Game pointing at it; activating a must take it
+        // back, which is what stops one player's actions landing in another player's game.
+        // References.Game.Map/.Configuration/.EffectsSystem just read straight through to Game's
+        // own properties (see References.cs), so asserting Game itself covers all of them.
         a.Activate(soundManager);
 
-        Assert.Same(a.Game.Map, References.Map);
-        Assert.Same(a.Game.EffectsSystem, References.EffectsSystem);
-        Assert.Same(a.Game.Configuration, References.Configuration);
+        Assert.Same(a.Game, References.Game);
         Assert.Same(soundManager, References.SoundManager);
 
         b.Activate(soundManager);
 
-        Assert.Same(b.Game.Map, References.Map);
-        Assert.Same(b.Game.EffectsSystem, References.EffectsSystem);
+        Assert.Same(b.Game, References.Game);
     }
 
     [Fact]

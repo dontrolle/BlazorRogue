@@ -15,7 +15,7 @@ namespace BlazorRogue.GameObjects;
 class Fountain : GameObject
 {
     static StaticDecorativeObjectType Sdot =>
-        References.Configuration.StaticDecorativeObjectTypes["fountain"];
+        References.Game.Configuration.StaticDecorativeObjectTypes["fountain"];
 
     public override string InfoText => Sdot.InfoText;
 
