@@ -681,7 +681,7 @@ else
     // Set when the player's next move would step into lava (or any instakill liquid): the move is
     // held until they confirm with 'y'. See OnKeyPress.
     bool awaitingLavaConfirm;
-    char pendingLavaNumKey;
+    Direction pendingLavaDirection;
     string? hazardPrompt;
 
     void CloseHelp() => showHelp = false;
@@ -890,19 +890,12 @@ else
 
         var mapBeforeAction = game.Map;
 
-        if (OnKeyPress(key, code, shiftKey))
+        // OnKeyPress itself calls Map.TakeTurn where a key maps to a real PlayerAction - it
+        // resolves the monsters' turn and re-renders moveables internally, so a non-null result
+        // here just means "something was attempted"; only the viewport bookkeeping below is left
+        // for KeyUp to do.
+        if (OnKeyPress(key, code, shiftKey) is not null)
         {
-            // A move that ended the game (e.g. walking into lava) gives the monsters no free turn.
-            if (!game.Map.IsGameOver)
-            {
-                game.Map.PlayerTookTurn();
-            }
-
-            // Rendered once, after both the player's and the monsters' turns are fully resolved,
-            // so moveable decorations always reflect the final state of the turn - never a
-            // half-finished snapshot from before the monsters moved.
-            game.Map.RenderMoveables();
-
             if (game.Map != mapBeforeAction)
             {
                 // Stairs replaced the whole map (and thus the player's coordinates) outright -
@@ -988,22 +981,25 @@ else
 
         session!.Activate(soundManager!);
 
-        bool acted =
+        PlayerAction playerAction =
             action == InventoryAction.Drop
-                ? game.Map.DropInventoryItem(letter)
-                : game.Map.UseInventoryItem(letter);
+                ? new PlayerAction.DropItem(letter)
+                : new PlayerAction.UseItem(letter);
 
-        if (acted)
+        var result = game.Map.TakeTurn(playerAction);
+
+        if (result.TurnConsumed)
         {
             showInventory = false;
-            game.Map.PlayerTookTurn();
-            game.Map.RenderMoveables();
         }
         // else: Map already added a "No such item." message; window stays open, unarmed, for
         // another attempt.
     }
 
-    bool OnKeyPress(string key, string keyCode, bool shiftKey)
+    // Returns the TurnResult from whichever Map.TakeTurn call the key drove, or null when nothing
+    // was attempted at all (an unrecognized key, a lava-confirm decline, or a bare modifier
+    // release) - KeyUp uses that null-ness the way it used to use a bare false.
+    TurnResult? OnKeyPress(string key, string keyCode, bool shiftKey)
     {
         // A lava step is pending confirmation: 'y' commits the (fatal) move, a bare modifier
         // release is ignored, anything else backs out. Nothing else happens until this resolves.
@@ -1011,25 +1007,25 @@ else
         {
             if (key is "Shift" or "Control" or "Alt" or "Meta")
             {
-                return false;
+                return null;
             }
 
-            char confirmedNumKey = pendingLavaNumKey;
+            Direction confirmedDirection = pendingLavaDirection;
             awaitingLavaConfirm = false;
             hazardPrompt = null;
 
             if (key.Equals("y", StringComparison.OrdinalIgnoreCase))
             {
-                return game.Map.HandlePlayerAction(false, confirmedNumKey);
+                return game.Map.TakeTurn(new PlayerAction.Move(confirmedDirection));
             }
 
             game.AddMessage("You step back from the danger.");
-            return false;
+            return null;
         }
 
         if (key.Equals("g", StringComparison.OrdinalIgnoreCase))
         {
-            return game.Map.PickUpItemsAtPlayer();
+            return game.Map.TakeTurn(new PlayerAction.PickUp());
         }
 
         char numKey;
@@ -1085,17 +1081,22 @@ else
             numKey = '3';
         }
         else
-            return false;
+            return null;
+
+        Direction direction = DirectionExtensions.FromNumKey(numKey);
 
         // Stepping into lava is a deliberate act - hold the move and ask first.
-        if (!shiftKey && game.Map.PeekLethalLiquidStep(numKey, out string liquidName))
+        if (!shiftKey && game.Map.PeekLethalLiquidStep(direction, out string liquidName))
         {
             awaitingLavaConfirm = true;
-            pendingLavaNumKey = numKey;
+            pendingLavaDirection = direction;
             hazardPrompt = $"Walk into the {liquidName}? (y/n)";
-            return false;
+            return null;
         }
 
-        return game.Map.HandlePlayerAction(shiftKey, numKey);
+        PlayerAction action = shiftKey
+            ? new PlayerAction.UseDirection(direction)
+            : new PlayerAction.Move(direction);
+        return game.Map.TakeTurn(action);
     }
 }

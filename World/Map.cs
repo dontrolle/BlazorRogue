@@ -268,14 +268,20 @@ class Map
     }
 
     /// <summary>
-    /// Peeks whether a player move in the <paramref name="numKey"/> direction would step onto an
-    /// empty instakill-liquid tile (lava) - the case that warrants a confirmation prompt. A move
-    /// into an occupied lava tile is an attack, not a walk-in, so returns false.
+    /// Peeks whether a player move in <paramref name="direction"/> would step onto an empty
+    /// instakill-liquid tile (lava) - the case that warrants a confirmation prompt. A move into an
+    /// occupied lava tile is an attack, not a walk-in, so returns false.
     /// </summary>
-    public bool PeekLethalLiquidStep(char numKey, out string liquidName)
+    public bool PeekLethalLiquidStep(Direction direction, out string liquidName)
     {
         liquidName = "";
-        CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
+        CalculateDeltaAndDest(
+            direction,
+            out int xDelta,
+            out int yDelta,
+            out int destX,
+            out int destY
+        );
 
         if (xDelta == 0 && yDelta == 0)
         {
@@ -549,64 +555,25 @@ class Map
         }
     }
 
-    public bool HandlePlayerAction(bool shiftKey, char numKey)
-    {
-        // The UI stops sending input once the game is over; this is the engine-side backstop, so a
-        // dead player can never take another turn.
-        if (IsGameOver)
-        {
-            return false;
-        }
-
-        _ = HandlePlayerActionCore(DirectionExtensions.FromNumKey(numKey), use: shiftKey, out _);
-        return true;
-    }
-
     /// <summary>
-    /// The actual work behind <see cref="HandlePlayerAction"/> - dispatches to
-    /// <see cref="HandlePlayerMove"/>/<see cref="HandlePlayerUse"/>, recomputes visibility, wakes
-    /// monsters, and applies move-healing - and, unlike <see cref="HandlePlayerAction"/>'s own
-    /// always-true return, reports whether anything actually changed. <see cref="TakeTurn"/> needs
-    /// that real answer to skip <see cref="PlayerTookTurn"/> on a no-op (e.g. a wall bump) without
-    /// touching <see cref="HandlePlayerAction"/>'s existing contract, which GamePage.razor still
-    /// relies on as-is until it switches over to <see cref="TakeTurn"/>.
+    /// Resolves a player move (which may turn into a melee attack against whatever's standing at
+    /// the destination) for <see cref="TakeTurn"/>: dispatches to <see cref="HandlePlayerMove"/>,
+    /// applies the visibility/wake effects any state-changing action needs (see
+    /// <see cref="RecomputeVisibilityAndWakeMonstersIfChanged"/>), then move-healing - which only
+    /// a genuine, non-attacking, non-stumbling move can trigger.
     /// </summary>
-    bool HandlePlayerActionCore(Direction direction, bool use, out AttackResult? attackResult)
+    bool HandlePlayerMoveAction(Direction direction, out AttackResult? attackResult)
     {
-        // Turn-scoped, not render-scoped: keeps Shake correct as this turn's outcome regardless of
-        // whether/when a UI ever renders it. Distinct from EffectsSystem.ConsumeShake(), which
-        // GamePage uses to make sure a hit's shake plays on only the one render that follows it -
-        // don't remove this as "redundant" with that.
-        References.Game.EffectsSystem.Reset();
+        bool stateChanged = HandlePlayerMove(
+            direction,
+            out bool playerAttacked,
+            out bool playerStumbled,
+            out attackResult
+        );
 
-        bool stateChanged;
-        bool playerMoved = false;
-        bool playerAttacked = false;
-        attackResult = null;
-        if (use)
-        {
-            stateChanged = HandlePlayerUse(direction);
-        }
-        else
-        {
-            stateChanged = HandlePlayerMove(
-                direction,
-                out playerAttacked,
-                out bool playerStumbled,
-                out attackResult
-            );
-            playerMoved = stateChanged && !playerStumbled;
-        }
+        RecomputeVisibilityAndWakeMonstersIfChanged(stateChanged);
 
-        if (stateChanged)
-        {
-            // we need to recompute visibility maps
-            RecomputeVisibility();
-
-            // wake visible monsters (visibility is reflexive)
-            WakeVisibleMonsters(Player.X, Player.Y, PlayerSightRadius);
-        }
-
+        bool playerMoved = stateChanged && !playerStumbled;
         if (playerMoved && !playerAttacked && !IsGameOver && !Player.CombatComponent!.IsStarving)
         {
             Player.CombatComponent.HealByMove();
@@ -616,12 +583,43 @@ class Map
     }
 
     /// <summary>
-    /// Unified entry point for a single player turn, built for a headless driver (issue #88) as
-    /// well as GamePage.razor's eventual switch-over: dispatches <paramref name="action"/> through
-    /// the same handlers <see cref="HandlePlayerAction"/>/<see cref="PickUpItemsAtPlayer"/>/
-    /// <see cref="UseInventoryItem"/>/<see cref="DropInventoryItem"/> already use, then - only when
-    /// the action actually changed something, tightening <see cref="HandlePlayerAction"/>'s own
-    /// always-true contract - resolves the monsters' turn and the liquid tick via
+    /// Resolves a shift+direction "use" (open a door, pull a lever, descend/ascend stairs on
+    /// <see cref="Direction.None"/>, ...) for <see cref="TakeTurn"/>: dispatches to
+    /// <see cref="HandlePlayerUse"/>, then applies the same visibility/wake effects
+    /// <see cref="HandlePlayerMoveAction"/> does - opening a door can reveal a monster just as a
+    /// move can - but never move-healing, which is move-specific.
+    /// </summary>
+    bool HandlePlayerUseAction(Direction direction)
+    {
+        bool stateChanged = HandlePlayerUse(direction);
+        RecomputeVisibilityAndWakeMonstersIfChanged(stateChanged);
+        return stateChanged;
+    }
+
+    /// <summary>
+    /// Shared by <see cref="HandlePlayerMoveAction"/>/<see cref="HandlePlayerUseAction"/>: any
+    /// action that actually changed map state needs the visibility map recomputed and visible
+    /// monsters woken (visibility is reflexive) - a no-op (a wall bump, a use with nothing to
+    /// use) needs neither.
+    /// </summary>
+    void RecomputeVisibilityAndWakeMonstersIfChanged(bool stateChanged)
+    {
+        if (!stateChanged)
+        {
+            return;
+        }
+
+        RecomputeVisibility();
+        WakeVisibleMonsters(Player.X, Player.Y, PlayerSightRadius);
+    }
+
+    /// <summary>
+    /// Unified entry point for a single player turn - the one both the headless driver (issue #88)
+    /// and GamePage.razor drive: dispatches <paramref name="action"/> through the same handlers
+    /// <see cref="HandlePlayerMoveAction"/>/<see cref="HandlePlayerUseAction"/>/
+    /// <see cref="PickUpItemsAtPlayer"/>/<see cref="UseInventoryItem"/>/
+    /// <see cref="DropInventoryItem"/> already use, then - only when the action actually changed
+    /// something - resolves the monsters' turn and the liquid tick via
     /// <see cref="PlayerTookTurn"/>, and always re-renders moveables afterward (see
     /// ARCHITECTURE.md's documented per-turn ordering). A shift+direction "use" that transitions
     /// levels (e.g. stairs) replaces <see cref="Game"/>'s <see cref="BlazorRogue.Game.Map"/>
@@ -632,9 +630,9 @@ class Map
     public TurnResult TakeTurn(PlayerAction action)
     {
         // The UI stops sending input once the game is over; this is the engine-side backstop, so a
-        // dead player/finished game can never take another turn - matches HandlePlayerAction's own
-        // guard, but also skips PlayerTookTurn()/RenderMoveables() entirely rather than just
-        // returning false, since there is truthfully nothing to resolve or render.
+        // dead player/finished game can never take another turn - but also skips
+        // PlayerTookTurn()/RenderMoveables() entirely rather than just returning a no-op result,
+        // since there is truthfully nothing to resolve or render.
         if (IsGameOver)
         {
             return new TurnResult(
@@ -647,6 +645,13 @@ class Map
             );
         }
 
+        // Turn-scoped, not render-scoped: keeps Shake correct as this turn's outcome regardless of
+        // whether/when a UI ever renders it, for every action kind - not just a move/attack, which
+        // is the only one that can actually set it. Distinct from EffectsSystem.ConsumeShake(),
+        // which GamePage uses to make sure a hit's shake plays on only the one render that follows
+        // it - don't remove this as "redundant" with that.
+        References.Game.EffectsSystem.Reset();
+
         var mapBeforeAction = this;
 
         bool turnConsumed;
@@ -654,14 +659,11 @@ class Map
         switch (action)
         {
             case PlayerAction.Move move:
-                turnConsumed = HandlePlayerActionCore(move.Direction, use: false, out playerAttack);
+                turnConsumed = HandlePlayerMoveAction(move.Direction, out playerAttack);
                 break;
             case PlayerAction.UseDirection useDirection:
-                turnConsumed = HandlePlayerActionCore(
-                    useDirection.Direction,
-                    use: true,
-                    out playerAttack
-                );
+                turnConsumed = HandlePlayerUseAction(useDirection.Direction);
+                playerAttack = null;
                 break;
             case PlayerAction.PickUp:
                 turnConsumed = PickUpItemsAtPlayer();
@@ -929,25 +931,6 @@ class Map
 
         return stateChanged;
     }
-
-    // Kept alongside the Direction overload below purely for PeekLethalLiquidStep, which is public
-    // and called directly by GamePage.razor's numKey-based input pipeline - its char signature
-    // can't change here. Every other internal caller (HandlePlayerMove/HandlePlayerUse/TakeTurn)
-    // works in Direction throughout, so this is the one remaining char/Direction conversion point.
-    void CalculateDeltaAndDest(
-        char numKey,
-        out int xDelta,
-        out int yDelta,
-        out int destX,
-        out int destY
-    ) =>
-        CalculateDeltaAndDest(
-            DirectionExtensions.FromNumKey(numKey),
-            out xDelta,
-            out yDelta,
-            out destX,
-            out destY
-        );
 
     void CalculateDeltaAndDest(
         Direction direction,
