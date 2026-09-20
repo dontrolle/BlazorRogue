@@ -780,6 +780,7 @@ class Configuration
             out string characterColor
         );
         var (aiComponentId, aiComponentSettings) = ParseAIComponent(element);
+        var abilities = ParseAbilities(element, id);
 
         bool singular = true;
         if (element.TryGetProperty("singular", out var singularElement))
@@ -800,9 +801,49 @@ class Configuration
             wounds,
             aiComponentId,
             aiComponentSettings,
-            singular
+            singular,
+            abilities
         );
         moveableDictionary.Add(id, m);
+    }
+
+    /// <summary>
+    /// Parses a moveable's optional <c>abilities</c> array (each entry
+    /// <c>{"id": ..., "parameters": {...}}</c>) into an <see cref="AbilityId"/> -&gt; settings map -
+    /// mirrors <see cref="ParseAIComponent"/>'s id+parameters shape, but as a list since a moveable
+    /// can carry more than one ability at once.
+    /// </summary>
+    static Dictionary<AbilityId, SettingsMap> ParseAbilities(JsonElement element, string ownerId)
+    {
+        var abilities = new Dictionary<AbilityId, SettingsMap>();
+        if (!element.TryGetProperty("abilities", out var abilitiesElement))
+        {
+            return abilities;
+        }
+
+        foreach (var abilityElement in abilitiesElement.EnumerateArray())
+        {
+            string idString = GetRequiredString(abilityElement, "id");
+            var id = idString switch
+            {
+                "flying" => AbilityId.Flying,
+                "push_back" => AbilityId.PushBack,
+                _ => throw new InvalidOperationException(
+                    $"Moveable '{ownerId}' references unknown ability id '{idString}' - expected flying or push_back."
+                ),
+            };
+            var settings = abilityElement.TryGetProperty("parameters", out var parametersElement)
+                ? ParseSettingsMap(parametersElement)
+                : SettingsMap.Empty;
+
+            if (!abilities.TryAdd(id, settings))
+            {
+                throw new InvalidOperationException(
+                    $"Moveable '{ownerId}' declares ability '{idString}' more than once."
+                );
+            }
+        }
+        return abilities;
     }
 
     /// <summary>

@@ -2,6 +2,7 @@
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
+using BlazorRogue.World;
 
 namespace BlazorRogue.Tests.Combat;
 
@@ -13,7 +14,10 @@ public class FightingSystemTests
         int weaponDamage = 8,
         int toughness = 100,
         int armour = 0,
-        int wounds = 1000
+        int wounds = 1000,
+        int x = 0,
+        int y = 0,
+        IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null
     )
     {
         var type = new MoveableType(
@@ -29,11 +33,40 @@ public class FightingSystemTests
             wounds: wounds,
             aiComponentId: AIComponentFactory.DefaultId,
             aiComponentSettings: SettingsMap.Empty,
-            singular: true
+            singular: true,
+            abilities: abilities
         );
 
-        return new Moveable(0, 0, aIComponent: null, type);
+        return new Moveable(x, y, aIComponent: null, type);
     }
+
+    // A small all-floor map wired to a real Game (so Game.AddMessage/DebugMode work) and pointed at
+    // by References.Map (so a pushed-back Moveable.Move's enter-hook targets it) - same technique
+    // as LiquidPoolTests.BareFloorMap/MapTests.BareFloorMap.
+    static Map BareFloorMap(Game game, int size = 10)
+    {
+        var wallSet = new TileSet("w", TileType.Wall, "w", [0]);
+        var floorSet = new TileSet("f", TileType.Floor, "f", [0]);
+        var map = new Map(size, size, wallSet, game);
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                map.Tiles[x, y].TileSet = floorSet;
+                map.Tiles[x, y].Blocking = false;
+            }
+        }
+        References.Map = map;
+        return map;
+    }
+
+    static Dictionary<AbilityId, SettingsMap> PushBackAbility(int chance) =>
+        new()
+        {
+            [AbilityId.PushBack] = new SettingsMap(
+                new Dictionary<string, object> { ["chance"] = chance }
+            ),
+        };
 
     [Fact]
     public void CloseCombatAttackThrowsForNullAttacker()
@@ -129,5 +162,170 @@ public class FightingSystemTests
         Assert.StartsWith("The Goblin ", message);
         Assert.Contains(" you", message);
         Assert.DoesNotContain(player.Name, message);
+    }
+
+    // A weaponSkill of 100 against 1 guarantees a hit regardless of either d100 roll (see
+    // Dice.GetSuccessLevel) - the same trick CloseCombatAttackHigherWeaponSkillWinsMoreOftenOverManyRounds
+    // relies on statistically, but deterministic here since these tests need a single guaranteed hit.
+    [Fact]
+    public void PushBackAlwaysMovesTheDefenderWhenChanceIs100()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var attacker = CreateMoveable(
+            "attacker",
+            weaponSkill: 100,
+            x: 4,
+            y: 4,
+            abilities: PushBackAbility(100)
+        );
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4);
+        map.AddMoveable(attacker);
+        map.AddMoveable(defender);
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.Equal((6, 4), (defender.X, defender.Y));
+        Assert.Contains(game.Messages, m => m.Contains("backward"));
+    }
+
+    [Fact]
+    public void PushBackNeverMovesTheDefenderWhenChanceIs0()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var attacker = CreateMoveable(
+            "attacker",
+            weaponSkill: 100,
+            x: 4,
+            y: 4,
+            abilities: PushBackAbility(0)
+        );
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4);
+        map.AddMoveable(attacker);
+        map.AddMoveable(defender);
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.Equal((5, 4), (defender.X, defender.Y));
+    }
+
+    [Fact]
+    public void AMoveableWithoutThePushBackAbilityNeverPushesEvenWhenItHits()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var attacker = CreateMoveable("attacker", weaponSkill: 100, x: 4, y: 4);
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4);
+        map.AddMoveable(attacker);
+        map.AddMoveable(defender);
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.Equal((5, 4), (defender.X, defender.Y));
+    }
+
+    [Fact]
+    public void PushBackFizzlesWithAMessageWhenTheDestinationIsBlocked()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var attacker = CreateMoveable(
+            "attacker",
+            weaponSkill: 100,
+            x: 4,
+            y: 4,
+            abilities: PushBackAbility(100)
+        );
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4);
+        map.AddMoveable(attacker);
+        map.AddMoveable(defender);
+        map.Tiles[6, 4].Blocking = true; // a wall at the push destination
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.Equal((5, 4), (defender.X, defender.Y));
+        Assert.Contains(game.Messages, m => m.Contains("nowhere to go"));
+    }
+
+    [Fact]
+    public void PushBackIntoLavaKillsTheDefender()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var attacker = CreateMoveable(
+            "attacker",
+            weaponSkill: 100,
+            x: 4,
+            y: 4,
+            abilities: PushBackAbility(100)
+        );
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4);
+        map.AddPlayer(defender); // Kill() only ends the game for the player - used as the observable signal
+        map.AddMoveable(attacker);
+        map.SetLiquidTile(
+            6,
+            4,
+            new LiquidType(
+                id: "test_lava",
+                name: "lava",
+                spriteName: "water_lava",
+                frameCount: 4,
+                animationDurationSeconds: 1.0,
+                lipIndex: 1,
+                asciiColor: "#ff0000",
+                effectKind: LiquidEffectKind.Instakill,
+                effectMagnitude: 0
+            )
+        );
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.True(map.IsGameOver);
+    }
+
+    [Fact]
+    public void FlyingDefenderCanBePushedAcrossABlockedEdge()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        var flying = new Dictionary<AbilityId, SettingsMap>
+        {
+            [AbilityId.Flying] = SettingsMap.Empty,
+        };
+        var attacker = CreateMoveable(
+            "attacker",
+            weaponSkill: 100,
+            x: 4,
+            y: 4,
+            abilities: PushBackAbility(100)
+        );
+        var defender = CreateMoveable("defender", weaponSkill: 1, x: 5, y: 4, abilities: flying);
+        map.AddMoveable(attacker);
+        map.AddMoveable(defender);
+        // Blocks the East edge of the defender's own tile - the push destination is (6, 4).
+        map.AddGameObject(
+            new StaticDecorativeObject(
+                5,
+                4,
+                new StaticDecorativeObjectType(
+                    id: "test_fence",
+                    name: "Test Fence",
+                    image: new Dictionary<string, string> { [""] = "img" },
+                    animationClasses: [],
+                    infoText: "",
+                    verticalOffset: 0,
+                    character: "",
+                    characterColor: "",
+                    blocking: false,
+                    makeCoveringOffsetDecsTransparent: false,
+                    blockedEdges: Edge.East
+                )
+            )
+        );
+
+        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+
+        Assert.Equal((6, 4), (defender.X, defender.Y));
     }
 }

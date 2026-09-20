@@ -33,7 +33,10 @@ class Moveable : GameObject
                 monsterType.Armour,
                 monsterType.Wounds
             ),
-            inventoryComponent: inventoryComponent
+            inventoryComponent: inventoryComponent,
+            abilitiesComponent: monsterType.Abilities.Count > 0
+                ? new AbilitiesComponent(monsterType.Abilities)
+                : null
         )
     {
         InvisibleOutsideFov = true;

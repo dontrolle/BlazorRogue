@@ -21,11 +21,14 @@ class SimpleAIComponent(Map map) : AIComponent(map)
         int destY = Owner.Y + dy;
 
         // Lava (and any future instakill liquid) is treated as impassable for pathing - the AI has
-        // no terrain awareness yet, so this just stops monsters walking to their death.
+        // no terrain awareness yet, so this just stops monsters walking to their death. A flying
+        // monster is unaffected by lava and can cross a blocked edge (fence) it would otherwise
+        // have to path around - see AbilityId.Flying.
+        bool flying = Map.IsFlying(Owner);
         if (
             !map.IsBlocked(destX, destY)
-            && !map.IsLethalLiquid(destX, destY)
-            && !map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY)
+            && (!map.IsLethalLiquid(destX, destY) || flying)
+            && (!map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY) || flying)
         )
         {
             // Trying to leave a slow liquid can fail - the turn is spent standing still.
@@ -48,7 +51,7 @@ class SimpleAIComponent(Map map) : AIComponent(map)
             if (
                 map.Player.X == destX
                 && map.Player.Y == destY
-                && !map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY)
+                && (!map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY) || flying)
             )
             {
                 bool hit = map.Game.FightingSystem.CloseCombatAttack(

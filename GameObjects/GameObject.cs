@@ -48,6 +48,7 @@ abstract class GameObject
     public UseableComponent? UseableComponent { get; }
     public InventoryComponent? InventoryComponent { get; }
     public PickupableComponent? PickupableComponent { get; }
+    public AbilitiesComponent? AbilitiesComponent { get; }
 
     public event EventHandler? GameObjectKilled;
 
@@ -59,7 +60,8 @@ abstract class GameObject
         CombatComponent? combatComponent = null,
         UseableComponent? useableComponent = null,
         InventoryComponent? inventoryComponent = null,
-        PickupableComponent? pickupableComponent = null
+        PickupableComponent? pickupableComponent = null,
+        AbilitiesComponent? abilitiesComponent = null
     )
     {
         X = x;
@@ -80,6 +82,9 @@ abstract class GameObject
 
         PickupableComponent = pickupableComponent;
         PickupableComponent?.SetOwner(this);
+
+        AbilitiesComponent = abilitiesComponent;
+        AbilitiesComponent?.SetOwner(this);
     }
 
     public abstract void Render(Map map);

@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.Entities;
+﻿using System.Collections.Generic;
+
+namespace BlazorRogue.Entities;
 
 class MoveableType(
     string id,
@@ -13,7 +15,8 @@ class MoveableType(
     int wounds,
     string aiComponentId,
     SettingsMap aiComponentSettings,
-    bool singular
+    bool singular,
+    IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null
 )
 {
     public string AnimationClass { get; } = animationClass;
@@ -29,4 +32,6 @@ class MoveableType(
     public string AIComponentId { get; } = aiComponentId;
     public SettingsMap AIComponentSettings { get; } = aiComponentSettings;
     public bool Singular { get; } = singular;
+    public IReadOnlyDictionary<AbilityId, SettingsMap> Abilities { get; } =
+        abilities ?? new Dictionary<AbilityId, SettingsMap>();
 }
