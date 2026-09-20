@@ -2,5 +2,5 @@ namespace BlazorRogue.Combat.Warhammer;
 
 interface IFightingSystem
 {
-    bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender);
+    AttackResult CloseCombatAttack(CombatComponent attacker, CombatComponent defender);
 }

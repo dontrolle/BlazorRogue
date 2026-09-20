@@ -8,7 +8,7 @@ class FightingSystem(Game game) : IFightingSystem
 {
     public Game Game { get; } = game;
 
-    public bool CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
+    public AttackResult CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
     {
         ArgumentNullException.ThrowIfNull(attacker);
         ArgumentNullException.ThrowIfNull(defender);
@@ -94,7 +94,8 @@ class FightingSystem(Game game) : IFightingSystem
             }
         }
 
-        return hit;
+        bool defenderKilled = hit && defender.Wounds <= 0;
+        return new AttackResult(hit, damage, defenderKilled);
     }
 
     /// <summary>
