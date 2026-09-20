@@ -86,10 +86,9 @@ sealed class GameSession
     {
         LastAccessed = timeProvider.GetUtcNow();
 
+        // References.Map/Configuration/EffectsSystem are pass-throughs onto References.Game, so
+        // re-pointing Game alone is enough to bring all of them along with it.
         References.Game = Game;
-        References.Configuration = Game.Configuration;
-        References.Map = Game.Map;
-        References.EffectsSystem = Game.EffectsSystem;
         References.SoundManager = soundManager;
     }
 }

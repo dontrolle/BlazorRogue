@@ -25,11 +25,13 @@ those — it generates a real dungeon in a few ms, as `GameTests` already does.
 For a deterministic turn-based scenario (AI pathing, combat, liquid hazards) where a randomly
 generated dungeon would make the exact tile layout unpredictable, build a small bare *all-floor*
 `Map` wired to a real `Game` instead — see `LiquidPoolTests.BareFloorMap`/`NewCreature` (reused by
-`MapTests` for the blocked-edge-combat tests below): `new Game()` for `Game.FightingSystem`/
-`AddMessage`, then `new Map(size, size, wallSet, game)` with every tile force-set to a non-blocking
-floor `TileSet`, and `References.Map = map` so `Moveable.Move`'s enter-hook and friends target it.
-Exact adjacency/positions are then fully under the test's control via `PlaceAt`/`AddMonster`/
-`AddMoveable`, unlike hunting for a suitable spot in a real generated level.
+`MapTests`/`FightingSystemTests` for the blocked-edge-combat and push-back tests): `new Game()` for
+`Game.FightingSystem`/`AddMessage`, then `new Map(size, size, wallSet, game)` with every tile
+force-set to a non-blocking floor `TileSet`, and `game.Map = map` (an `internal`-settable property
+kept for exactly this) so `Moveable.Move`'s enter-hook and friends - which reach the current map via
+`References.Map`, a pass-through onto `References.Game.Map` - target it too. Exact adjacency/
+positions are then fully under the test's control via `PlaceAt`/`AddMonster`/`AddMoveable`, unlike
+hunting for a suitable spot in a real generated level.
 
 `ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
 dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and

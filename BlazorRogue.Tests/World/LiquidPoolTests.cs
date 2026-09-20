@@ -62,8 +62,10 @@ public class LiquidPoolTests
         [AbilityId.Flying] = SettingsMap.Empty,
     };
 
-    // A small all-floor map wired to a real Game (so Map.Game.AddMessage works) and pointed at by
-    // References.Map (so Moveable.Move's enter-hook targets it).
+    // A small all-floor map wired to a real Game (so Map.Game.AddMessage works). Assigning it onto
+    // game.Map (rather than the generated dungeon Game built itself) also repoints References.Map,
+    // since that's a pass-through onto References.Game - so e.g. Moveable.Move's enter-hook targets
+    // this bare map too.
     static Map BareFloorMap(int size = 10)
     {
         var game = new Game();
@@ -78,7 +80,7 @@ public class LiquidPoolTests
                 map.Tiles[x, y].Blocking = false;
             }
         }
-        References.Map = map;
+        game.Map = map;
         return map;
     }
 
