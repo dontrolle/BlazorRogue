@@ -4,7 +4,8 @@ namespace BlazorRogue.Combat;
 
 static class Dice
 {
-    static readonly Random Random = new();
+    // internal set: lets tests seed a deterministic sequence, mirroring References.SoundManager.
+    internal static Random Random { get; set; } = new();
 
     public static int RollD100() => Random.Next(1, 101);
 

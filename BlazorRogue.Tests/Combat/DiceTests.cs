@@ -65,4 +65,24 @@ public class DiceTests
     [Fact]
     public void GetSuccessLevelThrowsForInvalidRoll() =>
         _ = Assert.Throws<ArgumentException>(() => Dice.GetSuccessLevel(0, 50));
+
+    [Fact]
+    public void RollD100IsDeterministicWithASeededRandomSource()
+    {
+        var original = Dice.Random;
+        try
+        {
+            Dice.Random = new Random(12345);
+            int[] first = [Dice.RollD100(), Dice.RollD100(), Dice.RollD100()];
+
+            Dice.Random = new Random(12345);
+            int[] second = [Dice.RollD100(), Dice.RollD100(), Dice.RollD100()];
+
+            Assert.Equal(first, second);
+        }
+        finally
+        {
+            Dice.Random = original;
+        }
+    }
 }
