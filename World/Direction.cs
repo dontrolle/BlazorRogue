@@ -4,10 +4,10 @@ namespace BlazorRogue.World;
 
 /// <summary>
 /// The 8 compass directions a move/attack/use can target, plus <see cref="None"/> for "here" -
-/// the numpad '5' wait-in-place/use-here case. <see cref="Map"/> works in Direction throughout;
-/// <see cref="DirectionExtensions.FromNumKey"/> is the one remaining bridge back from the numKey
-/// char GamePage.razor's browser-key pipeline still produces (see e.g.
-/// <see cref="Map.PeekLethalLiquidStep"/>).
+/// the numpad '5' wait-in-place/use-here case. <see cref="Map"/>'s entire public surface works in
+/// Direction; <see cref="DirectionExtensions.FromNumKey"/> is the bridge GamePage.razor's
+/// browser-key pipeline uses to convert the numKey char it still produces into a Direction before
+/// ever calling into Map.
 /// </summary>
 enum Direction
 {

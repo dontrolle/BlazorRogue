@@ -15,8 +15,8 @@ public class MapTests
 
     // A small all-floor map wired to a real Game (so Game.FightingSystem/AddMessage work) - same
     // technique as LiquidPoolTests.BareFloorMap, needed for the two combat-across-a-blocked-edge
-    // tests below since they exercise the full HandlePlayerAction/SimpleAIComponent.TakeTurn paths,
-    // not just the IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map means
+    // tests below since they exercise the full Map.TakeTurn/SimpleAIComponent.TakeTurn paths, not
+    // just the IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map means
     // References.Game.Map resolves to it too.
     static Map BareFloorMap(Game game, int size = 10)
     {
@@ -245,7 +245,7 @@ public class MapTests
     // of the fence, since the target moveable itself blocks the tile) before falling into "nothing
     // to move onto, try attacking what's there" - it never re-checked the edge for the attack case.
     [Fact]
-    public void HandlePlayerActionDoesNotAttackAMoveableAcrossABlockedEdge()
+    public void TakeTurnDoesNotAttackAMoveableAcrossABlockedEdge()
     {
         var game = new Game();
         var map = BareFloorMap(game);
@@ -260,7 +260,8 @@ public class MapTests
 
         int messageCountBefore = game.Messages.Count;
 
-        map.HandlePlayerAction(shiftKey: false, numKey: '6'); // '6' = move/attack east
+        map.PostGenInitalize();
+        map.TakeTurn(new PlayerAction.Move(Direction.East));
 
         Assert.Equal((4, 4), (map.Player.X, map.Player.Y)); // the edge blocks the move too
         Assert.Equal(target.CombatComponent!.MaxWounds, target.CombatComponent.Wounds); // never hit
@@ -305,7 +306,8 @@ public class MapTests
 
         map.AddGameObject(new StaticDecorativeObject(4, 4, TestFence(Edge.East)));
 
-        map.HandlePlayerAction(shiftKey: false, numKey: '6'); // '6' = move east
+        map.PostGenInitalize();
+        map.TakeTurn(new PlayerAction.Move(Direction.East));
 
         Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
     }
@@ -445,16 +447,17 @@ public class MapTests
     }
 
     [Fact]
-    public void HandlePlayerActionIsRefusedOnceTheGameIsOver()
+    public void TakeTurnIsRefusedOnceTheGameIsOver()
     {
         var game = new Game();
         var player = game.Map.Player;
         player.CombatComponent!.ApplyDamage(1000);
         (int x, int y) = (player.X, player.Y);
 
-        // '6' moves right; a dead player must not be able to take another turn even if the UI
-        // somehow sends input.
-        Assert.False(game.Map.HandlePlayerAction(shiftKey: false, numKey: '6'));
+        // A dead player must not be able to take another turn even if the UI somehow sends input.
+        var result = game.Map.TakeTurn(new PlayerAction.Move(Direction.East));
+
+        Assert.False(result.TurnConsumed);
         Assert.Equal(x, player.X);
         Assert.Equal(y, player.Y);
     }

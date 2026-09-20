@@ -7,12 +7,12 @@ using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 
-// Map.TakeTurn(PlayerAction) - the unified entry point for issue #88's headless play driver.
-// Exercises the same handlers MapTests/ItemInteractionTests/StairTests already cover individually
-// (HandlePlayerAction/PickUpItemsAtPlayer/UseInventoryItem/DropInventoryItem/stairs), but checks
-// the assembled TurnResult itself - in particular that a no-op (a wall bump) no longer reports
-// TurnConsumed, unlike HandlePlayerAction's own always-true return (see Map.HandlePlayerAction's
-// remarks).
+// Map.TakeTurn(PlayerAction) - the unified entry point for issue #88's headless play driver, and
+// (as of Phase 4) GamePage.razor's own turn-taking path too. Exercises the same handlers
+// MapTests/ItemInteractionTests/StairTests already cover individually
+// (HandlePlayerActionCore/PickUpItemsAtPlayer/UseInventoryItem/DropInventoryItem/stairs), but
+// checks the assembled TurnResult itself - in particular that a no-op (a wall bump) correctly
+// reports TurnConsumed: false, so the caller knows not to give monsters a free turn.
 public class TurnResultTests
 {
     static Moveable NewCreature(
