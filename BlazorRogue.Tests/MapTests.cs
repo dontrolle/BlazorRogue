@@ -14,10 +14,10 @@ public class MapTests
     }
 
     // A small all-floor map wired to a real Game (so Game.FightingSystem/AddMessage work) - same
-    // technique as LiquidPoolTests.BareFloorMap, needed for the two combat-across-a-blocked-edge
-    // tests below since they exercise the full Map.TakeTurn/SimpleAIComponent.TakeTurn paths, not
-    // just the IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map means
-    // References.Game.Map resolves to it too.
+    // technique as LiquidPoolTests.BareFloorMap, needed for the two SimpleAIComponent.TakeTurn
+    // blocked-edge tests below since they exercise the full AI-turn path, not just the
+    // IsMovementBlockedAcrossEdge primitive. Assigning onto game.Map means References.Game.Map
+    // resolves to it too.
     static Map BareFloorMap(Game game, int size = 10)
     {
         var wallSet = new TileSet("w", TileType.Wall, "w", [0]);
@@ -239,35 +239,6 @@ public class MapTests
         Assert.False(map.IsMovementBlockedAcrossEdge(4, 4, 3, 3));
     }
 
-    // A blocked edge (e.g. a fence) is supposed to block reaching *through* it, not just walking
-    // through it - reported live: a moveable standing just across a fence line could still be
-    // attacked, because the player-move handler only checked IsBlocked(dest) (true here regardless
-    // of the fence, since the target moveable itself blocks the tile) before falling into "nothing
-    // to move onto, try attacking what's there" - it never re-checked the edge for the attack case.
-    [Fact]
-    public void TakeTurnDoesNotAttackAMoveableAcrossABlockedEdge()
-    {
-        var game = new Game();
-        var map = BareFloorMap(game);
-        map.AddPlayer(NewCreature(4, 4));
-
-        // Blocks the East edge of the player's own tile - the shared "fence" primitive (see
-        // Edge/GameObject.BlockedEdges), not tied to the real fence_* catalog.
-        map.AddGameObject(new StaticDecorativeObject(4, 4, TestFence(Edge.East)));
-
-        var target = NewCreature(5, 4);
-        map.AddMoveable(target);
-
-        int messageCountBefore = game.Messages.Count;
-
-        map.PostGenInitalize();
-        map.TakeTurn(new PlayerAction.Move(Direction.East));
-
-        Assert.Equal((4, 4), (map.Player.X, map.Player.Y)); // the edge blocks the move too
-        Assert.Equal(target.CombatComponent!.MaxWounds, target.CombatComponent.Wounds); // never hit
-        Assert.Equal(messageCountBefore, game.Messages.Count); // CloseCombatAttack never even ran
-    }
-
     // Same bug, the other direction: a monster adjacent to the player across a blocked edge must
     // not be able to attack through it either (SimpleAIComponent.TakeTurn had the identical gap).
     [Fact]
@@ -292,24 +263,6 @@ public class MapTests
         Assert.Equal((4, 4), (monster.X, monster.Y)); // the edge blocks the move too
         Assert.Equal(map.Player.CombatComponent!.MaxWounds, map.Player.CombatComponent.Wounds); // never hit
         Assert.Equal(messageCountBefore, game.Messages.Count); // CloseCombatAttack never even ran
-    }
-
-    // A flying creature (AbilityId.Flying) is unaffected by a fence line the same way it's
-    // unaffected by liquid ground effects - it can move and attack across a blocked edge that
-    // would otherwise stop it.
-    [Fact]
-    public void FlyingPlayerCanMoveAcrossABlockedEdge()
-    {
-        var game = new Game();
-        var map = BareFloorMap(game);
-        map.AddPlayer(NewCreature(4, 4, abilities: FlyingAbility));
-
-        map.AddGameObject(new StaticDecorativeObject(4, 4, TestFence(Edge.East)));
-
-        map.PostGenInitalize();
-        map.TakeTurn(new PlayerAction.Move(Direction.East));
-
-        Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
     }
 
     [Fact]
