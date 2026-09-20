@@ -12,7 +12,7 @@ namespace BlazorRogue.GameObjects;
 class Statue : GameObject
 {
     static StaticDecorativeObjectType Sdot =>
-        References.Configuration.StaticDecorativeObjectTypes["statue"];
+        References.Game.Configuration.StaticDecorativeObjectTypes["statue"];
 
     public override string InfoText => Sdot.InfoText;
 

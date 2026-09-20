@@ -27,7 +27,7 @@ class Door : GameObject
         : base(x, y, "Door", null, null, new UseableComponent(Use))
     {
         DoorType = doorType;
-        doorSet = References.Configuration.DoorSetById(doorType);
+        doorSet = References.Game.Configuration.DoorSetById(doorType);
         Orientation = orientation;
         IsOpen = isOpen;
         UpdateBlockingState();
@@ -130,7 +130,7 @@ class Door : GameObject
     internal static void Use(GameObject go)
     {
         // you can only close a door if no moveable is standing on its tile
-        if (References.Map.Moveables.Any(m => m.X == go.X && m.Y == go.Y))
+        if (References.Game.Map.Moveables.Any(m => m.X == go.X && m.Y == go.Y))
         {
             References.SoundManager.PlayBlockedDoorSound();
             return;

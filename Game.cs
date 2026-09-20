@@ -14,7 +14,7 @@ class Game
 
     // internal (not private) so tests can substitute a controlled map for one this Game generated
     // itself - see e.g. BlazorRogue.Tests/World/LiquidPoolTests.cs's BareFloorMap helper.
-    // References.Map is a pass-through onto this property, so doing so also repoints it.
+    // References.Game.Map reads this property directly, so doing so is visible there too.
     public Map Map { get; internal set; }
 
     public IFightingSystem FightingSystem { get; private set; }
@@ -74,8 +74,9 @@ class Game
 
         EffectsSystem = new EffectsSystem();
 
-        // Everything above must be fully assigned first - References.Map/Configuration/EffectsSystem
-        // are pass-throughs onto this Game, so they only become valid once References.Game does.
+        // Everything above must be fully assigned first - References.Game.Map/.Configuration/
+        // .EffectsSystem read straight through to this instance's own properties, so they only
+        // become valid once this line runs.
         References.Game = this;
         // Add initial message for when the game starts
         AddMessage($"You arrive in the {level.Name}.");

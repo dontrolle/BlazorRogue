@@ -551,7 +551,7 @@ class Map
         // whether/when a UI ever renders it. Distinct from EffectsSystem.ConsumeShake(), which
         // GamePage uses to make sure a hit's shake plays on only the one render that follows it -
         // don't remove this as "redundant" with that.
-        References.EffectsSystem.Reset();
+        References.Game.EffectsSystem.Reset();
 
         bool stateChanged;
         bool playerMoved = false;
@@ -788,7 +788,7 @@ class Map
                             mo.CombatComponent
                         );
                         References.SoundManager.PlayCombatSound(hit);
-                        References.EffectsSystem.Shake = hit;
+                        References.Game.EffectsSystem.Shake = hit;
                         UpdateBlockMovement(destX, destY);
                         stateChanged = true;
                         playerAttacked = true;

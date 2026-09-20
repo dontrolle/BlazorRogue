@@ -60,7 +60,7 @@ class Stair(int x, int y, StairDirection direction)
         var tileSet = map.Tiles[X, Y].TileSet;
         var stairsSource = tileSet.StairImages is not null
             ? tileSet
-            : References.Configuration.DefaultStairsFloorSet;
+            : References.Game.Configuration.DefaultStairsFloorSet;
         var (up, down) = stairsSource.StairImages!.Value;
         pickedImageName ??= TileSet.PickWeighted(
             Direction == StairDirection.Down ? down : up,

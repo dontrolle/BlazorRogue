@@ -63,9 +63,8 @@ public class LiquidPoolTests
     };
 
     // A small all-floor map wired to a real Game (so Map.Game.AddMessage works). Assigning it onto
-    // game.Map (rather than the generated dungeon Game built itself) also repoints References.Map,
-    // since that's a pass-through onto References.Game - so e.g. Moveable.Move's enter-hook targets
-    // this bare map too.
+    // game.Map (rather than the generated dungeon Game built itself) means References.Game.Map -
+    // which e.g. Moveable.Move's enter-hook reads - resolves to this bare map too.
     static Map BareFloorMap(int size = 10)
     {
         var game = new Game();

@@ -112,7 +112,7 @@ abstract class GameObject
     {
         References.SoundManager.PlayKillMonsterSound();
         References.Game.AddMessage(
-            ReferenceEquals(this, References.Map.Player)
+            ReferenceEquals(this, References.Game.Map.Player)
                 ? "You were killed!"
                 : $"The {Name} was killed!"
         );
