@@ -33,6 +33,16 @@ kept for exactly this) so `Moveable.Move`'s enter-hook and friends - which reach
 control via `PlaceAt`/`AddMonster`/`AddMoveable`, unlike hunting for a suitable spot in a real
 generated level.
 
+`Map.TakeTurn(PlayerAction)` (issue #88's unified turn entry point - see the *Turn-taking* entry in
+[`ARCHITECTURE.md`](ARCHITECTURE.md)) can be called directly on a bare-floor `Map`/`Game` built the
+same way, with no driver needed - see `TurnResultTests` for that pattern, exercising `TakeTurn`'s own
+turn-resolution rules. `BlazorRogue.Tests/TestSupport/HeadlessPlayDriver.cs` is a thin wrapper around
+a `Game` for tests that want to drive many turns without re-deriving the `Game`/bare-floor-`Map`
+boilerplate each time, optionally via `RandomHazardAvoidingPolicy` (also under `TestSupport/` - an
+`IPlayerPolicy` picking uniformly among the player's currently-legal, hazard-excluding actions)
+instead of scripting each `PlayerAction` by hand - see `HeadlessPlayDriverTests` for both, including a
+smoke test that hundreds of turns of random play against a real generated dungeon never throw.
+
 `ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
 dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and
 locking in a specific number (e.g. an ogre's exact wounds) makes an unrelated balance change break an

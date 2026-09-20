@@ -80,12 +80,28 @@ how to test changes in these areas.
   Most map state is *derived*: `Decorations`, `MoveableDecorations`, `BlocksLightMap`,
   `BlocksMovementMap` and `IsVisibleMap` are all rebuilt by `PostGenInitalize()`/the `Render*`
   methods. Only `Tiles`, the game-object list, moveables and `IsMappedMap` are authoritative.
-  `KeyUp` calls `RenderMoveables()` once, **after** `PlayerTookTurn()`, so a single render always
-  reflects the fully-resolved turn (the player's move plus every monster's move/attack/death) —
-  nothing in the player- or monster-turn logic needs to re-render itself. Keep it that way: an
+  `Map.TakeTurn` calls `RenderMoveables()` once, **after** `PlayerTookTurn()`, so a single render
+  always reflects the fully-resolved turn (the player's move plus every monster's move/attack/death)
+  — nothing in the player- or monster-turn logic needs to re-render itself. Keep it that way: an
   earlier version rendered moveables *before* `PlayerTookTurn()`, which delayed a monster's moved
   position from becoming visible until the *following* turn — by which point it might also be
   attacking, making a two-turn move-then-attack look like it happened in one turn.
+- **Turn-taking**: `Map.TakeTurn(PlayerAction)` (`World/Map.cs`) is the single entry point for a
+  player turn — both `GamePage.razor`'s `OnKeyPress`/`HandleInventoryKey` and
+  `BlazorRogue.Tests/TestSupport/HeadlessPlayDriver.cs` (issue #88's headless play driver, used for
+  fast automated play tests and play-balance sweeps with no Blazor Server/browser involved) drive
+  the game exclusively through it — there is no separate UI-only turn path. `World/Direction.cs` is
+  the 8-compass-point enum (plus `None` for "here"/wait-in-place) everything below `Map`'s public
+  surface works in; `World/PlayerAction.cs` is the discriminated union of what a turn can be
+  (`Move`, `UseDirection`, `UseItem`, `DropItem`, `PickUp`); `World/TurnResult.cs` aggregates what
+  actually happened (`TurnConsumed`, the player's own `AttackResult?`, every monster's
+  `MonsterAttack` that turn, and the game-over/level-changed flags) so a caller can react without
+  re-deriving it from `Game.Messages`. All three types (and `Map` itself) are `internal`, made
+  visible to `BlazorRogue.Tests` via `InternalsVisibleTo` in `BlazorRogue.csproj`.
+  `BlazorRogue.Tests/TestSupport/RandomHazardAvoidingPolicy.cs` is the built-in
+  `IPlayerPolicy` `HeadlessPlayDriver` can drive turns with instead of a caller picking each action
+  by hand — it picks uniformly among the player's currently-legal moves/attacks/pickup, excluding
+  any direction `Map.PeekLethalLiquidStep` flags as walking into instakill liquid.
 - **Edge-blocking** (`World/Edge.cs`, `GameObject.BlockedEdges`): a `GameObject` can declare which of
   its own tile's four edges block crossing between it and the adjacent tile, independent of whether
   either tile is `Blocking` for occupancy and independent of light-blocking — `Statue` was the first
@@ -116,7 +132,9 @@ how to test changes in these areas.
   dead monster, which is removed) over a blood puddle from the shared `PlaceBloodPuddle` helper, with
   its sprite frozen via `Decoration.AnimationPaused`. Note a paused animation class is used rather
   than dropping it — a decoration with neither an animation class nor an image name renders nothing
-  at all. `HandlePlayerAction` refuses input once the game is over, backing up the UI's own guards.
+  at all. `Map.TakeTurn` refuses input once the game is over (returning a no-op `TurnResult` with
+  `TurnConsumed: false`, skipping `PlayerTookTurn()`/`RenderMoveables()` entirely), backing up
+  `GamePage.KeyUp`'s own `IsGameOver` guard.
 - **Map generation**: each level in `Data/levels.json` (parsed into `LevelConfiguration`, see
   `Entities/LevelConfiguration.cs`) names its map generator by a string id (`map_generator
   .generator_id`, e.g. `"basic_dungeon_generator"`) rather than the game hardcoding one.
