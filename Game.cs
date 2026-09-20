@@ -11,7 +11,11 @@ namespace BlazorRogue;
 class Game
 {
     public IMapGenerator MapGenerator { get; private set; }
-    public Map Map { get; private set; }
+
+    // internal (not private) so tests can substitute a controlled map for one this Game generated
+    // itself - see e.g. BlazorRogue.Tests/World/LiquidPoolTests.cs's BareFloorMap helper.
+    // References.Map is a pass-through onto this property, so doing so also repoints it.
+    public Map Map { get; internal set; }
 
     public IFightingSystem FightingSystem { get; private set; }
     public Configuration Configuration { get; private set; }
@@ -57,7 +61,6 @@ class Game
     public Game(Configuration configuration)
     {
         Configuration = configuration;
-        References.Configuration = Configuration;
 
         DebugMode = configuration.DebugMode;
 
@@ -68,11 +71,11 @@ class Game
         FightingSystem = new FightingSystem(this);
 
         Map = MapGenerator.GenerateMap();
-        References.Map = Map;
 
         EffectsSystem = new EffectsSystem();
-        References.EffectsSystem = EffectsSystem;
 
+        // Everything above must be fully assigned first - References.Map/Configuration/EffectsSystem
+        // are pass-throughs onto this Game, so they only become valid once References.Game does.
         References.Game = this;
         // Add initial message for when the game starts
         AddMessage($"You arrive in the {level.Name}.");
@@ -108,7 +111,6 @@ class Game
             Map = MapGenerator.GenerateMap(player);
         }
 
-        References.Map = Map;
         CurrentLevelNumber = targetLevelNumber;
         References.SoundManager.PlayBackgroundMusic(levelConfig.BackgroundSoundtrack);
 
@@ -153,7 +155,6 @@ class Game
             CurrentLevelNumber = returnLevelNumber;
             preDebugLevelNumber = null;
 
-            References.Map = Map;
             References.SoundManager.PlayBackgroundMusic(returnLevelConfig.BackgroundSoundtrack);
             AddMessage($"You return to {returnLevelConfig.Name}.");
         }
@@ -171,7 +172,6 @@ class Game
             Map = MapGenerator.GenerateMap(player);
             CurrentLevelNumber = debugLevelNumber;
 
-            References.Map = Map;
             References.SoundManager.PlayBackgroundMusic(debugLevelConfig.BackgroundSoundtrack);
             AddMessage($"You peek into {debugLevelConfig.Name} (debug).");
         }

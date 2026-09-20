@@ -40,9 +40,10 @@ public class FightingSystemTests
         return new Moveable(x, y, aIComponent: null, type);
     }
 
-    // A small all-floor map wired to a real Game (so Game.AddMessage/DebugMode work) and pointed at
-    // by References.Map (so a pushed-back Moveable.Move's enter-hook targets it) - same technique
-    // as LiquidPoolTests.BareFloorMap/MapTests.BareFloorMap.
+    // A small all-floor map wired to a real Game (so Game.AddMessage/DebugMode work) - same
+    // technique as LiquidPoolTests.BareFloorMap/MapTests.BareFloorMap. Assigning onto game.Map (not
+    // the dungeon Game generated itself) also repoints References.Map, a pass-through onto
+    // References.Game, so a pushed-back Moveable.Move's enter-hook targets this bare map too.
     static Map BareFloorMap(Game game, int size = 10)
     {
         var wallSet = new TileSet("w", TileType.Wall, "w", [0]);
@@ -56,7 +57,7 @@ public class FightingSystemTests
                 map.Tiles[x, y].Blocking = false;
             }
         }
-        References.Map = map;
+        game.Map = map;
         return map;
     }
 

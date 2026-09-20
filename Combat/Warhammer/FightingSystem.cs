@@ -126,10 +126,7 @@ class FightingSystem(Game game) : IFightingSystem
             return;
         }
 
-        // References.Map (not Game.Map) is the "current map" a moveable's own Move() already
-        // targets for its enter-tile hook - using the same source keeps the blocked-destination
-        // check and the resulting move/hook consistent with each other.
-        var map = References.Map;
+        var map = Game.Map;
         int dx = Math.Sign(defender.X - attacker.X);
         int dy = Math.Sign(defender.Y - attacker.Y);
         int destX = defender.X + dx;
