@@ -15,7 +15,8 @@
         "id": "random_walk_ai",
         "parameters": {}
       },
-      "singular": false
+      "singular": false,
+      "abilities": [{ "id": "flying" }]
     },
     {
       "id": "rat",
@@ -107,7 +108,8 @@
       "ai_component": {
         "id": "simple_ai",
         "parameters": {}
-      }
+      },
+      "abilities": [{ "id": "push_back", "parameters": { "chance": 25 } }]
     }
   ]
 }

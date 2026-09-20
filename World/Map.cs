@@ -157,6 +157,14 @@ class Map
         tile.Liquid = liquid;
     }
 
+    /// <summary>
+    /// True if the given GameObject carries the flying ability - see <see cref="AbilityId.Flying"/>.
+    /// Flying moveables are unaffected by liquid ground effects and can cross blocked edges
+    /// (fences) that would otherwise stop them.
+    /// </summary>
+    public static bool IsFlying(GameObject moveable) =>
+        moveable.AbilitiesComponent?.Has(AbilityId.Flying) == true;
+
     /// <summary>True if (x, y) is on the map and holds a liquid that kills anything entering it.</summary>
     public bool IsLethalLiquid(int x, int y) =>
         x >= 0
@@ -172,7 +180,10 @@ class Map
     /// </summary>
     public void OnMoveableEnteredTile(Moveable moveable)
     {
-        if (Tiles[moveable.X, moveable.Y].Liquid is { EffectKind: LiquidEffectKind.Instakill })
+        if (
+            !IsFlying(moveable)
+            && Tiles[moveable.X, moveable.Y].Liquid is { EffectKind: LiquidEffectKind.Instakill }
+        )
         {
             moveable.Kill();
         }
@@ -192,7 +203,8 @@ class Map
         foreach (var moveable in moveables.ToList())
         {
             if (
-                Tiles[moveable.X, moveable.Y].Liquid
+                IsFlying(moveable)
+                || Tiles[moveable.X, moveable.Y].Liquid
                     is not { EffectKind: LiquidEffectKind.Acid } acid
                 || moveable.CombatComponent is not { } combat
             )
@@ -222,7 +234,11 @@ class Map
     /// </summary>
     public bool LiquidStumble(GameObject moveable)
     {
-        if (Tiles[moveable.X, moveable.Y].Liquid is not { EffectKind: LiquidEffectKind.Slow } slow)
+        if (
+            IsFlying(moveable)
+            || Tiles[moveable.X, moveable.Y].Liquid
+                is not { EffectKind: LiquidEffectKind.Slow } slow
+        )
         {
             return false;
         }
@@ -728,7 +744,7 @@ class Map
         // Check for blocking Walls or GameObject's
         if (
             !IsBlocked(destX, destY)
-            && !IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY)
+            && (!IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY) || IsFlying(Player))
         )
         {
             // Trying to leave a slow liquid (mud/water) can fail - the turn is still spent.
@@ -756,8 +772,9 @@ class Map
             }
 
             // A blocked edge (e.g. a fence) blocks combat the same way it blocks movement - can't
-            // reach through it to attack a moveable standing just beyond it.
-            if (!IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY))
+            // reach through it to attack a moveable standing just beyond it. A flying player would
+            // bypass it the same way a flying monster does (see AbilityId.Flying).
+            if (!IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY) || IsFlying(Player))
             {
                 // handle moveables - I take a copy as moveables may be modified, because of death
                 // TODO: FIX, THIS IS CLUNKY AS HELL...

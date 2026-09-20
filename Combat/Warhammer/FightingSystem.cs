@@ -1,4 +1,6 @@
 ﻿using System;
+using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.Combat.Warhammer;
 
@@ -67,6 +69,17 @@ class FightingSystem(Game game) : IFightingSystem
             string damageDescription = damage > 0 ? $" and {dealTerm} {damage} damage" : "";
             Game.AddMessage($"{attackerName} {description} {defenderName}{damageDescription}.");
 
+            if (hit)
+            {
+                TryPushBack(
+                    attacker.Owner!,
+                    defender.Owner!,
+                    attackerName,
+                    defenderName,
+                    singularVerb
+                );
+            }
+
             if (Game.DebugMode)
             {
                 string attackerRolls = attackerIsPlayer
@@ -82,5 +95,67 @@ class FightingSystem(Game game) : IFightingSystem
         }
 
         return hit;
+    }
+
+    /// <summary>
+    /// If <paramref name="attacker"/> has the push_back ability and the roll succeeds, shoves
+    /// <paramref name="defender"/> one tile directly away from the attacker via the normal move
+    /// pipeline (<see cref="GameObject.Move"/>, which <see cref="Moveable"/> overrides to chain
+    /// into <see cref="World.Map.OnMoveableEnteredTile"/>) - so e.g. a shove into lava kills the
+    /// defender the same way walking into it would. A blocked destination (a wall, another
+    /// moveable, or - unless the defender is flying - a fence edge) fizzles the push without
+    /// undoing the hit/damage already applied.
+    /// </summary>
+    void TryPushBack(
+        GameObject attacker,
+        GameObject defender,
+        string attackerName,
+        string defenderName,
+        bool singularVerb
+    )
+    {
+        var abilities = attacker.AbilitiesComponent;
+        if (abilities?.Has(AbilityId.PushBack) != true)
+        {
+            return;
+        }
+
+        int chance = abilities.GetParameters(AbilityId.PushBack).GetInt("chance", 0);
+        if (Dice.RollD100() > chance)
+        {
+            return;
+        }
+
+        // References.Map (not Game.Map) is the "current map" a moveable's own Move() already
+        // targets for its enter-tile hook - using the same source keeps the blocked-destination
+        // check and the resulting move/hook consistent with each other.
+        var map = References.Map;
+        int dx = Math.Sign(defender.X - attacker.X);
+        int dy = Math.Sign(defender.Y - attacker.Y);
+        int destX = defender.X + dx;
+        int destY = defender.Y + dy;
+
+        string shoveTerm = $"shove{(singularVerb ? "s" : "")}";
+        bool blocked =
+            map.IsBlocked(destX, destY)
+            || (
+                map.IsMovementBlockedAcrossEdge(defender.X, defender.Y, destX, destY)
+                && !World.Map.IsFlying(defender)
+            );
+        if (blocked)
+        {
+            Game.AddMessage(
+                $"{attackerName} {shoveTerm} {defenderName} back, but there's nowhere to go!"
+            );
+            return;
+        }
+
+        int originX = defender.X;
+        int originY = defender.Y;
+        defender.Move(dx, dy);
+        map.UpdateBlockMovement(originX, originY);
+        map.UpdateBlockMovement(destX, destY);
+
+        Game.AddMessage($"{attackerName} {shoveTerm} {defenderName} backward!");
     }
 }

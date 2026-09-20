@@ -23,11 +23,13 @@ class RandomWalkAIComponent(Map map) : AIComponent(map)
         int destY = Owner.Y + dy;
 
         // Lava (and any future instakill liquid) is impassable for pathing - the AI has no terrain
-        // awareness yet, so this just stops monsters wandering to their death.
+        // awareness yet, so this just stops monsters wandering to their death. A flying monster is
+        // unaffected by lava and can cross a blocked edge (fence) - see AbilityId.Flying.
+        bool flying = Map.IsFlying(Owner);
         if (
             !map.IsBlocked(destX, destY)
-            && !map.IsLethalLiquid(destX, destY)
-            && !map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY)
+            && (!map.IsLethalLiquid(destX, destY) || flying)
+            && (!map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY) || flying)
         )
         {
             // Trying to leave a slow liquid can fail - the turn is spent standing still.

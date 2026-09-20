@@ -34,7 +34,12 @@ public class MapTests
         return map;
     }
 
-    static Moveable NewCreature(int x, int y, AIComponent? ai = null)
+    static Moveable NewCreature(
+        int x,
+        int y,
+        AIComponent? ai = null,
+        IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null
+    )
     {
         var type = new MoveableType(
             id: "dummy",
@@ -49,10 +54,16 @@ public class MapTests
             wounds: 20,
             aiComponentId: AIComponentFactory.DefaultId,
             aiComponentSettings: SettingsMap.Empty,
-            singular: true
+            singular: true,
+            abilities: abilities
         );
         return new Moveable(x, y, ai, type);
     }
+
+    static readonly Dictionary<AbilityId, SettingsMap> FlyingAbility = new()
+    {
+        [AbilityId.Flying] = SettingsMap.Empty,
+    };
 
     static StaticDecorativeObjectType TestFence(Edge blockedEdges) =>
         new(
@@ -279,6 +290,46 @@ public class MapTests
         Assert.Equal((4, 4), (monster.X, monster.Y)); // the edge blocks the move too
         Assert.Equal(map.Player.CombatComponent!.MaxWounds, map.Player.CombatComponent.Wounds); // never hit
         Assert.Equal(messageCountBefore, game.Messages.Count); // CloseCombatAttack never even ran
+    }
+
+    // A flying creature (AbilityId.Flying) is unaffected by a fence line the same way it's
+    // unaffected by liquid ground effects - it can move and attack across a blocked edge that
+    // would otherwise stop it.
+    [Fact]
+    public void FlyingPlayerCanMoveAcrossABlockedEdge()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        map.AddPlayer(NewCreature(4, 4, abilities: FlyingAbility));
+
+        map.AddGameObject(new StaticDecorativeObject(4, 4, TestFence(Edge.East)));
+
+        map.HandlePlayerAction(shiftKey: false, numKey: '6'); // '6' = move east
+
+        Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
+    }
+
+    [Fact]
+    public void FlyingSimpleAiCanAttackThePlayerAcrossABlockedEdge()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game);
+        map.AddPlayer(NewCreature(5, 4));
+
+        // Blocks the West edge of the player's own tile, the edge shared with the monster at (4,4).
+        map.AddGameObject(new StaticDecorativeObject(5, 4, TestFence(Edge.West)));
+
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(4, 4, ai, FlyingAbility);
+        ai.Wake();
+
+        int messageCountBefore = game.Messages.Count;
+
+        ai.TakeTurn();
+
+        Assert.Equal((4, 4), (monster.X, monster.Y)); // still a melee attack, not a move
+        Assert.True(game.Messages.Count > messageCountBefore); // CloseCombatAttack ran (hit or miss)
     }
 
     // Death drops a blood puddle and re-renders, both of which need a real Game and a post-gen

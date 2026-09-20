@@ -31,7 +31,12 @@ public class LiquidPoolTests
             effectMagnitude: magnitude
         );
 
-    static Moveable NewCreature(int x, int y, AIComponent? ai = null)
+    static Moveable NewCreature(
+        int x,
+        int y,
+        AIComponent? ai = null,
+        IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null
+    )
     {
         var type = new MoveableType(
             id: "dummy",
@@ -46,10 +51,16 @@ public class LiquidPoolTests
             wounds: 20,
             aiComponentId: AIComponentFactory.DefaultId,
             aiComponentSettings: SettingsMap.Empty,
-            singular: true
+            singular: true,
+            abilities: abilities
         );
         return new Moveable(x, y, ai, type);
     }
+
+    static readonly Dictionary<AbilityId, SettingsMap> FlyingAbility = new()
+    {
+        [AbilityId.Flying] = SettingsMap.Empty,
+    };
 
     // A small all-floor map wired to a real Game (so Map.Game.AddMessage works) and pointed at by
     // References.Map (so Moveable.Move's enter-hook targets it).
@@ -138,6 +149,45 @@ public class LiquidPoolTests
         player.Move(dx, dy);
 
         Assert.True(game.Map.IsGameOver);
+    }
+
+    [Fact]
+    public void FlyingCreatureSurvivesEnteringAnInstakillTile()
+    {
+        var map = BareFloorMap();
+        var flyer = NewCreature(3, 3, abilities: FlyingAbility);
+        map.AddPlayer(flyer);
+        map.SetLiquidTile(flyer.X, flyer.Y, Liquid(LiquidEffectKind.Instakill, 0));
+
+        map.OnMoveableEnteredTile(flyer);
+
+        Assert.False(map.IsGameOver);
+        Assert.True(flyer.CombatComponent!.Wounds > 0);
+    }
+
+    [Fact]
+    public void FlyingCreatureTakesNoAcidDamageAtEndOfTurn()
+    {
+        var map = BareFloorMap();
+        var flyer = NewCreature(3, 3, abilities: FlyingAbility);
+        map.AddPlayer(flyer);
+        int before = flyer.CombatComponent!.Wounds;
+
+        map.SetLiquidTile(flyer.X, flyer.Y, Liquid(LiquidEffectKind.Acid, 50));
+        map.PlayerTookTurn();
+
+        Assert.Equal(before, flyer.CombatComponent.Wounds);
+    }
+
+    [Fact]
+    public void FlyingCreatureNeverStumblesOnASlowTile()
+    {
+        var map = BareFloorMap();
+        var flyer = NewCreature(4, 4, abilities: FlyingAbility);
+        map.AddPlayer(flyer);
+        map.SetLiquidTile(4, 4, Liquid(LiquidEffectKind.Slow, 100));
+
+        Assert.False(map.LiquidStumble(flyer));
     }
 
     [Fact]
@@ -283,6 +333,25 @@ public class LiquidPoolTests
         ai.TakeTurn();
 
         Assert.Equal((2, 2), (monster.X, monster.Y));
+        Assert.True(monster.CombatComponent!.Wounds > 0);
+    }
+
+    [Fact]
+    public void FlyingSimpleAiCrossesLavaTowardsThePlayerInstead()
+    {
+        var map = BareFloorMap();
+        map.AddPlayer(NewCreature(4, 2));
+
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(2, 2, ai, FlyingAbility);
+        ai.Wake();
+
+        map.SetLiquidTile(3, 2, Liquid(LiquidEffectKind.Instakill, 0));
+
+        ai.TakeTurn();
+
+        Assert.Equal((3, 2), (monster.X, monster.Y));
         Assert.True(monster.CombatComponent!.Wounds > 0);
     }
 

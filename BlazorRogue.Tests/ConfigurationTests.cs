@@ -99,6 +99,32 @@ public class ConfigurationTests
     }
 
     [Fact]
+    public void ParseDefaultsToNoAbilitiesWhenMonsterHasNoAbilitiesField()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.Empty(configuration.MonsterTypes["rat"].Abilities);
+    }
+
+    [Fact]
+    public void ParseReadsTheFlyingAbilityFromTheFliesMonster()
+    {
+        var configuration = ParseConfiguration();
+
+        Assert.True(configuration.MonsterTypes["flies"].Abilities.ContainsKey(AbilityId.Flying));
+    }
+
+    [Fact]
+    public void ParseReadsThePushBackAbilityAndItsParametersFromTheOgreMonster()
+    {
+        var configuration = ParseConfiguration();
+
+        var abilities = configuration.MonsterTypes["ogre"].Abilities;
+        Assert.True(abilities.TryGetValue(AbilityId.PushBack, out var parameters));
+        Assert.Equal(25, parameters!.GetInt("chance"));
+    }
+
+    [Fact]
     public void ParseLoadsHeroTypes()
     {
         var configuration = ParseConfiguration();
