@@ -3,11 +3,11 @@ using BlazorRogue.World;
 
 namespace BlazorRogue.AI;
 
-class RandomWalkAIComponent(Map map) : AIComponent(map)
+class RandomWalkAIComponent(Map map, Random? random = null) : AIComponent(map)
 {
     public const string ComponentId = "random_walk_ai";
 
-    readonly Random random = new();
+    readonly Random random = random ?? new Random();
 
     public override void TakeTurn()
     {
