@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlazorRogue.Combat;
+using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Components;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
@@ -133,14 +134,24 @@ class Map
         RenderMoveables();
     }
 
-    public void PlayerTookTurn()
+    /// <summary>
+    /// Resolves every monster's AI turn plus the end-of-turn liquid tick. Returns the attacks
+    /// monsters actually landed on the player this turn, for <see cref="TakeTurn"/>'s
+    /// <see cref="TurnResult.MonsterAttacks"/>.
+    /// </summary>
+    public IReadOnlyList<MonsterAttack> PlayerTookTurn()
     {
+        var monsterAttacks = new List<MonsterAttack>();
         foreach (var monster in Monsters)
         {
-            monster.AIComponent?.TakeTurn();
+            if (monster.AIComponent?.TakeTurn() is { } result)
+            {
+                monsterAttacks.Add(new MonsterAttack(monster, result));
+            }
         }
 
         ApplyLiquidTickEffects();
+        return monsterAttacks;
     }
 
     /// <summary>
@@ -547,6 +558,21 @@ class Map
             return false;
         }
 
+        _ = HandlePlayerActionCore(DirectionExtensions.FromNumKey(numKey), use: shiftKey, out _);
+        return true;
+    }
+
+    /// <summary>
+    /// The actual work behind <see cref="HandlePlayerAction"/> - dispatches to
+    /// <see cref="HandlePlayerMove"/>/<see cref="HandlePlayerUse"/>, recomputes visibility, wakes
+    /// monsters, and applies move-healing - and, unlike <see cref="HandlePlayerAction"/>'s own
+    /// always-true return, reports whether anything actually changed. <see cref="TakeTurn"/> needs
+    /// that real answer to skip <see cref="PlayerTookTurn"/> on a no-op (e.g. a wall bump) without
+    /// touching <see cref="HandlePlayerAction"/>'s existing contract, which GamePage.razor still
+    /// relies on as-is until it switches over to <see cref="TakeTurn"/>.
+    /// </summary>
+    bool HandlePlayerActionCore(Direction direction, bool use, out AttackResult? attackResult)
+    {
         // Turn-scoped, not render-scoped: keeps Shake correct as this turn's outcome regardless of
         // whether/when a UI ever renders it. Distinct from EffectsSystem.ConsumeShake(), which
         // GamePage uses to make sure a hit's shake plays on only the one render that follows it -
@@ -556,13 +582,19 @@ class Map
         bool stateChanged;
         bool playerMoved = false;
         bool playerAttacked = false;
-        if (shiftKey)
+        attackResult = null;
+        if (use)
         {
-            stateChanged = HandlePlayerUse(numKey);
+            stateChanged = HandlePlayerUse(direction);
         }
         else
         {
-            stateChanged = HandlePlayerMove(numKey, out playerAttacked, out bool playerStumbled);
+            stateChanged = HandlePlayerMove(
+                direction,
+                out playerAttacked,
+                out bool playerStumbled,
+                out attackResult
+            );
             playerMoved = stateChanged && !playerStumbled;
         }
 
@@ -580,7 +612,92 @@ class Map
             Player.CombatComponent.HealByMove();
         }
 
-        return true;
+        return stateChanged;
+    }
+
+    /// <summary>
+    /// Unified entry point for a single player turn, built for a headless driver (issue #88) as
+    /// well as GamePage.razor's eventual switch-over: dispatches <paramref name="action"/> through
+    /// the same handlers <see cref="HandlePlayerAction"/>/<see cref="PickUpItemsAtPlayer"/>/
+    /// <see cref="UseInventoryItem"/>/<see cref="DropInventoryItem"/> already use, then - only when
+    /// the action actually changed something, tightening <see cref="HandlePlayerAction"/>'s own
+    /// always-true contract - resolves the monsters' turn and the liquid tick via
+    /// <see cref="PlayerTookTurn"/>, and always re-renders moveables afterward (see
+    /// ARCHITECTURE.md's documented per-turn ordering). A shift+direction "use" that transitions
+    /// levels (e.g. stairs) replaces <see cref="Game"/>'s <see cref="BlazorRogue.Game.Map"/>
+    /// outright, mid-call - detected the same way GamePage.razor does, by comparing it before and
+    /// after - so the monsters'-turn/render steps below run on whichever map is current afterward,
+    /// not on this (possibly now-stale) instance.
+    /// </summary>
+    public TurnResult TakeTurn(PlayerAction action)
+    {
+        // The UI stops sending input once the game is over; this is the engine-side backstop, so a
+        // dead player/finished game can never take another turn - matches HandlePlayerAction's own
+        // guard, but also skips PlayerTookTurn()/RenderMoveables() entirely rather than just
+        // returning false, since there is truthfully nothing to resolve or render.
+        if (IsGameOver)
+        {
+            return new TurnResult(
+                TurnConsumed: false,
+                RequestedAction: action,
+                PlayerAttack: null,
+                MonsterAttacks: [],
+                GameOverThisTurn: false,
+                LevelChangedThisTurn: false
+            );
+        }
+
+        var mapBeforeAction = this;
+
+        bool turnConsumed;
+        AttackResult? playerAttack;
+        switch (action)
+        {
+            case PlayerAction.Move move:
+                turnConsumed = HandlePlayerActionCore(move.Direction, use: false, out playerAttack);
+                break;
+            case PlayerAction.UseDirection useDirection:
+                turnConsumed = HandlePlayerActionCore(
+                    useDirection.Direction,
+                    use: true,
+                    out playerAttack
+                );
+                break;
+            case PlayerAction.PickUp:
+                turnConsumed = PickUpItemsAtPlayer();
+                playerAttack = null;
+                break;
+            case PlayerAction.UseItem useItem:
+                turnConsumed = UseInventoryItem(useItem.Letter);
+                playerAttack = null;
+                break;
+            case PlayerAction.DropItem dropItem:
+                turnConsumed = DropInventoryItem(dropItem.Letter);
+                playerAttack = null;
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown {nameof(PlayerAction)}: {action}");
+        }
+
+        var currentMap = Game.Map;
+        bool levelChanged = !ReferenceEquals(currentMap, mapBeforeAction);
+
+        IReadOnlyList<MonsterAttack> monsterAttacks = [];
+        if (turnConsumed && !currentMap.IsGameOver)
+        {
+            monsterAttacks = currentMap.PlayerTookTurn();
+        }
+
+        currentMap.RenderMoveables();
+
+        return new TurnResult(
+            TurnConsumed: turnConsumed,
+            RequestedAction: action,
+            PlayerAttack: playerAttack,
+            MonsterAttacks: monsterAttacks,
+            GameOverThisTurn: currentMap.IsGameOver,
+            LevelChangedThisTurn: levelChanged
+        );
     }
 
     /// <summary>
@@ -706,9 +823,9 @@ class Map
         return true;
     }
 
-    bool HandlePlayerUse(char numKey)
+    bool HandlePlayerUse(Direction direction)
     {
-        CalculateDeltaAndDest(numKey, out _, out _, out int destX, out int destY);
+        CalculateDeltaAndDest(direction, out _, out _, out int destX, out int destY);
 
         bool stateChanged = false;
 
@@ -732,14 +849,26 @@ class Map
         return stateChanged;
     }
 
-    bool HandlePlayerMove(char numKey, out bool playerAttacked, out bool playerStumbled)
+    bool HandlePlayerMove(
+        Direction direction,
+        out bool playerAttacked,
+        out bool playerStumbled,
+        out AttackResult? attackResult
+    )
     {
         // Handle basic player movement
-        CalculateDeltaAndDest(numKey, out int xDelta, out int yDelta, out int destX, out int destY);
+        CalculateDeltaAndDest(
+            direction,
+            out int xDelta,
+            out int yDelta,
+            out int destX,
+            out int destY
+        );
 
         bool stateChanged = false;
         playerAttacked = false;
         playerStumbled = false;
+        attackResult = null;
 
         // Check for blocking Walls or GameObject's
         if (
@@ -787,6 +916,7 @@ class Map
                             Player.CombatComponent!,
                             mo.CombatComponent
                         );
+                        attackResult = result;
                         References.SoundManager.PlayCombatSound(result.Hit);
                         References.Game.EffectsSystem.Shake = result.Hit;
                         UpdateBlockMovement(destX, destY);
@@ -800,34 +930,34 @@ class Map
         return stateChanged;
     }
 
+    // Kept alongside the Direction overload below purely for PeekLethalLiquidStep, which is public
+    // and called directly by GamePage.razor's numKey-based input pipeline - its char signature
+    // can't change here. Every other internal caller (HandlePlayerMove/HandlePlayerUse/TakeTurn)
+    // works in Direction throughout, so this is the one remaining char/Direction conversion point.
     void CalculateDeltaAndDest(
         char numKey,
         out int xDelta,
         out int yDelta,
         out int destX,
         out int destY
+    ) =>
+        CalculateDeltaAndDest(
+            DirectionExtensions.FromNumKey(numKey),
+            out xDelta,
+            out yDelta,
+            out destX,
+            out destY
+        );
+
+    void CalculateDeltaAndDest(
+        Direction direction,
+        out int xDelta,
+        out int yDelta,
+        out int destX,
+        out int destY
     )
     {
-        xDelta = 0;
-        yDelta = 0;
-        if ("147".Contains(numKey, StringComparison.Ordinal))
-        {
-            xDelta = -1;
-        }
-        else if ("369".Contains(numKey, StringComparison.Ordinal))
-        {
-            xDelta = 1;
-        }
-
-        if ("789".Contains(numKey, StringComparison.Ordinal))
-        {
-            yDelta = -1;
-        }
-        else if ("123".Contains(numKey, StringComparison.Ordinal))
-        {
-            yDelta = 1;
-        }
-
+        (xDelta, yDelta) = direction.ToDelta();
         destX = Player.X + xDelta;
         destY = Player.Y + yDelta;
     }

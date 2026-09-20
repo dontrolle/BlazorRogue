@@ -1,4 +1,5 @@
 ﻿using System;
+using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.World;
 
 namespace BlazorRogue.AI;
@@ -9,11 +10,11 @@ class RandomWalkAIComponent(Map map, Random? random = null) : AIComponent(map)
 
     readonly Random random = random ?? new Random();
 
-    public override void TakeTurn()
+    public override AttackResult? TakeTurn()
     {
         if (!Awake)
         {
-            return;
+            return null;
         }
 
         int dx = random.Next(-1, 2);
@@ -35,7 +36,7 @@ class RandomWalkAIComponent(Map map, Random? random = null) : AIComponent(map)
             // Trying to leave a slow liquid can fail - the turn is spent standing still.
             if (map.LiquidStumble(Owner!))
             {
-                return;
+                return null;
             }
 
             // where we came from is definetely not blocking anymore, since we just vacated the tile
@@ -45,5 +46,7 @@ class RandomWalkAIComponent(Map map, Random? random = null) : AIComponent(map)
             // and we need to update blocked status for the destination tile (for the benefit of other moveables)
             map.BlocksMovementMap[destX, destY] = true;
         }
+
+        return null;
     }
 }
