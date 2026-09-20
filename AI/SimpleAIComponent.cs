@@ -54,11 +54,11 @@ class SimpleAIComponent(Map map) : AIComponent(map)
                 && (!map.IsMovementBlockedAcrossEdge(Owner.X, Owner.Y, destX, destY) || flying)
             )
             {
-                bool hit = map.Game.FightingSystem.CloseCombatAttack(
+                var result = map.Game.FightingSystem.CloseCombatAttack(
                     Owner.CombatComponent!,
                     map.Player.CombatComponent!
                 );
-                References.SoundManager.PlayCombatSound(hit);
+                References.SoundManager.PlayCombatSound(result.Hit);
             }
         }
     }

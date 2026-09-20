@@ -783,12 +783,12 @@ class Map
                     // what to do if it doesn't have a CombatComponent?
                     if (mo.CombatComponent != null)
                     {
-                        bool hit = Game.FightingSystem.CloseCombatAttack(
+                        var result = Game.FightingSystem.CloseCombatAttack(
                             Player.CombatComponent!,
                             mo.CombatComponent
                         );
-                        References.SoundManager.PlayCombatSound(hit);
-                        References.Game.EffectsSystem.Shake = hit;
+                        References.SoundManager.PlayCombatSound(result.Hit);
+                        References.Game.EffectsSystem.Shake = result.Hit;
                         UpdateBlockMovement(destX, destY);
                         stateChanged = true;
                         playerAttacked = true;

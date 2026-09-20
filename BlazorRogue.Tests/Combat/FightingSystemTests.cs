@@ -107,10 +107,12 @@ public class FightingSystemTests
             var strongAttacker = CreateMoveable("strong", weaponSkill: 70);
             var weakDefender = CreateMoveable("weakDefender", weaponSkill: 20);
             if (
-                fightingSystem.CloseCombatAttack(
-                    strongAttacker.CombatComponent!,
-                    weakDefender.CombatComponent!
-                )
+                fightingSystem
+                    .CloseCombatAttack(
+                        strongAttacker.CombatComponent!,
+                        weakDefender.CombatComponent!
+                    )
+                    .Hit
             )
             {
                 strongAttackerHits++;
@@ -119,10 +121,12 @@ public class FightingSystemTests
             var weakAttacker = CreateMoveable("weak", weaponSkill: 20);
             var strongDefender = CreateMoveable("strongDefender", weaponSkill: 70);
             if (
-                fightingSystem.CloseCombatAttack(
-                    weakAttacker.CombatComponent!,
-                    strongDefender.CombatComponent!
-                )
+                fightingSystem
+                    .CloseCombatAttack(
+                        weakAttacker.CombatComponent!,
+                        strongDefender.CombatComponent!
+                    )
+                    .Hit
             )
             {
                 weakAttackerHits++;
@@ -168,6 +172,50 @@ public class FightingSystemTests
     // A weaponSkill of 100 against 1 guarantees a hit regardless of either d100 roll (see
     // Dice.GetSuccessLevel) - the same trick CloseCombatAttackHigherWeaponSkillWinsMoreOftenOverManyRounds
     // relies on statistically, but deterministic here since these tests need a single guaranteed hit.
+    [Fact]
+    public void CloseCombatAttackReturnsHitAndDamageWhenAttackLands()
+    {
+        var fightingSystem = new FightingSystem(game: null!);
+        var attacker = CreateMoveable("attacker", weaponSkill: 100, weaponDamage: 8);
+        var defender = CreateMoveable("defender", weaponSkill: 1, toughness: 0, armour: 0);
+
+        var result = fightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
+
+        Assert.True(result.Hit);
+        Assert.True(result.Damage > 0);
+        Assert.Equal(
+            result.Damage,
+            defender.CombatComponent!.MaxWounds - defender.CombatComponent.Wounds
+        );
+        Assert.False(result.DefenderKilled);
+    }
+
+    [Fact]
+    public void CloseCombatAttackReturnsDefenderKilledWhenWoundsReachZero()
+    {
+        var fightingSystem = new FightingSystem(game: null!);
+        var attacker = CreateMoveable("attacker", weaponSkill: 100, weaponDamage: 8);
+        var defender = CreateMoveable(
+            "defender",
+            weaponSkill: 1,
+            toughness: 0,
+            armour: 0,
+            wounds: 1
+        );
+
+        var result = fightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
+
+        Assert.True(result.Hit);
+        Assert.True(result.DefenderKilled);
+        Assert.Equal(0, defender.CombatComponent!.Wounds);
+    }
+
     [Fact]
     public void PushBackAlwaysMovesTheDefenderWhenChanceIs100()
     {
