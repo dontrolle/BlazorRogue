@@ -13,6 +13,7 @@ class Moveable : GameObject
     public string Id { get; }
     public string AsciiCharacter { get; }
     public string AsciiColour { get; }
+    public int TickCost { get; }
 
     public Moveable(
         int x,
@@ -46,6 +47,7 @@ class Moveable : GameObject
         Id = monsterType.Id;
         AsciiCharacter = monsterType.AsciiCharacter;
         AsciiColour = monsterType.AsciiColour;
+        TickCost = monsterType.TickCost;
         InfoText = Name;
 
         // Note, can't block light due to the way Moveables are treated in Map

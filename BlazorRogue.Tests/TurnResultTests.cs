@@ -23,7 +23,8 @@ public class TurnResultTests
         int toughness = 0,
         int armour = 0,
         int wounds = 20,
-        AIComponent? ai = null
+        AIComponent? ai = null,
+        int tickCost = 6
     )
     {
         var type = new MoveableType(
@@ -39,7 +40,8 @@ public class TurnResultTests
             wounds: wounds,
             aiComponentId: AIComponentFactory.DefaultId,
             aiComponentSettings: SettingsMap.Empty,
-            singular: true
+            singular: true,
+            tickCost: tickCost
         );
         return new Moveable(x, y, ai, type);
     }
@@ -113,7 +115,7 @@ public class TurnResultTests
         Assert.True(result.TurnConsumed);
         Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
         Assert.Null(result.PlayerAttack);
-        Assert.Empty(result.MonsterAttacks);
+        Assert.Empty(result.MonsterActions);
         Assert.False(result.GameOverThisTurn);
         Assert.False(result.LevelChangedThisTurn);
     }
@@ -130,7 +132,7 @@ public class TurnResultTests
 
         Assert.False(result.TurnConsumed);
         Assert.Equal((4, 4), (map.Player.X, map.Player.Y));
-        Assert.Empty(result.MonsterAttacks); // monsters get no free turn from a wall bump
+        Assert.Empty(result.MonsterActions); // monsters get no free turn from a wall bump
     }
 
     [Fact]
@@ -153,7 +155,7 @@ public class TurnResultTests
     }
 
     [Fact]
-    public void MonsterCounterAttacksDuringPlayerTookTurnAppearInMonsterAttacks()
+    public void MonsterCounterAttacksDuringPlayerTookTurnAppearInMonsterActions()
     {
         var game = new Game();
         var map = BareFloorMap(game, NewCreature(4, 4));
@@ -169,8 +171,9 @@ public class TurnResultTests
         var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
 
         Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
-        var monsterAttack = Assert.Single(result.MonsterAttacks);
-        Assert.Same(monster, monsterAttack.Attacker);
+        var monsterAction = Assert.Single(result.MonsterActions);
+        Assert.Same(monster, monsterAction.Actor);
+        Assert.IsType<AITurnOutcome.Attacked>(monsterAction.Outcome);
     }
 
     [Fact]
@@ -205,7 +208,7 @@ public class TurnResultTests
         Assert.True(result.TurnConsumed);
         Assert.True(result.GameOverThisTurn);
         Assert.True(map.IsGameOver);
-        Assert.Empty(result.MonsterAttacks); // no free turn for monsters once the player is dead
+        Assert.Empty(result.MonsterActions); // no free turn for monsters once the player is dead
     }
 
     [Fact]
@@ -308,5 +311,96 @@ public class TurnResultTests
         Assert.True(result.LevelChangedThisTurn);
         Assert.NotSame(originalMap, game.Map);
         Assert.Equal(1, game.CurrentLevelNumber);
+    }
+
+    // Tick-priority-queue scheduler (issue #84) - NewCreature's default TickCost of 6 matches the
+    // player's, so every test above this point exercises the pre-scheduler 1:1 lockstep case
+    // (one monster action per player action) unchanged. These cover the scheduler actually varying
+    // that ratio. Monsters below are placed far enough from the player that SimpleAIComponent only
+    // ever moves toward it (never gets adjacent and attacks) across the turns each test takes, so
+    // MonsterActions' count reflects action-count, not attack-vs-move outcome.
+
+    [Fact]
+    public void FasterMonsterActsMultipleTimesWithinASinglePlayerTurn()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game, NewCreature(4, 4), size: 20);
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(4, 10, ai: ai, tickCost: 3); // half the player's default 6
+        map.AddMonster(monster);
+        ai.Wake();
+        map.PostGenInitalize();
+
+        var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
+
+        Assert.Equal(2, result.MonsterActions.Count);
+        Assert.All(result.MonsterActions, action => Assert.Same(monster, action.Actor));
+    }
+
+    [Fact]
+    public void SlowerMonsterSitsOutAPlayerTurnItIsNotYetDueFor()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game, NewCreature(4, 4), size: 20);
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(4, 10, ai: ai, tickCost: 12); // double the player's default 6
+        map.AddMonster(monster);
+        ai.Wake();
+        map.PostGenInitalize();
+
+        var first = map.TakeTurn(new PlayerAction.Move(Direction.East));
+        var second = map.TakeTurn(new PlayerAction.Move(Direction.West));
+
+        Assert.Single(first.MonsterActions); // due at tick 0, acts once, next due at tick 12
+        Assert.Empty(second.MonsterActions); // player's tick is only 12, not yet strictly past 12
+    }
+
+    [Fact]
+    public void DefaultTickCostReproducesOneMonsterActionPerPlayerTurn()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game, NewCreature(4, 4), size: 20);
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var monster = NewCreature(4, 10, ai: ai); // default TickCost (6), same as the player
+        map.AddMonster(monster);
+        ai.Wake();
+        map.PostGenInitalize();
+
+        for (int i = 0; i < 3; i++)
+        {
+            var direction = i % 2 == 0 ? Direction.East : Direction.West;
+            var result = map.TakeTurn(new PlayerAction.Move(direction));
+            Assert.Single(result.MonsterActions);
+        }
+    }
+
+    [Fact]
+    public void MonsterKilledBeforeItsQueuedTurnComesDueIsSkippedNotResolved()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game, NewCreature(4, 4), size: 20);
+        var deadAi = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var aliveAi = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        var doomedMonster = NewCreature(4, 10, wounds: 1, ai: deadAi);
+        var aliveMonster = NewCreature(4, 12, ai: aliveAi);
+        map.AddMonster(doomedMonster);
+        map.AddMonster(aliveMonster);
+        deadAi.Wake();
+        aliveAi.Wake();
+        map.PostGenInitalize();
+
+        // Killed after being enqueued (both woke at tick 0) but before any TakeTurn call drains
+        // the queue - its stale entry must be skipped, not resolved or re-enqueued, when popped.
+        doomedMonster.CombatComponent!.ApplyDamage(1000);
+
+        var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
+
+        var action = Assert.Single(result.MonsterActions);
+        Assert.Same(aliveMonster, action.Actor);
     }
 }

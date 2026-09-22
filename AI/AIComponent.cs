@@ -1,5 +1,5 @@
-﻿using BlazorRogue.Combat.Warhammer;
-using BlazorRogue.Components;
+﻿using BlazorRogue.Components;
+using BlazorRogue.GameObjects;
 using BlazorRogue.World;
 
 namespace BlazorRogue.AI;
@@ -9,8 +9,12 @@ abstract class AIComponent(Map map) : Component()
     protected readonly Map map = map;
     public bool Awake { get; protected set; }
 
-    /// <summary>Returns the monster's own attack outcome, or null if it didn't attack this turn.</summary>
-    public abstract AttackResult? TakeTurn();
+    /// <summary>
+    /// Resolves one due turn for this moveable - called only when the map's tick scheduler has
+    /// determined it's this moveable's turn, so always represents a real action slot (never "not
+    /// my turn yet", which the scheduler itself filters out by only invoking due moveables).
+    /// </summary>
+    public abstract AITurnOutcome TakeTurn();
 
     public void Wake()
     {
@@ -19,5 +23,10 @@ abstract class AIComponent(Map map) : Component()
 
         Awake = true;
         References.Game.AddMessage($"The {Owner!.Name} awake{(Owner!.Singular ? "s" : "")}.");
+
+        if (Owner is Moveable moveable)
+        {
+            map.EnqueueMonster(moveable);
+        }
     }
 }

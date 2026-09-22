@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlazorRogue.AI;
 using BlazorRogue.Combat;
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Components;
@@ -38,6 +39,15 @@ class Map
     /* Actually, currently these are GameObjects with AI */
     readonly List<Moveable> monsters;
     public IEnumerable<Moveable> Monsters => monsters;
+
+    // Tick-priority-queue turn scheduler (issue #84) - see PlayerTookTurn. Only awake monsters are
+    // ever enqueued (via AIComponent.Wake -> EnqueueMonster); the player is never in this queue,
+    // since the player is always resolved directly by TakeTurn's dispatch rather than "popped".
+    // Per-Map-instance like monsters/moveables: Game.TransitionToLevel swaps Game.Map to a
+    // different Map instance (cached or freshly generated), and each level's scheduler state must
+    // travel with its own Map.
+    readonly PriorityQueue<Moveable, long> pendingMonsters = new();
+    long playerNextTick;
 
     readonly List<GameObject>[,] gameObjectByCoord;
     public IEnumerable<GameObject>[,] GameObjectByCoord => gameObjectByCoord;
@@ -135,23 +145,53 @@ class Map
     }
 
     /// <summary>
-    /// Resolves every monster's AI turn plus the end-of-turn liquid tick. Returns the attacks
-    /// monsters actually landed on the player this turn, for <see cref="TakeTurn"/>'s
-    /// <see cref="TurnResult.MonsterAttacks"/>.
+    /// Enqueues a monster into the tick scheduler at the current tick - called from
+    /// <see cref="AIComponent.Wake"/> the moment it actually transitions asleep -> awake (Wake()'s
+    /// own <c>if (Awake) return;</c> guard keeps this from double-enqueueing on repeat calls from
+    /// <see cref="WakeVisibleMonsters"/>).
     /// </summary>
-    public IReadOnlyList<MonsterAttack> PlayerTookTurn()
+    internal void EnqueueMonster(Moveable monster) =>
+        pendingMonsters.Enqueue(monster, playerNextTick);
+
+    /// <summary>
+    /// Drains every monster due before the player's new next-tick (see <see cref="TakeTurn"/>,
+    /// which advances <see cref="playerNextTick"/> right before calling this) - a fast monster
+    /// (low <see cref="Moveable.TickCost"/> relative to the player's) can act more than once here,
+    /// a slow one can sit out entirely. Also runs the end-of-turn liquid tick. Returns every
+    /// move/attack actually resolved, in order, for <see cref="TakeTurn"/>'s
+    /// <see cref="TurnResult.MonsterActions"/> - a moveable whose action was
+    /// <see cref="AITurnOutcome.DidNothing"/> (asleep/blocked/stumbled) gets no entry, matching the
+    /// old null-returning convention this replaces.
+    /// </summary>
+    public IReadOnlyList<MonsterAction> PlayerTookTurn()
     {
-        var monsterAttacks = new List<MonsterAttack>();
-        foreach (var monster in Monsters)
+        var actions = new List<MonsterAction>();
+        while (pendingMonsters.TryPeek(out var monster, out long tick) && tick < playerNextTick)
         {
-            if (monster.AIComponent?.TakeTurn() is { } result)
+            _ = pendingMonsters.Dequeue();
+            if (!monsters.Contains(monster))
             {
-                monsterAttacks.Add(new MonsterAttack(monster, result));
+                // Died since being enqueued (lazy deletion - PriorityQueue<T> has no remove API):
+                // drop the stale entry rather than resolving/reinserting a dead moveable's turn.
+                continue;
+            }
+
+            var outcome = monster.AIComponent!.TakeTurn();
+            if (outcome is AITurnOutcome.Moved or AITurnOutcome.Attacked)
+            {
+                actions.Add(new MonsterAction(monster, outcome));
+            }
+
+            pendingMonsters.Enqueue(monster, tick + monster.TickCost);
+
+            if (IsGameOver)
+            {
+                break;
             }
         }
 
         ApplyLiquidTickEffects();
-        return monsterAttacks;
+        return actions;
     }
 
     /// <summary>
@@ -639,7 +679,7 @@ class Map
                 TurnConsumed: false,
                 RequestedAction: action,
                 PlayerAttack: null,
-                MonsterAttacks: [],
+                MonsterActions: [],
                 GameOverThisTurn: false,
                 LevelChangedThisTurn: false
             );
@@ -684,10 +724,14 @@ class Map
         var currentMap = Game.Map;
         bool levelChanged = !ReferenceEquals(currentMap, mapBeforeAction);
 
-        IReadOnlyList<MonsterAttack> monsterAttacks = [];
+        IReadOnlyList<MonsterAction> monsterActions = [];
         if (turnConsumed && !currentMap.IsGameOver)
         {
-            monsterAttacks = currentMap.PlayerTookTurn();
+            // Advance the (possibly just-swapped-to) current map's own scheduler clock by the
+            // player's TickCost before draining - Player is the same Moveable instance across a
+            // level transition, so its TickCost is unaffected by which Map is "current".
+            currentMap.playerNextTick += Player.TickCost;
+            monsterActions = currentMap.PlayerTookTurn();
         }
 
         currentMap.RenderMoveables();
@@ -696,7 +740,7 @@ class Map
             TurnConsumed: turnConsumed,
             RequestedAction: action,
             PlayerAttack: playerAttack,
-            MonsterAttacks: monsterAttacks,
+            MonsterActions: monsterActions,
             GameOverThisTurn: currentMap.IsGameOver,
             LevelChangedThisTurn: levelChanged
         );

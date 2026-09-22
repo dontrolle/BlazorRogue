@@ -775,6 +775,7 @@ class Configuration
             out int toughness,
             out int armour,
             out int wounds,
+            out int tickCost,
             out string animationClass,
             out string character,
             out string characterColor
@@ -802,7 +803,8 @@ class Configuration
             aiComponentId,
             aiComponentSettings,
             singular,
-            abilities
+            abilities,
+            tickCost
         );
         moveableDictionary.Add(id, m);
     }
@@ -865,6 +867,12 @@ class Configuration
         return (id, settings);
     }
 
+    // Ticks a moveable's own turn costs in the tick-priority-queue scheduler (see Map.TakeTurn /
+    // Map.PlayerTookTurn) - lower means faster relative to other moveables. Defaults to 6 for both
+    // heroes and monsters when omitted, so unconfigured content reproduces today's 1:1 lockstep
+    // turn order exactly; tuning individual monsters faster/slower is opt-in per type.
+    const int DefaultTickCost = 6;
+
     static void ParseMoveable(
         JsonElement element,
         out string id,
@@ -874,6 +882,7 @@ class Configuration
         out int toughness,
         out int armour,
         out int wounds,
+        out int tickCost,
         out string animationClass,
         out string character,
         out string characterColor
@@ -886,6 +895,9 @@ class Configuration
         toughness = element.GetProperty("toughness").GetInt32();
         armour = element.GetProperty("armour").GetInt32();
         wounds = element.GetProperty("wounds").GetInt32();
+        tickCost = element.TryGetProperty("tickCost", out var tickCostElement)
+            ? tickCostElement.GetInt32()
+            : DefaultTickCost;
         animationClass = GetRequiredString(element, "animationClass");
         character = GetRequiredString(element, "character");
         characterColor = GetRequiredString(element, "character_color");
