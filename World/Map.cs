@@ -950,24 +950,22 @@ class Map
             // bypass it the same way a flying monster does (see AbilityId.Flying).
             if (!IsMovementBlockedAcrossEdge(Player.X, Player.Y, destX, destY) || IsFlying(Player))
             {
-                // handle moveables - I take a copy as moveables may be modified, because of death
-                // TODO: FIX, THIS IS CLUNKY AS HELL...
-                foreach (var mo in moveables.Where(m => m.X == destX && m.Y == destY).ToList())
+                // A Moveable is always Blocking (see Moveable's constructor), so at most one can
+                // ever occupy destX/destY - grab it by reference before attacking so we're not
+                // still enumerating moveables if the attack kills it and removes it from that list.
+                var target = moveables.FirstOrDefault(m => m.X == destX && m.Y == destY);
+                if (target != null)
                 {
-                    // what to do if it doesn't have a CombatComponent?
-                    if (mo.CombatComponent != null)
-                    {
-                        var result = Game.FightingSystem.CloseCombatAttack(
-                            Player.CombatComponent!,
-                            mo.CombatComponent
-                        );
-                        attackResult = result;
-                        References.SoundManager.PlayCombatSound(result.Hit);
-                        References.Game.EffectsSystem.Shake = result.Hit;
-                        UpdateBlockMovement(destX, destY);
-                        stateChanged = true;
-                        playerAttacked = true;
-                    }
+                    var result = Game.FightingSystem.CloseCombatAttack(
+                        Player.CombatComponent!,
+                        target.CombatComponent!
+                    );
+                    attackResult = result;
+                    References.SoundManager.PlayCombatSound(result.Hit);
+                    References.Game.EffectsSystem.Shake = result.Hit;
+                    UpdateBlockMovement(destX, destY);
+                    stateChanged = true;
+                    playerAttacked = true;
                 }
             }
         }
