@@ -3,7 +3,9 @@
 @using System.Linq
 @using System.Threading
 @using Microsoft.JSInterop
+@using BlazorRogue.AI
 @using BlazorRogue.Effects
+@using BlazorRogue.GameObjects
 @using BlazorRogue.Rendering
 @using BlazorRogue.Sessions
 @using BlazorRogue.World
@@ -265,6 +267,7 @@ else
                                     }
 
                                     <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip"
+                                         data-moveable-id="@((decoration.GameObject as Moveable)?.InstanceId)"
                                          alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
                                         @divContent
                                     </div>
@@ -424,6 +427,18 @@ else
     // zero-width and sized the grid ~3 columns too wide, leaving scrollbars until the first resize.
     private bool _needsInitialFit;
 
+    // A turn's move-replay payload, built synchronously in KeyUp (see BuildMoveReplay) and
+    // dispatched to JS from the next OnAfterRenderAsync - see that method for why it can't be
+    // dispatched any earlier.
+    private List<MoveReplayEntry>? _pendingMoveReplay;
+
+    // JSON-serialized (camelCase, per Blazor's default JS interop naming policy) to
+    // blazorRogueReplay.play - Offsets[i] is this moveable's (x, y) at replay step i, expressed in
+    // pixels *relative to its final, already-rendered resting position* (so {0,0} would be that
+    // resting position itself - callers omit it rather than send a trailing no-op step; see
+    // BuildMoveReplay).
+    private sealed record MoveReplayEntry(string Id, int[][] Offsets);
+
     private sealed record HealthBarMetrics(
         bool ShowDrain,
         int GreyStripWidthPx,
@@ -508,6 +523,16 @@ else
                 await FitMapToViewportAsync();
                 StateHasChanged();
             }
+
+            // Dispatched here rather than right after TakeTurn in KeyUp - the DOM only actually
+            // reflects that turn's render once OnAfterRenderAsync fires, and the JS side locates
+            // each moveable's element by data-moveable-id, so it must run no earlier than this.
+            if (_pendingMoveReplay is { Count: > 0 } replay)
+            {
+                _pendingMoveReplay = null;
+                await JsRuntime.InvokeVoidAsync("blazorRogueReplay.play", replay, MessageRevealDelayMs);
+            }
+
             return;
         }
 
@@ -733,7 +758,7 @@ else
     // happens synchronously before this method's first await, so it's already in place by the time
     // KeyUp's caller (OnGlobalKeyUp) does its own post-KeyUp StateHasChanged. Only the
     // second-and-later lines in a multi-line turn get the staggered delay, so a turn with exactly
-    // one new message (today's common case) looks and feels exactly as it did before this feature.
+    // one new message (the common case) shows it immediately, with no stagger at all.
     async Task RevealNewMessagesAsync(int fromCount, int toCount, CancellationToken token)
     {
         if (fromCount >= toCount)
@@ -759,6 +784,50 @@ else
             revealedMessageCount = count;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    // Turns this turn's MonsterActions into a per-moveable list of intermediate squares to
+    // visually step through client-side - one entry per moveable that actually moved more than
+    // once (a moveable with 0 or 1 Moved outcomes needs no replay at all: the render KeyUp already
+    // produced is already correct as-is). AITurnOutcome.Attacked/DidNothing outcomes contribute no
+    // square of their own - the actor simply holds at wherever its last Moved outcome (or its
+    // pre-turn position, if it hasn't moved yet) left it; combat's own hit-flash/shake carries that
+    // beat instead.
+    List<MoveReplayEntry> BuildMoveReplay(IReadOnlyList<MonsterAction> monsterActions)
+    {
+        int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+        var entries = new List<MoveReplayEntry>();
+
+        foreach (var group in monsterActions.GroupBy(a => a.Actor))
+        {
+            var waypoints = new List<(int X, int Y)>();
+            foreach (var action in group)
+            {
+                if (action.Outcome is AITurnOutcome.Moved moved)
+                {
+                    waypoints.Add((moved.X, moved.Y));
+                }
+            }
+
+            if (waypoints.Count <= 1)
+            {
+                continue; // a plain single move (or none) - nothing to replay
+            }
+
+            (int X, int Y) final = waypoints[^1];
+            entries.Add(
+                new MoveReplayEntry(
+                    group.Key.InstanceId,
+                    [
+                        .. waypoints
+                            .Take(waypoints.Count - 1)
+                            .Select(w => new[] { (w.X - final.X) * tileSize, (w.Y - final.Y) * tileSize }),
+                    ]
+                )
+            );
+        }
+
+        return entries;
     }
 
     void CloseHelp() => showHelp = false;
@@ -981,6 +1050,20 @@ else
         int newMessageCount = CountNewMessages(messagesBefore, messagesAfter);
         revealedMessageCount = messagesAfter.Count - newMessageCount; // catch up any still-animating prior turn
         _ = RevealNewMessagesAsync(revealedMessageCount, messagesAfter.Count, messageRevealCts.Token);
+
+        // A fast moveable (low TickCost) can rack up more than one MonsterAction in a single
+        // keypress, but the render above already snapped it straight to its final square - build
+        // the client-side replay of its intermediate square(s) here (picked up and dispatched to
+        // JS from OnAfterRenderAsync, once the DOM actually reflects this render) rather than
+        // reopening the server for a multi-render turn - see BuildMoveReplay.
+        if (keyPressResult is { MonsterActions.Count: > 0 } turnResult)
+        {
+            var replay = BuildMoveReplay(turnResult.MonsterActions);
+            if (replay.Count > 0)
+            {
+                _pendingMoveReplay = replay;
+            }
+        }
 
         if (keyPressResult is not null)
         {

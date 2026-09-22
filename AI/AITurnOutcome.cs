@@ -4,10 +4,10 @@ namespace BlazorRogue.AI;
 
 /// <summary>
 /// What a single <see cref="AIComponent.TakeTurn"/> call actually did - the result of one action
-/// slot in <see cref="BlazorRogue.World.Map"/>'s tick-priority-queue scheduler. Every call now
+/// slot in <see cref="BlazorRogue.World.Map"/>'s tick-priority-queue scheduler. Every call
 /// represents a real, due turn (the scheduler never invokes a sleeping or already-resolved
-/// moveable), so unlike the old <c>AttackResult?</c> convention this is never null - a moveable
-/// that couldn't act still reports <see cref="DidNothing"/> rather than nothing at all.
+/// moveable), so this is guaranteed non-null - a moveable that couldn't act still reports
+/// <see cref="DidNothing"/> rather than nothing at all.
 /// </summary>
 abstract record AITurnOutcome
 {

@@ -90,3 +90,61 @@ window.blazorroguefuncs = {
         }
     },
 }
+
+// Visually replays a fast moveable's extra action(s) within a single player turn -
+// GamePage.razor's server-side render already snaps every moveable straight to its final
+// square (that stays a single synchronous Map.TakeTurn + render, deliberately - see
+// GamePage.razor's KeyUp), so this steps a moveable's DOM element backward through its
+// intermediate square(s) via CSS transform, then lets go, entirely client-side. Snap-through by
+// design (not a tween) - each step is a discrete jump, matching the turn-based feel elsewhere.
+window.blazorRogueReplay = {
+    // Timeout ids and elements touched by the still-running replay, if any - cleared at the start
+    // of every call so a keypress landing mid-replay (fast player input) can't leave a moveable's
+    // element stuck with a stale transform from a turn that's already been superseded.
+    _pending: [],
+    _touched: [],
+
+    // entries: [{ id, offsets }], offsets: [[dxPx, dyPx], ...] - see GamePage.razor's
+    // MoveReplayEntry/BuildMoveReplay for exactly what these mean and how they're computed.
+    // delayMs: gap between steps: reuses GamePage.razor's message-reveal delay so the two staggered
+    // effects (log lines, move replay) read as one consistent pace.
+    play: function (entries, delayMs) {
+        window.blazorRogueReplay._pending.forEach(clearTimeout);
+        window.blazorRogueReplay._pending = [];
+        window.blazorRogueReplay._touched.forEach((el) => {
+            el.style.transform = "";
+        });
+        window.blazorRogueReplay._touched = [];
+
+        for (const entry of entries) {
+            const el = document.querySelector('[data-moveable-id="' + entry.id + '"]');
+            if (!el || entry.offsets.length === 0) {
+                continue;
+            }
+
+            window.blazorRogueReplay._touched.push(el);
+
+            const [firstDx, firstDy] = entry.offsets[0];
+            el.style.transform = `translate(${firstDx}px, ${firstDy}px)`;
+
+            let delay = delayMs;
+            for (let i = 1; i < entry.offsets.length; i++) {
+                const [dx, dy] = entry.offsets[i];
+                window.blazorRogueReplay._pending.push(
+                    setTimeout(() => {
+                        el.style.transform = `translate(${dx}px, ${dy}px)`;
+                    }, delay)
+                );
+                delay += delayMs;
+            }
+
+            // The final step is simply "let go" - the element's actual rendered position (this
+            // turn's real, final square) already matches, with no transform needed.
+            window.blazorRogueReplay._pending.push(
+                setTimeout(() => {
+                    el.style.transform = "";
+                }, delay)
+            );
+        }
+    },
+}

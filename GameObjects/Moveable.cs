@@ -11,6 +11,14 @@ class Moveable : GameObject
 {
     public string AnimationClass { get; protected set; }
     public string Id { get; }
+
+    /// <summary>
+    /// Per-instance identity (unlike <see cref="Id"/>, which is the monster *type* id and thus
+    /// shared by every goblin on the map) - lets client-side code (see GamePage.razor's
+    /// move-replay JS interop) address this specific moveable's DOM element across a single
+    /// render, e.g. to animate a fast moveable's multiple actions in one player turn.
+    /// </summary>
+    public string InstanceId { get; } = Guid.NewGuid().ToString("N");
     public string AsciiCharacter { get; }
     public string AsciiColour { get; }
     public int TickCost { get; }

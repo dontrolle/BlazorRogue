@@ -160,8 +160,7 @@ class Map
     /// a slow one can sit out entirely. Also runs the end-of-turn liquid tick. Returns every
     /// move/attack actually resolved, in order, for <see cref="TakeTurn"/>'s
     /// <see cref="TurnResult.MonsterActions"/> - a moveable whose action was
-    /// <see cref="AITurnOutcome.DidNothing"/> (asleep/blocked/stumbled) gets no entry, matching the
-    /// old null-returning convention this replaces.
+    /// <see cref="AITurnOutcome.DidNothing"/> (asleep/blocked/stumbled) gets no entry.
     /// </summary>
     public IReadOnlyList<MonsterAction> PlayerTookTurn()
     {

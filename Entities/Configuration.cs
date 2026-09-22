@@ -869,8 +869,9 @@ class Configuration
 
     // Ticks a moveable's own turn costs in the tick-priority-queue scheduler (see Map.TakeTurn /
     // Map.PlayerTookTurn) - lower means faster relative to other moveables. Defaults to 6 for both
-    // heroes and monsters when omitted, so unconfigured content reproduces today's 1:1 lockstep
-    // turn order exactly; tuning individual monsters faster/slower is opt-in per type.
+    // heroes and monsters when omitted, so unconfigured content gets plain 1:1 lockstep turn order
+    // (every moveable acts exactly once per player turn) by default; tuning individual monsters
+    // faster/slower is opt-in per type.
     const int DefaultTickCost = 6;
 
     static void ParseMoveable(

@@ -27,6 +27,6 @@ record struct TurnResult(
 /// <summary>
 /// One moveable's move or attack during a single <see cref="Map.PlayerTookTurn"/> - a
 /// <see cref="AITurnOutcome.DidNothing"/> outcome (asleep/blocked/stumbled) never produces one of
-/// these, matching the old null-returning convention it replaces.
+/// these.
 /// </summary>
 record struct MonsterAction(Moveable Actor, AITurnOutcome Outcome);

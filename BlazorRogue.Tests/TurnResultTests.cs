@@ -313,12 +313,12 @@ public class TurnResultTests
         Assert.Equal(1, game.CurrentLevelNumber);
     }
 
-    // Tick-priority-queue scheduler (issue #84) - NewCreature's default TickCost of 6 matches the
-    // player's, so every test above this point exercises the pre-scheduler 1:1 lockstep case
-    // (one monster action per player action) unchanged. These cover the scheduler actually varying
-    // that ratio. Monsters below are placed far enough from the player that SimpleAIComponent only
-    // ever moves toward it (never gets adjacent and attacks) across the turns each test takes, so
-    // MonsterActions' count reflects action-count, not attack-vs-move outcome.
+    // NewCreature's default TickCost of 6 matches the player's, so every test above this point
+    // exercises the tick-priority-queue scheduler's 1:1 lockstep case (one monster action per
+    // player action). The tests below cover the scheduler actually varying that ratio. Monsters
+    // below are placed far enough from the player that SimpleAIComponent only ever moves toward it
+    // (never gets adjacent and attacks) across the turns each test takes, so MonsterActions' count
+    // reflects action-count, not attack-vs-move outcome.
 
     [Fact]
     public void FasterMonsterActsMultipleTimesWithinASinglePlayerTurn()
