@@ -61,6 +61,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* A newly-revealed line (see revealedMessageCount in GamePage.razor) fades in rather than
+     popping in hard - purely cosmetic, doesn't affect the staggered timing itself. */
+  animation: message_fade_in 0.15s ease-out;
+}
+
+@keyframes message_fade_in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* One-line confirmation shown while a lava step is pending (see awaitingLavaConfirm in

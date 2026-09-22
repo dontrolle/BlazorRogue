@@ -1,6 +1,7 @@
 ﻿@page "/"
 
 @using System.Linq
+@using System.Threading
 @using Microsoft.JSInterop
 @using BlazorRogue.Effects
 @using BlazorRogue.Rendering
@@ -297,7 +298,11 @@ else
     </span>
 
     <div class="message_log">
-        @foreach (var message in game.Messages)
+        @foreach (
+            var message in game
+                .Messages.Take(Math.Min(revealedMessageCount, game.Messages.Count))
+                .TakeLast(MessageDisplayWindow)
+        )
         {
             <div class="message_log_entry">@message</div>
         }
@@ -518,6 +523,7 @@ else
 
         session = Sessions.GetOrCreate(sessionId);
         game = session.Game;
+        revealedMessageCount = game.Messages.Count; // show messages already present, unstaggered
         session.Activate(soundManager);
         soundManager.PlayBackgroundMusic(
             game.Configuration.Levels[game.CurrentLevelNumber].BackgroundSoundtrack
@@ -654,6 +660,9 @@ else
 
         session!.StartNewGame();
         game = session.Game;
+        messageRevealCts?.Cancel();
+        messageRevealCts = null;
+        revealedMessageCount = game.Messages.Count; // fresh Game/log - nothing to stagger
         session.Activate(soundManager!);
         soundManager!.PlayBackgroundMusic(
             game.Configuration.Levels[game.CurrentLevelNumber].BackgroundSoundtrack
@@ -683,6 +692,74 @@ else
     bool awaitingLavaConfirm;
     Direction pendingLavaDirection;
     string? hazardPrompt;
+
+    // Staggers a turn's new message-log lines into view one at a time (see KeyUp/
+    // RevealNewMessagesAsync) rather than dumping them all on the single render TakeTurn produces -
+    // makes a fast moveable's multiple actions in one keypress read as distinct events. Purely a
+    // display concern: game.Messages itself is unaffected, this just governs how much of its tail
+    // is currently rendered (see the message_log markup above).
+    int revealedMessageCount;
+    CancellationTokenSource? messageRevealCts;
+    const int MessageRevealDelayMs = 180;
+
+    // How many of the currently-revealed messages are actually shown at once (see the message_log
+    // markup above) - independent of Game.MaxMessages, which is how much history is retained so a
+    // busy turn's early lines survive long enough to be revealed at all. Keeps the log bar's size
+    // exactly as it's always been even though MaxMessages is now much larger: already-revealed
+    // older lines just slide out of this window as revealedMessageCount keeps climbing through a
+    // busy turn, rather than the bar growing to fit everything at once.
+    const int MessageDisplayWindow = 5;
+
+    // game.Messages is a FIFO list capped at Game.MaxMessages (AddMessage evicts from the front) -
+    // so `after` is always (the surviving tail of `before`) + (this turn's new lines), in order.
+    // Find the largest k where before's last k entries equal after's first k entries; the
+    // remainder is new. A plain Count diff doesn't work once the log is at its cap (the common
+    // case in play): the count can stay flat across a turn that both evicted old lines and added
+    // new ones.
+    static int CountNewMessages(IReadOnlyList<string> before, IReadOnlyList<string> after)
+    {
+        for (int k = Math.Min(before.Count, after.Count); k >= 0; k--)
+        {
+            if (before.Skip(before.Count - k).SequenceEqual(after.Take(k)))
+            {
+                return after.Count - k;
+            }
+        }
+        return after.Count;
+    }
+
+    // Reveals game.Messages' tail from fromCount to toCount one line at a time. The first new line
+    // (fromCount + 1) is shown with no artificial delay and needs no explicit StateHasChanged - it
+    // happens synchronously before this method's first await, so it's already in place by the time
+    // KeyUp's caller (OnGlobalKeyUp) does its own post-KeyUp StateHasChanged. Only the
+    // second-and-later lines in a multi-line turn get the staggered delay, so a turn with exactly
+    // one new message (today's common case) looks and feels exactly as it did before this feature.
+    async Task RevealNewMessagesAsync(int fromCount, int toCount, CancellationToken token)
+    {
+        if (fromCount >= toCount)
+        {
+            return;
+        }
+
+        revealedMessageCount = fromCount + 1;
+        for (int count = fromCount + 2; count <= toCount; count++)
+        {
+            try
+            {
+                await Task.Delay(MessageRevealDelayMs, token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            revealedMessageCount = count;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
     void CloseHelp() => showHelp = false;
 
@@ -888,11 +965,24 @@ else
 
         var mapBeforeAction = game.Map;
 
+        var messagesBefore = game.Messages.ToList();
+
         // OnKeyPress itself calls Map.TakeTurn where a key maps to a real PlayerAction - it
         // resolves the monsters' turn and re-renders moveables internally, so a non-null result
         // here just means "something was attempted"; only the viewport bookkeeping below is left
         // for KeyUp to do.
-        if (OnKeyPress(key, code, shiftKey) is not null)
+        var keyPressResult = OnKeyPress(key, code, shiftKey);
+
+        // Always runs, even on a no-op keypress - CountNewMessages then just returns 0 and
+        // RevealNewMessagesAsync is a no-op, so there's no need to special-case "nothing happened".
+        messageRevealCts?.Cancel();
+        messageRevealCts = new CancellationTokenSource();
+        var messagesAfter = game.Messages;
+        int newMessageCount = CountNewMessages(messagesBefore, messagesAfter);
+        revealedMessageCount = messagesAfter.Count - newMessageCount; // catch up any still-animating prior turn
+        _ = RevealNewMessagesAsync(revealedMessageCount, messagesAfter.Count, messageRevealCts.Token);
+
+        if (keyPressResult is not null)
         {
             if (game.Map != mapBeforeAction)
             {
