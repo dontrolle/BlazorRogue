@@ -29,7 +29,12 @@ class Game
     // would be trivial next to a session's other memory use.
     readonly Dictionary<int, Map> visitedLevels = [];
 
-    const int MaxMessages = 5;
+    // Retained history, not the visible window (see GamePage.razor's MessageDisplayWindow for
+    // that) - a single busy turn can now generate more than a handful of messages on its own
+    // (the tick scheduler lets a fast moveable act - and narrate - several times per player
+    // keypress), so this needs real headroom or GamePage's staggered reveal would be showing a
+    // turn's messages that were already evicted before ever being displayed.
+    const int MaxMessages = 20;
 
     /// <summary>
     /// <c>Game.DebugMode</c> controls various settings, e.g. verbose combat logging

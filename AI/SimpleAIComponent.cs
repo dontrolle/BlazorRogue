@@ -1,5 +1,4 @@
 ﻿using System;
-using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.World;
 
 namespace BlazorRogue.AI;
@@ -8,11 +7,11 @@ class SimpleAIComponent(Map map) : AIComponent(map)
 {
     public const string ComponentId = "simple_ai";
 
-    public override AttackResult? TakeTurn()
+    public override AITurnOutcome TakeTurn()
     {
         if (!Awake)
         {
-            return null;
+            return new AITurnOutcome.DidNothing();
         }
 
         int dx = Math.Sign(map.Player.X - Owner!.X);
@@ -35,7 +34,7 @@ class SimpleAIComponent(Map map) : AIComponent(map)
             // Trying to leave a slow liquid can fail - the turn is spent standing still.
             if (map.LiquidStumble(Owner!))
             {
-                return null;
+                return new AITurnOutcome.DidNothing();
             }
 
             // where we came from is definetely not blocking anymore, since we just vacated the tile
@@ -44,6 +43,7 @@ class SimpleAIComponent(Map map) : AIComponent(map)
             Owner.Move(dx, dy);
             // and we need to update blocked status for the destination tile (for the benefit of other moveables)
             map.BlocksMovementMap[destX, destY] = true;
+            return new AITurnOutcome.Moved(Owner.X, Owner.Y);
         }
         // A blocked edge (e.g. a fence) blocks combat the same way it blocks movement - can't
         // reach through it to attack the player standing just beyond it.
@@ -58,9 +58,9 @@ class SimpleAIComponent(Map map) : AIComponent(map)
                 map.Player.CombatComponent!
             );
             References.SoundManager.PlayCombatSound(result.Hit);
-            return result;
+            return new AITurnOutcome.Attacked(result);
         }
 
-        return null;
+        return new AITurnOutcome.DidNothing();
     }
 }

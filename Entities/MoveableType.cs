@@ -16,7 +16,8 @@ class MoveableType(
     string aiComponentId,
     SettingsMap aiComponentSettings,
     bool singular,
-    IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null
+    IReadOnlyDictionary<AbilityId, SettingsMap>? abilities = null,
+    int tickCost = 6
 )
 {
     public string AnimationClass { get; } = animationClass;
@@ -29,6 +30,7 @@ class MoveableType(
     public int Toughness { get; } = toughness;
     public int Armour { get; } = armour;
     public int Wounds { get; } = wounds;
+    public int TickCost { get; } = tickCost;
     public string AIComponentId { get; } = aiComponentId;
     public SettingsMap AIComponentSettings { get; } = aiComponentSettings;
     public bool Singular { get; } = singular;

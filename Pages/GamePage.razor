@@ -1,8 +1,11 @@
 ﻿@page "/"
 
 @using System.Linq
+@using System.Threading
 @using Microsoft.JSInterop
+@using BlazorRogue.AI
 @using BlazorRogue.Effects
+@using BlazorRogue.GameObjects
 @using BlazorRogue.Rendering
 @using BlazorRogue.Sessions
 @using BlazorRogue.World
@@ -264,6 +267,7 @@ else
                                     }
 
                                     <div class="@baseCssClass" style="@style" data-tool-tip="@datatooltip"
+                                         data-moveable-id="@((decoration.GameObject as Moveable)?.InstanceId)"
                                          alt="@x,@y (Name=@decoration.GameObject.Name, Blocking=@decoration.GameObject.Blocking)">
                                         @divContent
                                     </div>
@@ -297,7 +301,11 @@ else
     </span>
 
     <div class="message_log">
-        @foreach (var message in game.Messages)
+        @foreach (
+            var message in game
+                .Messages.Take(Math.Min(revealedMessageCount, game.Messages.Count))
+                .TakeLast(MessageDisplayWindow)
+        )
         {
             <div class="message_log_entry">@message</div>
         }
@@ -419,6 +427,18 @@ else
     // zero-width and sized the grid ~3 columns too wide, leaving scrollbars until the first resize.
     private bool _needsInitialFit;
 
+    // A turn's move-replay payload, built synchronously in KeyUp (see BuildMoveReplay) and
+    // dispatched to JS from the next OnAfterRenderAsync - see that method for why it can't be
+    // dispatched any earlier.
+    private List<MoveReplayEntry>? _pendingMoveReplay;
+
+    // JSON-serialized (camelCase, per Blazor's default JS interop naming policy) to
+    // blazorRogueReplay.play - Offsets[i] is this moveable's (x, y) at replay step i, expressed in
+    // pixels *relative to its final, already-rendered resting position* (so {0,0} would be that
+    // resting position itself - callers omit it rather than send a trailing no-op step; see
+    // BuildMoveReplay).
+    private sealed record MoveReplayEntry(string Id, int[][] Offsets);
+
     private sealed record HealthBarMetrics(
         bool ShowDrain,
         int GreyStripWidthPx,
@@ -503,6 +523,16 @@ else
                 await FitMapToViewportAsync();
                 StateHasChanged();
             }
+
+            // Dispatched here rather than right after TakeTurn in KeyUp - the DOM only actually
+            // reflects that turn's render once OnAfterRenderAsync fires, and the JS side locates
+            // each moveable's element by data-moveable-id, so it must run no earlier than this.
+            if (_pendingMoveReplay is { Count: > 0 } replay)
+            {
+                _pendingMoveReplay = null;
+                await JsRuntime.InvokeVoidAsync("blazorRogueReplay.play", replay, MessageRevealDelayMs);
+            }
+
             return;
         }
 
@@ -518,6 +548,7 @@ else
 
         session = Sessions.GetOrCreate(sessionId);
         game = session.Game;
+        revealedMessageCount = game.Messages.Count; // show messages already present, unstaggered
         session.Activate(soundManager);
         soundManager.PlayBackgroundMusic(
             game.Configuration.Levels[game.CurrentLevelNumber].BackgroundSoundtrack
@@ -654,6 +685,9 @@ else
 
         session!.StartNewGame();
         game = session.Game;
+        messageRevealCts?.Cancel();
+        messageRevealCts = null;
+        revealedMessageCount = game.Messages.Count; // fresh Game/log - nothing to stagger
         session.Activate(soundManager!);
         soundManager!.PlayBackgroundMusic(
             game.Configuration.Levels[game.CurrentLevelNumber].BackgroundSoundtrack
@@ -683,6 +717,118 @@ else
     bool awaitingLavaConfirm;
     Direction pendingLavaDirection;
     string? hazardPrompt;
+
+    // Staggers a turn's new message-log lines into view one at a time (see KeyUp/
+    // RevealNewMessagesAsync) rather than dumping them all on the single render TakeTurn produces -
+    // makes a fast moveable's multiple actions in one keypress read as distinct events. Purely a
+    // display concern: game.Messages itself is unaffected, this just governs how much of its tail
+    // is currently rendered (see the message_log markup above).
+    int revealedMessageCount;
+    CancellationTokenSource? messageRevealCts;
+    const int MessageRevealDelayMs = 180;
+
+    // How many of the currently-revealed messages are actually shown at once (see the message_log
+    // markup above) - independent of Game.MaxMessages, which is how much history is retained so a
+    // busy turn's early lines survive long enough to be revealed at all. Keeps the log bar's size
+    // exactly as it's always been even though MaxMessages is now much larger: already-revealed
+    // older lines just slide out of this window as revealedMessageCount keeps climbing through a
+    // busy turn, rather than the bar growing to fit everything at once.
+    const int MessageDisplayWindow = 5;
+
+    // game.Messages is a FIFO list capped at Game.MaxMessages (AddMessage evicts from the front) -
+    // so `after` is always (the surviving tail of `before`) + (this turn's new lines), in order.
+    // Find the largest k where before's last k entries equal after's first k entries; the
+    // remainder is new. A plain Count diff doesn't work once the log is at its cap (the common
+    // case in play): the count can stay flat across a turn that both evicted old lines and added
+    // new ones.
+    static int CountNewMessages(IReadOnlyList<string> before, IReadOnlyList<string> after)
+    {
+        for (int k = Math.Min(before.Count, after.Count); k >= 0; k--)
+        {
+            if (before.Skip(before.Count - k).SequenceEqual(after.Take(k)))
+            {
+                return after.Count - k;
+            }
+        }
+        return after.Count;
+    }
+
+    // Reveals game.Messages' tail from fromCount to toCount one line at a time. The first new line
+    // (fromCount + 1) is shown with no artificial delay and needs no explicit StateHasChanged - it
+    // happens synchronously before this method's first await, so it's already in place by the time
+    // KeyUp's caller (OnGlobalKeyUp) does its own post-KeyUp StateHasChanged. Only the
+    // second-and-later lines in a multi-line turn get the staggered delay, so a turn with exactly
+    // one new message (the common case) shows it immediately, with no stagger at all.
+    async Task RevealNewMessagesAsync(int fromCount, int toCount, CancellationToken token)
+    {
+        if (fromCount >= toCount)
+        {
+            return;
+        }
+
+        revealedMessageCount = fromCount + 1;
+        for (int count = fromCount + 2; count <= toCount; count++)
+        {
+            try
+            {
+                await Task.Delay(MessageRevealDelayMs, token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+            revealedMessageCount = count;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // Turns this turn's MonsterActions into a per-moveable list of intermediate squares to
+    // visually step through client-side - one entry per moveable that actually moved more than
+    // once (a moveable with 0 or 1 Moved outcomes needs no replay at all: the render KeyUp already
+    // produced is already correct as-is). AITurnOutcome.Attacked/DidNothing outcomes contribute no
+    // square of their own - the actor simply holds at wherever its last Moved outcome (or its
+    // pre-turn position, if it hasn't moved yet) left it; combat's own hit-flash/shake carries that
+    // beat instead.
+    List<MoveReplayEntry> BuildMoveReplay(IReadOnlyList<MonsterAction> monsterActions)
+    {
+        int tileSize = renderAscii ? asciiGridTileSize : graphicGridTileSize;
+        var entries = new List<MoveReplayEntry>();
+
+        foreach (var group in monsterActions.GroupBy(a => a.Actor))
+        {
+            var waypoints = new List<(int X, int Y)>();
+            foreach (var action in group)
+            {
+                if (action.Outcome is AITurnOutcome.Moved moved)
+                {
+                    waypoints.Add((moved.X, moved.Y));
+                }
+            }
+
+            if (waypoints.Count <= 1)
+            {
+                continue; // a plain single move (or none) - nothing to replay
+            }
+
+            (int X, int Y) final = waypoints[^1];
+            entries.Add(
+                new MoveReplayEntry(
+                    group.Key.InstanceId,
+                    [
+                        .. waypoints
+                            .Take(waypoints.Count - 1)
+                            .Select(w => new[] { (w.X - final.X) * tileSize, (w.Y - final.Y) * tileSize }),
+                    ]
+                )
+            );
+        }
+
+        return entries;
+    }
 
     void CloseHelp() => showHelp = false;
 
@@ -888,11 +1034,38 @@ else
 
         var mapBeforeAction = game.Map;
 
+        var messagesBefore = game.Messages.ToList();
+
         // OnKeyPress itself calls Map.TakeTurn where a key maps to a real PlayerAction - it
         // resolves the monsters' turn and re-renders moveables internally, so a non-null result
         // here just means "something was attempted"; only the viewport bookkeeping below is left
         // for KeyUp to do.
-        if (OnKeyPress(key, code, shiftKey) is not null)
+        var keyPressResult = OnKeyPress(key, code, shiftKey);
+
+        // Always runs, even on a no-op keypress - CountNewMessages then just returns 0 and
+        // RevealNewMessagesAsync is a no-op, so there's no need to special-case "nothing happened".
+        messageRevealCts?.Cancel();
+        messageRevealCts = new CancellationTokenSource();
+        var messagesAfter = game.Messages;
+        int newMessageCount = CountNewMessages(messagesBefore, messagesAfter);
+        revealedMessageCount = messagesAfter.Count - newMessageCount; // catch up any still-animating prior turn
+        _ = RevealNewMessagesAsync(revealedMessageCount, messagesAfter.Count, messageRevealCts.Token);
+
+        // A fast moveable (low TickCost) can rack up more than one MonsterAction in a single
+        // keypress, but the render above already snapped it straight to its final square - build
+        // the client-side replay of its intermediate square(s) here (picked up and dispatched to
+        // JS from OnAfterRenderAsync, once the DOM actually reflects this render) rather than
+        // reopening the server for a multi-render turn - see BuildMoveReplay.
+        if (keyPressResult is { MonsterActions.Count: > 0 } turnResult)
+        {
+            var replay = BuildMoveReplay(turnResult.MonsterActions);
+            if (replay.Count > 0)
+            {
+                _pendingMoveReplay = replay;
+            }
+        }
+
+        if (keyPressResult is not null)
         {
             if (game.Map != mapBeforeAction)
             {

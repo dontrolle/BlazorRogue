@@ -33,7 +33,7 @@ kept for exactly this) so `Moveable.Move`'s enter-hook and friends - which reach
 control via `PlaceAt`/`AddMonster`/`AddMoveable`, unlike hunting for a suitable spot in a real
 generated level.
 
-`Map.TakeTurn(PlayerAction)` (issue #88's unified turn entry point - see the *Turn-taking* entry in
+`Map.TakeTurn(PlayerAction)` (the unified turn entry point - see the *Turn-taking* entry in
 [`ARCHITECTURE.md`](ARCHITECTURE.md)) can be called directly on a bare-floor `Map`/`Game` built the
 same way, with no driver needed - see `TurnResultTests` for that pattern, exercising `TakeTurn`'s own
 turn-resolution rules. `BlazorRogue.Tests/TestSupport/HeadlessPlayDriver.cs` is a thin wrapper around
@@ -42,6 +42,17 @@ boilerplate each time, optionally via `RandomHazardAvoidingPolicy` (also under `
 `IPlayerPolicy` picking uniformly among the player's currently-legal, hazard-excluding actions)
 instead of scripting each `PlayerAction` by hand - see `HeadlessPlayDriverTests` for both, including a
 smoke test that hundreds of turns of random play against a real generated dungeon never throw.
+
+For the tick-priority-queue scheduler specifically (see *Tick-priority-queue scheduler* in
+[`ARCHITECTURE.md`](ARCHITECTURE.md)) - a monster acting more than once, or sitting out, within a
+single `TakeTurn` call - place a moveable with a real `TickCost` (`NewCreature`'s default matches
+the player's, so tests that want a faster/slower ratio pass an explicit one) at a controlled
+distance via `PlaceAt`/`AddMonster` on a bare-floor `Map`, then assert on
+`TurnResult.MonsterActions`' count/contents directly. See
+`FasterMonsterActsMultipleTimesWithinASinglePlayerTurn` and the tests after it in
+`TurnResultTests` for the pattern, including how they place monsters far enough from the player
+that `SimpleAIComponent` only ever moves toward it (so `MonsterActions`' count reflects
+action-count, not attack-vs-move outcome).
 
 `ConfigurationTests` deliberately avoids hardcoding tunable data values (monster combat stats, level
 dimensions, etc.) pulled from the real `Data/*.json` files it parses — those get retuned often, and
@@ -109,3 +120,19 @@ every technique below; see that file for the driver's own commands and gotchas (
   the item — in tileset mode each row has an `<img class="inventory_icon">` (its `uf_items` sprite);
   in ASCII mode a `<span class="inventory_glyph">` with the item's coloured character. Then dispatch
   the item's letter and confirm it's used/equipped and the modal closes.
+- **The move-replay JS engine** (see *Turn-visualization* in [`ARCHITECTURE.md`](ARCHITECTURE.md))
+  is easiest checked directly rather than by hunting for an organic multi-move monster turn: every
+  moveable's decoration carries `data-moveable-id`, so inject a synthetic payload -
+  `window.blazorRogueReplay.play([{ id: <a moveable's data-moveable-id>, offsets: [[-96, 0], [-48,
+  0]] }], 300)` - and screenshot at 0ms/~320ms/~640ms to confirm the element's `style.transform`
+  steps through each offset and clears at the end. To instead observe it end-to-end from a real
+  keypress, monkey-patch the hook first (`const orig = window.blazorRogueReplay.play;
+  window.blazorRogueReplay.play = (entries, delay) => { /* record entries */ return
+  orig(entries, delay); }`) and check what it recorded after each key. Triggering a *genuine*
+  multi-`Moved` turn organically is fiddly: `SimpleAIComponent` closes distance by exactly one tile
+  per action regardless of direction (including diagonals), so a monster within 2 tiles of the
+  player converts its second action into an `Attacked`, not a `Moved` (no replay entry - correctly,
+  since `BuildMoveReplay` skips anything with ≤1 waypoint) - it takes real open ground and a
+  starting distance of 3+ tiles (not the `fence_gallery` debug level, whose fixed goblin sits behind
+  blocked fence edges that tend to produce a movement stalemate instead) to see two consecutive
+  `Moved` outcomes in one player turn.
