@@ -88,20 +88,56 @@ how to test changes in these areas.
   attacking, making a two-turn move-then-attack look like it happened in one turn.
 - **Turn-taking**: `Map.TakeTurn(PlayerAction)` (`World/Map.cs`) is the single entry point for a
   player turn — both `GamePage.razor`'s `OnKeyPress`/`HandleInventoryKey` and
-  `BlazorRogue.Tests/TestSupport/HeadlessPlayDriver.cs` (issue #88's headless play driver, used for
-  fast automated play tests and play-balance sweeps with no Blazor Server/browser involved) drive
-  the game exclusively through it — there is no separate UI-only turn path. `World/Direction.cs` is
+  `BlazorRogue.Tests/TestSupport/HeadlessPlayDriver.cs` (a headless play driver, used for fast
+  automated play tests and play-balance sweeps with no Blazor Server/browser involved) drive the
+  game exclusively through it — there is no separate UI-only turn path. `World/Direction.cs` is
   the 8-compass-point enum (plus `None` for "here"/wait-in-place) everything below `Map`'s public
   surface works in; `World/PlayerAction.cs` is the discriminated union of what a turn can be
   (`Move`, `UseDirection`, `UseItem`, `DropItem`, `PickUp`); `World/TurnResult.cs` aggregates what
-  actually happened (`TurnConsumed`, the player's own `AttackResult?`, every monster's
-  `MonsterAttack` that turn, and the game-over/level-changed flags) so a caller can react without
-  re-deriving it from `Game.Messages`. All three types (and `Map` itself) are `internal`, made
-  visible to `BlazorRogue.Tests` via `InternalsVisibleTo` in `BlazorRogue.csproj`.
-  `BlazorRogue.Tests/TestSupport/RandomHazardAvoidingPolicy.cs` is the built-in
+  actually happened (`TurnConsumed`, the player's own `AttackResult?`, every `MonsterAction`
+  resolved that turn — see *Tick-priority-queue scheduler* below — and the game-over/level-changed
+  flags) so a caller can react without re-deriving it from `Game.Messages`. All three types (and
+  `Map` itself) are `internal`, made visible to `BlazorRogue.Tests` via `InternalsVisibleTo` in
+  `BlazorRogue.csproj`. `BlazorRogue.Tests/TestSupport/RandomHazardAvoidingPolicy.cs` is the built-in
   `IPlayerPolicy` `HeadlessPlayDriver` can drive turns with instead of a caller picking each action
   by hand — it picks uniformly among the player's currently-legal moves/attacks/pickup, excluding
   any direction `Map.PeekLethalLiquidStep` flags as walking into instakill liquid.
+- **Tick-priority-queue scheduler**: every `Moveable` has a `TickCost` (`monsters.json`/
+  `heroes.json`'s optional `tickCost`, default 6 for both heroes and monsters — lower is faster
+  relative to other moveables; `Data/monsters.json` tunes `goblin`/`goblinWarrior` to 3 and `ogre`
+  to 12 as real examples). `Map` keeps a `PriorityQueue<Moveable, long> pendingMonsters` plus its
+  own `playerNextTick` clock. `AIComponent.Wake()` enqueues a monster (`Map.EnqueueMonster`) the
+  moment it transitions asleep → awake, at the current `playerNextTick`. `Map.TakeTurn` advances
+  `playerNextTick` by the player's own `TickCost` *before* calling `Map.PlayerTookTurn()`, which
+  then drains every monster whose queued tick is still less than the new `playerNextTick`,
+  re-enqueuing each at `tick + monster.TickCost` after it acts — so a monster faster than the
+  player (lower `TickCost`) can act more than once per player keypress, and a slower one can sit
+  out a turn entirely. Each drained action becomes an `AI/AITurnOutcome.cs` value (`Moved`,
+  `Attacked`, or `DidNothing`) and, when it isn't `DidNothing`, one entry in
+  `TurnResult.MonsterActions`, in resolution order. See *Turn-visualization* below for how
+  `GamePage.razor` surfaces a multi-action turn to the player.
+- **Turn-visualization (message reveal + move replay)**: `GamePage.razor`'s `KeyUp` drives the
+  whole turn through one synchronous `Map.TakeTurn` call and one render — deliberately: see the
+  *References* gotcha above about no awaits between `session.Activate` and the end of the handler.
+  That means a turn where a fast moveable acted more than once (see *Tick-priority-queue
+  scheduler*) already has every moveable at its final position by the time anything renders, so two
+  client-side layers replay the intermediate steps afterward instead of reopening the server for a
+  multi-render turn:
+  - **Message log**: `revealedMessageCount`/`RevealNewMessagesAsync` reveal a turn's new
+    `Game.Messages` lines one at a time (`MessageRevealDelayMs`, 180ms apart), calling
+    `StateHasChanged` again on each step — this layer *does* re-render repeatedly, since it's only
+    re-slicing an already-known list.
+  - **Move replay**: `BuildMoveReplay` turns `TurnResult.MonsterActions` into a list of
+    intermediate grid squares per moveable (only for one that actually moved more than once — a
+    single move needs no replay entry at all), stashes it in `_pendingMoveReplay`, and dispatches
+    it via `JSRuntime.InvokeVoidAsync("blazorRogueReplay.play", ...)` from `OnAfterRenderAsync`
+    rather than from `KeyUp` itself — the DOM only actually reflects the turn's render once
+    `OnAfterRenderAsync` fires, and the JS side needs to find each moveable's live element.
+    `wwwroot/blazorrogue.js`'s `window.blazorRogueReplay` then steps that element through its
+    waypoints via `CSS transform: translate()`, snap-through (no tween), entirely client-side, with
+    no further server round-trips. Elements are matched by a `data-moveable-id` attribute driven
+    off `Moveable.InstanceId` (a per-instance GUID, distinct from the pre-existing `Moveable.Id`,
+    which is actually the monster *type* id and thus shared by every goblin on the map).
 - **Edge-blocking** (`World/Edge.cs`, `GameObject.BlockedEdges`): a `GameObject` can declare which of
   its own tile's four edges block crossing between it and the adjacent tile, independent of whether
   either tile is `Blocking` for occupancy and independent of light-blocking — `Statue` was the first
