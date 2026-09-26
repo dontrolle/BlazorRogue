@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using BlazorRogue.Entities;
 
 namespace BlazorRogue.Tests;
@@ -44,10 +42,10 @@ public class StaticDecorativeObjectTypeTests
         var seen = new HashSet<string>();
         for (int i = 0; i < 200; i++)
         {
-            seen.Add(type.RandomImage);
+            _ = seen.Add(type.RandomImage);
         }
 
-        Assert.Equal(images.Values.ToHashSet(), seen);
+        Assert.Equal([.. images.Values], seen);
     }
 
     [Fact]
@@ -62,12 +60,12 @@ public class StaticDecorativeObjectTypeTests
         for (int i = 0; i < 200; i++)
         {
             var (image, animationClass) = type.RandomImageWithAnimationClass;
-            seenImages.Add(image);
+            _ = seenImages.Add(image);
             Assert.Equal(image == "img_a" ? "anim_a" : "anim_b", animationClass);
         }
 
         // Also confirms both tags actually got exercised across 200 draws, not just one.
-        Assert.Equal(new HashSet<string> { "img_a", "img_b" }, seenImages);
+        Assert.Equal(["img_a", "img_b"], seenImages);
     }
 
     [Fact]

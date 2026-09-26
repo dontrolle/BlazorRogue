@@ -9,7 +9,7 @@ namespace BlazorRogue.Tests.TestSupport;
 /// <see cref="Game"/> instance and forwards to it, plus optionally driving an
 /// <see cref="IPlayerPolicy"/> instead of a caller picking each <see cref="PlayerAction"/> by hand.
 /// Reuses <see cref="FakeJsRuntime"/>'s existing <c>[ModuleInitializer]</c>-wired
-/// <see cref="BlazorRogue.Effects.SoundManager"/> - no separate JS-interop plumbing needed.
+/// <see cref="Effects.SoundManager"/> - no separate JS-interop plumbing needed.
 /// </summary>
 /// <remarks>
 /// Wraps an already-constructed <paramref name="game"/> - e.g. one built over a hand-rolled
@@ -21,7 +21,7 @@ sealed class HeadlessPlayDriver(Game game)
     public Game Game { get; } = game;
 
     /// <summary>
-    /// The current map - reads straight through to <see cref="BlazorRogue.Game.Map"/>, so it
+    /// The current map - reads straight through to <see cref="Game.Map"/>, so it
     /// already reflects a level transition mid-game (e.g. taking stairs).
     /// </summary>
     public Map Map => Game.Map;

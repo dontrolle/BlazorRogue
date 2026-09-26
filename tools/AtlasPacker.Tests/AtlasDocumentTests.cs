@@ -21,7 +21,7 @@ public class AtlasDocumentTests
         var entry = new SpriteEntry("uf_terrain", 0, 0, 48, 48);
 
         Assert.Equal((0, 0), entry.FrameOrigin(0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => entry.FrameOrigin(1));
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => entry.FrameOrigin(1));
     }
 
     [Fact]

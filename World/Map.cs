@@ -661,7 +661,7 @@ class Map
     /// something - resolves the monsters' turn and the liquid tick via
     /// <see cref="PlayerTookTurn"/>, and always re-renders moveables afterward (see
     /// ARCHITECTURE.md's documented per-turn ordering). A shift+direction "use" that transitions
-    /// levels (e.g. stairs) replaces <see cref="Game"/>'s <see cref="BlazorRogue.Game.Map"/>
+    /// levels (e.g. stairs) replaces <see cref="Game"/>'s <see cref="Game.Map"/>
     /// outright, mid-call - detected the same way GamePage.razor does, by comparing it before and
     /// after - so the monsters'-turn/render steps below run on whichever map is current afterward,
     /// not on this (possibly now-stale) instance.

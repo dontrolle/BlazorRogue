@@ -14,20 +14,15 @@ public class HeroBlockTests
         int y,
         int expectedCol,
         int expectedRow
-    )
-    {
-        Assert.Equal((expectedCol, expectedRow), HeroBlock.IdentityFromSimpleSheetPosition(x, y));
-    }
+    ) => Assert.Equal((expectedCol, expectedRow), HeroBlock.IdentityFromSimpleSheetPosition(x, y));
 
     [Theory]
     [InlineData(-1, 0)]
     [InlineData(0, -1)]
-    public void IdentityFromSimpleSheetPositionThrowsForANegativePosition(int x, int y)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+    public void IdentityFromSimpleSheetPositionThrowsForANegativePosition(int x, int y) =>
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() =>
             HeroBlock.IdentityFromSimpleSheetPosition(x, y)
         );
-    }
 
     [Theory]
     [InlineData(3, 0, 0, 576, 0)]
@@ -40,16 +35,11 @@ public class HeroBlockTests
         int frame,
         int expectedX,
         int expectedY
-    )
-    {
-        Assert.Equal((expectedX, expectedY), HeroBlock.FrameOrigin(col, row, frame));
-    }
+    ) => Assert.Equal((expectedX, expectedY), HeroBlock.FrameOrigin(col, row, frame));
 
     [Theory]
     [InlineData(-1)]
     [InlineData(4)]
-    public void FrameOriginThrowsForAnOutOfRangeFrame(int frame)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => HeroBlock.FrameOrigin(0, 0, frame));
-    }
+    public void FrameOriginThrowsForAnOutOfRangeFrame(int frame) =>
+        _ = Assert.Throws<ArgumentOutOfRangeException>(() => HeroBlock.FrameOrigin(0, 0, frame));
 }

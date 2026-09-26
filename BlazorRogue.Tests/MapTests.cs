@@ -258,7 +258,7 @@ public class MapTests
 
         int messageCountBefore = game.Messages.Count;
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((4, 4), (monster.X, monster.Y)); // the edge blocks the move too
         Assert.Equal(map.Player.CombatComponent!.MaxWounds, map.Player.CombatComponent.Wounds); // never hit
@@ -282,7 +282,7 @@ public class MapTests
 
         int messageCountBefore = game.Messages.Count;
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((4, 4), (monster.X, monster.Y)); // still a melee attack, not a move
         Assert.True(game.Messages.Count > messageCountBefore); // CloseCombatAttack ran (hit or miss)

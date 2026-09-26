@@ -44,13 +44,10 @@ static class TestImages
     public static NormalizedImage Crop(SKBitmap source, int x, int y, int width, int height)
     {
         using var dest = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
-        if (!source.ExtractSubset(dest, new SKRectI(x, y, x + width, y + height)))
-        {
-            throw new InvalidOperationException(
+        return !source.ExtractSubset(dest, new SKRectI(x, y, x + width, y + height))
+            ? throw new InvalidOperationException(
                 "ExtractSubset failed - crop rectangle out of bounds?"
-            );
-        }
-
-        return NormalizedImage.FromBitmap(dest);
+            )
+            : NormalizedImage.FromBitmap(dest);
     }
 }

@@ -439,25 +439,15 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
     /// default <see cref="RectangularRoomCarver"/>). Each leaf rolls its own shape independently;
     /// internal nodes just pass the inherited carver through.
     /// </summary>
-    Func<Node, IRoomCarver, Random, IRoomCarver>? BuildSelectCarver()
-    {
-        if (roomCarverPool.Ids.Length == 0)
-        {
-            return null;
-        }
-
-        return (node, inherited, _) =>
-        {
-            if (node.Left is not null || node.Right is not null)
-            {
-                return inherited;
-            }
-
-            return CarverForId(
-                GetRandomElementWeighted(roomCarverPool.Ids, roomCarverPool.Weights)
-            );
-        };
-    }
+    Func<Node, IRoomCarver, Random, IRoomCarver>? BuildSelectCarver() =>
+        roomCarverPool.Ids.Length == 0
+            ? null
+            : (node, inherited, _) =>
+                node.Left is not null || node.Right is not null
+                    ? inherited
+                    : CarverForId(
+                        GetRandomElementWeighted(roomCarverPool.Ids, roomCarverPool.Weights)
+                    );
 
     static IRoomCarver CarverForId(string id) =>
         id switch

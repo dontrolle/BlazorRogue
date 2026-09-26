@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BlazorRogue.Entities;
 using BlazorRogue.Rendering;
 
@@ -52,7 +51,7 @@ public class AnimationCssGeneratorTests
     {
         var atlas = MakeAtlasWithSprite("templar");
 
-        var css = AnimationCssGenerator.Generate(
+        string css = AnimationCssGenerator.Generate(
             [MakeMoveableType("templar", "animated_templar")],
             atlas
         );
@@ -70,7 +69,7 @@ public class AnimationCssGeneratorTests
     {
         var atlas = MakeAtlasWithSprite("goblin_warrior");
 
-        var css = AnimationCssGenerator.Generate(
+        string css = AnimationCssGenerator.Generate(
             [MakeMoveableType("goblinWarrior", "animated_goblin_warrior")],
             atlas
         );
@@ -91,7 +90,7 @@ public class AnimationCssGeneratorTests
     {
         var atlas = MakeAtlasWithSprite("templar");
 
-        var css = AnimationCssGenerator.Generate(
+        string css = AnimationCssGenerator.Generate(
             [
                 MakeMoveableType("templar", "animated_templar"),
                 MakeMoveableType("otherTemplar", "animated_templar"),
@@ -119,7 +118,7 @@ public class AnimationCssGeneratorTests
             )
         );
 
-        var css = AnimationCssGenerator.Generate(
+        string css = AnimationCssGenerator.Generate(
             [MakeMoveableType("templar", "animated_templar")],
             atlas
         );
@@ -133,9 +132,9 @@ public class AnimationCssGeneratorTests
 
     static int CountOccurrences(string haystack, string needle)
     {
-        var count = 0;
-        var index = 0;
-        while ((index = haystack.IndexOf(needle, index, System.StringComparison.Ordinal)) >= 0)
+        int count = 0;
+        int index = 0;
+        while ((index = haystack.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
         {
             count++;
             index += needle.Length;

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;
 
@@ -75,7 +73,7 @@ public class StairTests
 
         Assert.Equal(2, game.Map.Decorations[x, y].Count);
         var imageNames = game.Map.Decorations[x, y].Select(d => d.ImageName).Distinct();
-        Assert.Single(imageNames);
+        _ = Assert.Single(imageNames);
     }
 
     [Fact]
@@ -208,7 +206,7 @@ public class StairTests
     public void RevisitingALevelNeverForgetsPreviouslyExploredTiles()
     {
         var game = new Game();
-        var mappedBeforeLeaving = (bool[,])game.Map.IsMappedMap.Clone();
+        bool[,] mappedBeforeLeaving = (bool[,])game.Map.IsMappedMap.Clone();
 
         game.TransitionToLevel(StairDirection.Down);
         game.TransitionToLevel(StairDirection.Up);
@@ -228,7 +226,7 @@ public class StairTests
         );
     }
 
-    static (int X, int Y) FindFreeTile(BlazorRogue.World.Map map)
+    static (int X, int Y) FindFreeTile(Map map)
     {
         int x = -1;
         int y = -1;
@@ -247,12 +245,9 @@ public class StairTests
             }
         );
 
-        if (x == -1)
-        {
-            throw new InvalidOperationException("No free tile found on the generated map.");
-        }
-
-        return (x, y);
+        return x == -1
+            ? throw new InvalidOperationException("No free tile found on the generated map.")
+            : (x, y);
     }
 
     [Fact]
@@ -286,6 +281,6 @@ public class StairTests
         var game = new Game();
         var notAStair = game.Map.Monsters.First();
 
-        Assert.Throws<InvalidOperationException>(() => Stair.Use(notAStair));
+        _ = Assert.Throws<InvalidOperationException>(() => Stair.Use(notAStair));
     }
 }

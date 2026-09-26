@@ -6,7 +6,7 @@ namespace BlazorRogue.Components;
 
 /// <summary>
 /// Holds the (possibly empty) set of <see cref="AbilityId"/>s a <see cref="GameObjects.Moveable"/>
-/// was tagged with in its <see cref="Entities.MoveableType"/>, each with its own parsed
+/// was tagged with in its <see cref="MoveableType"/>, each with its own parsed
 /// <see cref="SettingsMap"/> of parameters. Unlike the other components, this is purely data -
 /// behaviour lives at the fixed call sites that check for a specific ability (see
 /// <see cref="World.Map.IsFlying"/> and <see cref="Combat.Warhammer.FightingSystem"/>).

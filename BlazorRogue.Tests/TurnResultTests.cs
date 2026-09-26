@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using BlazorRogue.AI;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
@@ -148,7 +146,7 @@ public class TurnResultTests
 
         Assert.True(result.TurnConsumed);
         Assert.Equal((4, 4), (map.Player.X, map.Player.Y)); // attacking, not moving onto the tile
-        Assert.NotNull(result.PlayerAttack);
+        _ = Assert.NotNull(result.PlayerAttack);
         Assert.True(result.PlayerAttack!.Value.Hit);
         Assert.True(result.PlayerAttack.Value.DefenderKilled);
         Assert.Equal(0, monster.CombatComponent!.Wounds);
@@ -195,7 +193,7 @@ public class TurnResultTests
         Assert.Equal((5, 4), (map.Player.X, map.Player.Y));
         var monsterAction = Assert.Single(result.MonsterActions);
         Assert.Same(monster, monsterAction.Actor);
-        Assert.IsType<AITurnOutcome.Attacked>(monsterAction.Outcome);
+        _ = Assert.IsType<AITurnOutcome.Attacked>(monsterAction.Outcome);
     }
 
     [Fact]
@@ -282,7 +280,7 @@ public class TurnResultTests
     {
         var game = new Game();
         game.Map.Player.CombatComponent!.ApplyDamage(10);
-        game.Map.Player.InventoryComponent!.TryPickUp(TestPotion, out char letter);
+        _ = game.Map.Player.InventoryComponent!.TryPickUp(TestPotion, out char letter);
         int woundsBeforeUse = game.Map.Player.CombatComponent.Wounds;
 
         var result = game.Map.TakeTurn(new PlayerAction.UseItem(letter));
@@ -297,7 +295,7 @@ public class TurnResultTests
         var game = new Game();
         PlacePlayerOnEmptyTile(game);
         var (x, y) = (game.Map.Player.X, game.Map.Player.Y);
-        game.Map.Player.InventoryComponent!.TryPickUp(TestPotion, out char letter);
+        _ = game.Map.Player.InventoryComponent!.TryPickUp(TestPotion, out char letter);
 
         var result = game.Map.TakeTurn(new PlayerAction.DropItem(letter));
 
@@ -375,7 +373,7 @@ public class TurnResultTests
         var first = map.TakeTurn(new PlayerAction.Move(Direction.East));
         var second = map.TakeTurn(new PlayerAction.Move(Direction.West));
 
-        Assert.Single(first.MonsterActions); // due at tick 0, acts once, next due at tick 12
+        _ = Assert.Single(first.MonsterActions); // due at tick 0, acts once, next due at tick 12
         Assert.Empty(second.MonsterActions); // player's tick is only 12, not yet strictly past 12
     }
 
@@ -395,7 +393,7 @@ public class TurnResultTests
         {
             var direction = i % 2 == 0 ? Direction.East : Direction.West;
             var result = map.TakeTurn(new PlayerAction.Move(direction));
-            Assert.Single(result.MonsterActions);
+            _ = Assert.Single(result.MonsterActions);
         }
     }
 

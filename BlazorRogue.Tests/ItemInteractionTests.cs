@@ -1,4 +1,3 @@
-using System.Linq;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World;
@@ -96,8 +95,8 @@ public class ItemInteractionTests
     {
         var game = new Game();
         PlacePlayerOnEmptyTile(game);
-        AddItemAtPlayer(game, HealthPotion);
-        AddItemAtPlayer(game, RingOfProtection);
+        _ = AddItemAtPlayer(game, HealthPotion);
+        _ = AddItemAtPlayer(game, RingOfProtection);
 
         bool pickedUp = game.Map.PickUpItemsAtPlayer();
 
@@ -128,7 +127,7 @@ public class ItemInteractionTests
         var game = new Game();
         game.Map.Player.CombatComponent!.ApplyDamage(1); // some headroom below max, without dying
         int woundsBeforeHeal = game.Map.Player.CombatComponent.Wounds;
-        game.Map.Player.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
+        _ = game.Map.Player.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
 
         bool used = game.Map.UseInventoryItem(letter);
 
@@ -142,7 +141,7 @@ public class ItemInteractionTests
     {
         var game = new Game();
         int soakBeforeEquip = game.Map.Player.CombatComponent!.DamageSoak;
-        game.Map.Player.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
+        _ = game.Map.Player.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
 
         Assert.True(game.Map.UseInventoryItem(letter));
         Assert.Equal(soakBeforeEquip + 1, game.Map.Player.CombatComponent.DamageSoak);
@@ -167,7 +166,7 @@ public class ItemInteractionTests
     {
         var game = new Game();
         var player = game.Map.Player;
-        player.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
+        _ = player.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
 
         bool dropped = game.Map.DropInventoryItem(letter);
 
@@ -185,10 +184,10 @@ public class ItemInteractionTests
     {
         var game = new Game();
         int soakBeforeEquip = game.Map.Player.CombatComponent!.DamageSoak;
-        game.Map.Player.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
-        game.Map.UseInventoryItem(letter); // equip
+        _ = game.Map.Player.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
+        _ = game.Map.UseInventoryItem(letter); // equip
 
-        game.Map.DropInventoryItem(letter);
+        _ = game.Map.DropInventoryItem(letter);
 
         Assert.Equal(soakBeforeEquip, game.Map.Player.CombatComponent.DamageSoak);
         Assert.Contains("You take off the Ring of protection.", game.Messages);

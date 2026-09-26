@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 using BlazorRogue.World.Generation;

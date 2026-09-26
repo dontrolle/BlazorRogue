@@ -121,7 +121,7 @@ public class ConfigurationTests
 
         var abilities = configuration.MonsterTypes["ogre"].Abilities;
         Assert.True(abilities.TryGetValue(AbilityId.PushBack, out var parameters));
-        Assert.Equal(25, parameters!.GetInt("chance"));
+        Assert.Equal(25, parameters.GetInt("chance"));
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class ConfigurationTests
         // img_base pool already occupies index 13; every other wall-set uses 13.
         var configuration = ParseConfiguration();
 
-        foreach (var id in new[] { "crypt", "dungeon", "ruins", "cave" })
+        foreach (string? id in new[] { "crypt", "dungeon", "ruins", "cave" })
         {
             Assert.Equal(13, configuration.WallSetById(id).ImageFreestandingIndex);
         }
@@ -351,7 +351,7 @@ public class ConfigurationTests
         var configuration = ParseConfiguration();
 
         Assert.Equal("grey", configuration.DefaultStairsFloorSet.Id);
-        Assert.NotNull(configuration.DefaultStairsFloorSet.StairImages);
+        _ = Assert.NotNull(configuration.DefaultStairsFloorSet.StairImages);
     }
 
     [Fact]
@@ -433,7 +433,7 @@ public class ConfigurationTests
         // debug_level - an out-of-range value would have thrown inside ParseConfiguration() above.
         var configuration = ParseConfiguration();
 
-        Assert.NotNull(configuration.DebugLevelNumber);
+        _ = Assert.NotNull(configuration.DebugLevelNumber);
         Assert.True(configuration.Levels.ContainsKey(configuration.DebugLevelNumber.Value));
     }
 
@@ -510,7 +510,7 @@ public class ConfigurationTests
                 var floorTileSetPools = level
                     .SettingsMap.GetMap("common", SettingsMap.Empty)
                     .GetMap("floor_tile_set", SettingsMap.Empty);
-                foreach (var pool in FloorTileSetPoolNames)
+                foreach (string pool in FloorTileSetPoolNames)
                 {
                     var weights = floorTileSetPools.GetWeightedIds(pool, []);
                     Assert.All(weights, w => Assert.NotNull(configuration.FloorSetById(w.Id)));

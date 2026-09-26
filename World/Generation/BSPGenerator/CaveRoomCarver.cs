@@ -94,15 +94,12 @@ class CaveRoomCarver(
             }
         }
 
-        if (bestX < 0)
-        {
-            throw new InvalidOperationException(
+        return bestX < 0
+            ? throw new InvalidOperationException(
                 $"Cave carving produced no floor cells in a {width}x{height} area to connect to; "
                     + "try a larger area or a lower percentageChanceOfInitialWall."
-            );
-        }
-
-        return (bestX, bestY);
+            )
+            : (bestX, bestY);
     }
 
     /// <summary>
