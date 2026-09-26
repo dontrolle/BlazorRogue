@@ -155,6 +155,28 @@ public class TurnResultTests
     }
 
     [Fact]
+    public void MonsterKilledByThePlayersOwnAttackCannotCounterAttackInTheSameTurn()
+    {
+        var game = new Game();
+        var map = BareFloorMap(game, NewCreature(4, 4, weaponSkill: 100));
+        var ai = (SimpleAIComponent)
+            AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
+        // Adjacent, awake, and one hit from dead - registered via AddMonster (not AddMoveable) so
+        // it's actually enqueued in the tick scheduler like a real monster (issue #68).
+        var monster = NewCreature(5, 4, weaponSkill: 1, wounds: 1, ai: ai);
+        map.AddMonster(monster);
+        ai.Wake();
+        map.PostGenInitalize();
+        int woundsBeforeAttack = map.Player.CombatComponent!.Wounds;
+
+        var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
+
+        Assert.True(result.PlayerAttack!.Value.DefenderKilled);
+        Assert.Empty(result.MonsterActions); // dead monster's queued turn must be skipped, not resolved
+        Assert.Equal(woundsBeforeAttack, map.Player.CombatComponent.Wounds); // no counter-attack damage
+    }
+
+    [Fact]
     public void MonsterCounterAttacksDuringPlayerTookTurnAppearInMonsterActions()
     {
         var game = new Game();
