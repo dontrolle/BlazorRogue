@@ -36,8 +36,6 @@ public class SheetObfuscatorTests
     }
 
     [Fact]
-    public void MaskThrowsOnAnEmptyKey()
-    {
-        Assert.Throws<ArgumentException>(() => SheetObfuscator.Mask([1, 2, 3], []));
-    }
+    public void MaskThrowsOnAnEmptyKey() =>
+        _ = Assert.Throws<ArgumentException>(() => SheetObfuscator.Mask([1, 2, 3], []));
 }

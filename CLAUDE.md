@@ -47,7 +47,8 @@ dotnet run                      # Run the app (https://localhost:5001, http://lo
 dotnet test                     # Run all tests (BlazorRogue.Tests, xUnit)
 dotnet test --filter "FullyQualifiedName~ClassName.MethodName"   # Run a single test
 dotnet tool restore && dotnet csharpier check .   # Check formatting (what CI runs)
-dotnet csharpier format .       # Auto-fix formatting before committing
+dotnet csharpier format .       # Auto-fix whitespace/layout before committing
+dotnet format BlazorRogue.sln style   # Auto-fix code-style violations (e.g. IDE0001) before committing
 docker build -f docker/Dockerfile -t blazorrogue .   # Build the Linux container image
 docker run -p 8080:8080 blazorrogue   # Run it, then open http://localhost:8080
 ```
@@ -75,8 +76,12 @@ and the single `docker/Dockerfile` is safe to build in CI and push anywhere.
   parsing, map/dungeon generation). For changes that are hard to unit test (rendering, Blazor
   components, JS interop), describe how you manually verified the change (screenshot or in-browser
   testing) in the PR description — see [`TESTING.md`](TESTING.md).
-- Run `dotnet csharpier format .` before committing; style/naming conventions beyond that are
-  enforced by `.editorconfig`, not documented here.
+- Before committing, run `dotnet format BlazorRogue.sln style` (fixes code-style violations, e.g.
+  IDE0001 "simplify name") followed by `dotnet csharpier format .` (whitespace/layout) - that order
+  matters, since a style fix can touch whitespace and csharpier should get the final say on layout.
+  `.editorconfig` sets `dotnet_analyzer_diagnostic.severity = error` project-wide, so these show as
+  build errors / red squigglies in the editor rather than mere suggestions; naming conventions
+  beyond that are enforced by `.editorconfig`, not documented here.
 - Prefer small, focused PRs, especially for anything touching rendering or the hosting model —
   those are the areas most likely to have subtle runtime-only breakage that `dotnet build` won't
   catch.

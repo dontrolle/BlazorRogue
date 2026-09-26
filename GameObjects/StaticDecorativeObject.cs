@@ -59,8 +59,7 @@ class StaticDecorativeObject : GameObject
         OccupiesTile = staticDecorativeObjectType.OccupiesTile;
         makeCoveringOffsetDecsTransparent =
             staticDecorativeObjectType.MakeCoveringOffsetDecsTransparent;
-        this.decorationLayer =
-            decorationLayerOverride ?? staticDecorativeObjectType.DecorationLayer;
+        decorationLayer = decorationLayerOverride ?? staticDecorativeObjectType.DecorationLayer;
     }
 
     public override void Render(Map map) =>

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
 using BlazorRogue.Rendering;
 
 namespace BlazorRogue.Tests.Rendering;
@@ -41,6 +39,7 @@ public class SpriteAtlasTests
         {
             File.WriteAllText(
                 Path.Combine(dir, "atlas.json"),
+                /*lang=json,strict*/
                 """
                 {
                   "Sheets": { "uf_terrain": { "Width": 100, "Height": 200, "File": "0.bin" } },
@@ -201,7 +200,7 @@ public class SpriteAtlasTests
         );
         var atlas = SpriteAtlas.FromDocument(document);
 
-        var css = atlas.GenerateStaticCss();
+        string css = atlas.GenerateStaticCss();
 
         Assert.Contains($".spr-a {{ {atlas.CssDeclarationsFor("a")} }}", css);
         Assert.Contains($".spr-b {{ {atlas.CssDeclarationsFor("b")} }}", css);

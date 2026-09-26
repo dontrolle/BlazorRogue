@@ -28,5 +28,8 @@ jobs:
           dotnet tool restore
           dotnet csharpier check .
 
+      - name: Check code style
+        run: dotnet format BlazorRogue.sln style --verify-no-changes --no-restore
+
       - name: Test
         run: dotnet test --no-build --configuration Release

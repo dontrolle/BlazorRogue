@@ -39,7 +39,7 @@ class Game
     /// <summary>
     /// <c>Game.DebugMode</c> controls various settings, e.g. verbose combat logging
     /// (dice rolls in the message log - see <c>FightingSystem</c>). Seeded from
-    /// <see cref="Entities.Configuration.DebugMode"/> when the game is created;
+    /// <see cref="Configuration.DebugMode"/> when the game is created;
     /// toggled in-game with Ctrl+D (see <c>GamePage.KeyUp</c>).
     /// </summary>
     internal bool DebugMode { get; set; }
@@ -59,7 +59,7 @@ class Game
     /// <summary>
     /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
     /// shared with other games - it is immutable once parsed. The starting level
-    /// (<see cref="Entities.Configuration.StartingLevelNumber"/>) and the initial
+    /// (<see cref="Configuration.StartingLevelNumber"/>) and the initial
     /// <see cref="DebugMode"/> both come from <c>Data/game-config.json</c> via the configuration.
     /// </summary>
     /// <param name="configuration">Already-parsed, immutable game content.</param>
@@ -131,7 +131,7 @@ class Game
     int preDebugLevelPlayerY;
 
     /// <summary>
-    /// Dev-only jump into (and back out of) whichever level <see cref="Entities.Configuration.DebugLevelNumber"/>
+    /// Dev-only jump into (and back out of) whichever level <see cref="Configuration.DebugLevelNumber"/>
     /// names (<c>Data/game-config.json</c>'s <c>debug_level</c> - e.g. "fence_gallery",
     /// "test_level", "liquid_edging_test_level") - Ctrl+G while <see cref="DebugMode"/> is on, see
     /// GamePage.OnKeyPress. Unlike <see cref="TransitionToLevel"/>, this isn't a stairs-direction

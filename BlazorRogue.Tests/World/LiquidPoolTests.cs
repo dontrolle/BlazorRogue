@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using BlazorRogue.AI;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
@@ -175,7 +173,7 @@ public class LiquidPoolTests
         int before = flyer.CombatComponent!.Wounds;
 
         map.SetLiquidTile(flyer.X, flyer.Y, Liquid(LiquidEffectKind.Acid, 50));
-        map.PlayerTookTurn();
+        _ = map.PlayerTookTurn();
 
         Assert.Equal(before, flyer.CombatComponent.Wounds);
     }
@@ -200,7 +198,7 @@ public class LiquidPoolTests
 
         // Magnitude well above any hero's damage soak so the tick always bites.
         game.Map.SetLiquidTile(player.X, player.Y, Liquid(LiquidEffectKind.Acid, 50));
-        game.Map.PlayerTookTurn();
+        _ = game.Map.PlayerTookTurn();
 
         Assert.True(player.CombatComponent.Wounds < before);
     }
@@ -213,7 +211,7 @@ public class LiquidPoolTests
 
         game.Map.SetLiquidTile(player.X, player.Y, Liquid(LiquidEffectKind.Acid, 50));
         int dealt = player.CombatComponent!.Wounds;
-        game.Map.PlayerTookTurn();
+        _ = game.Map.PlayerTookTurn();
         dealt -= player.CombatComponent.Wounds;
 
         Assert.Contains(game.Messages, m => m == $"You take {dealt} damage from the sludge!");
@@ -286,7 +284,7 @@ public class LiquidPoolTests
         int before = player.CombatComponent!.Wounds;
 
         game.Map.SetLiquidTile(player.X, player.Y, Liquid(LiquidEffectKind.Slow, 25));
-        game.Map.PlayerTookTurn();
+        _ = game.Map.PlayerTookTurn();
 
         Assert.Equal(before, player.CombatComponent.Wounds);
     }
@@ -331,7 +329,7 @@ public class LiquidPoolTests
 
         map.SetLiquidTile(3, 2, Liquid(LiquidEffectKind.Instakill, 0));
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((2, 2), (monster.X, monster.Y));
         Assert.True(monster.CombatComponent!.Wounds > 0);
@@ -350,7 +348,7 @@ public class LiquidPoolTests
 
         map.SetLiquidTile(3, 2, Liquid(LiquidEffectKind.Instakill, 0));
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((3, 2), (monster.X, monster.Y));
         Assert.True(monster.CombatComponent!.Wounds > 0);
@@ -368,7 +366,7 @@ public class LiquidPoolTests
         var monster = NewCreature(2, 2, ai);
         ai.Wake();
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((3, 2), (monster.X, monster.Y));
     }
@@ -476,7 +474,7 @@ public class LiquidPoolTests
 
         var map = MapGeneratorFactory.Create(LevelWithSettings(settings), game).GenerateMap();
 
-        var acidTiles = 0;
+        int acidTiles = 0;
         for (int x = 0; x < map.Width; x++)
         {
             for (int y = 0; y < map.Height; y++)

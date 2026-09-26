@@ -54,7 +54,7 @@ public class RandomWalkAIComponentTests
     {
         var monster = NewCreature(map, 5, 5, out var ai, new Random(seed));
         ai.Wake();
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
         return (monster.X, monster.Y);
     }
 
@@ -83,7 +83,7 @@ public class RandomWalkAIComponentTests
         var map = BareFloorMap();
         var monster = NewCreature(map, 5, 5, out var ai, new Random(1));
 
-        ai.TakeTurn();
+        _ = ai.TakeTurn();
 
         Assert.Equal((5, 5), (monster.X, monster.Y));
     }

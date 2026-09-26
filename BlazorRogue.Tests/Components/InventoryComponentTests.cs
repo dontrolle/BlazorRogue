@@ -71,7 +71,7 @@ public class InventoryComponentTests
     public void TryPickUpStacksASecondUseOnceItemOntoTheSameLetter()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(HealthPotion, out char firstLetter);
+        _ = owner.InventoryComponent!.TryPickUp(HealthPotion, out char firstLetter);
 
         Assert.True(owner.InventoryComponent.TryPickUp(HealthPotion, out char secondLetter));
 
@@ -83,7 +83,7 @@ public class InventoryComponentTests
     public void TryPickUpGivesASecondEquipableItemItsOwnLetter()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(RingOfProtection, out char firstLetter);
+        _ = owner.InventoryComponent!.TryPickUp(RingOfProtection, out char firstLetter);
 
         Assert.True(owner.InventoryComponent.TryPickUp(RingOfProtection, out char secondLetter));
 
@@ -95,9 +95,9 @@ public class InventoryComponentTests
     public void TryPickUpReusesALetterFreedByAnEarlierDrop()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(HealthPotion, out char firstLetter); // 'a'
-        owner.InventoryComponent.TryPickUp(RingOfProtection, out char secondLetter); // 'b'
-        owner.InventoryComponent.Remove(firstLetter); // frees 'a'
+        _ = owner.InventoryComponent!.TryPickUp(HealthPotion, out char firstLetter); // 'a'
+        _ = owner.InventoryComponent.TryPickUp(RingOfProtection, out char secondLetter); // 'b'
+        _ = owner.InventoryComponent.Remove(firstLetter); // frees 'a'
 
         Assert.True(owner.InventoryComponent.TryPickUp(RingOfProtection, out char reusedLetter));
 
@@ -125,14 +125,14 @@ public class InventoryComponentTests
     public void UseOnAStackDecrementsAndFreesTheLetterAtZero()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
-        owner.InventoryComponent.TryPickUp(HealthPotion, out _); // Count == 2
+        _ = owner.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
+        _ = owner.InventoryComponent.TryPickUp(HealthPotion, out _); // Count == 2
 
-        owner.InventoryComponent.Use(letter);
+        _ = owner.InventoryComponent.Use(letter);
         Assert.True(owner.InventoryComponent.Items.ContainsKey(letter));
         Assert.Equal(1, owner.InventoryComponent.Items[letter].Count);
 
-        owner.InventoryComponent.Use(letter);
+        _ = owner.InventoryComponent.Use(letter);
         Assert.False(owner.InventoryComponent.Items.ContainsKey(letter));
     }
 
@@ -141,9 +141,9 @@ public class InventoryComponentTests
     {
         var owner = CreateOwner(wounds: 50);
         owner.CombatComponent!.ApplyDamage(15); // DamageSoak 5 -> 10 lost -> 40
-        owner.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
+        _ = owner.InventoryComponent!.TryPickUp(HealthPotion, out char letter);
 
-        owner.InventoryComponent.Use(letter); // heals 20 -> 60, clamped at MaxWounds (50)
+        _ = owner.InventoryComponent.Use(letter); // heals 20 -> 60, clamped at MaxWounds (50)
 
         Assert.Equal(50, owner.CombatComponent.Wounds);
     }
@@ -152,14 +152,14 @@ public class InventoryComponentTests
     public void UseOnAnEquipableItemTogglesEquippedAndAppliesTheArmourBonus()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
+        _ = owner.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
         int soakBeforeEquip = owner.CombatComponent!.DamageSoak;
 
-        owner.InventoryComponent.Use(letter);
+        _ = owner.InventoryComponent.Use(letter);
         Assert.True(owner.InventoryComponent.Items[letter].IsEquipped);
         Assert.Equal(soakBeforeEquip + 1, owner.CombatComponent.DamageSoak);
 
-        owner.InventoryComponent.Use(letter); // toggles back off
+        _ = owner.InventoryComponent.Use(letter); // toggles back off
         Assert.False(owner.InventoryComponent.Items[letter].IsEquipped);
         Assert.Equal(soakBeforeEquip, owner.CombatComponent.DamageSoak);
     }
@@ -168,12 +168,12 @@ public class InventoryComponentTests
     public void EquippingTwoCopiesOfTheSameRingStacksTheirArmourBonusesAdditively()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(RingOfProtection, out char firstLetter);
-        owner.InventoryComponent.TryPickUp(RingOfProtection, out char secondLetter);
+        _ = owner.InventoryComponent!.TryPickUp(RingOfProtection, out char firstLetter);
+        _ = owner.InventoryComponent.TryPickUp(RingOfProtection, out char secondLetter);
         int soakBeforeEquip = owner.CombatComponent!.DamageSoak;
 
-        owner.InventoryComponent.Use(firstLetter);
-        owner.InventoryComponent.Use(secondLetter);
+        _ = owner.InventoryComponent.Use(firstLetter);
+        _ = owner.InventoryComponent.Use(secondLetter);
 
         Assert.Equal(soakBeforeEquip + 2, owner.CombatComponent.DamageSoak);
     }
@@ -182,9 +182,9 @@ public class InventoryComponentTests
     public void RemoveUnequipsAnEquippedItemBeforeDroppingIt()
     {
         var owner = CreateOwner();
-        owner.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
+        _ = owner.InventoryComponent!.TryPickUp(RingOfProtection, out char letter);
         int soakBeforeEquip = owner.CombatComponent!.DamageSoak;
-        owner.InventoryComponent.Use(letter); // equip
+        _ = owner.InventoryComponent.Use(letter); // equip
 
         var dropped = owner.InventoryComponent.Remove(letter);
 

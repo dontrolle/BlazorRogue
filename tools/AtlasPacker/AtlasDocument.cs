@@ -26,19 +26,14 @@ sealed record SpriteEntry(
     int FrameStrideY = 0
 )
 {
-    public (int X, int Y) FrameOrigin(int frame)
-    {
-        if (frame < 0 || frame >= FrameCount)
-        {
-            throw new ArgumentOutOfRangeException(
+    public (int X, int Y) FrameOrigin(int frame) =>
+        frame < 0 || frame >= FrameCount
+            ? throw new ArgumentOutOfRangeException(
                 nameof(frame),
                 frame,
                 $"Frame index must be in [0,{FrameCount})."
-            );
-        }
-
-        return (X + frame * FrameStrideX, Y + frame * FrameStrideY);
-    }
+            )
+            : (X + (frame * FrameStrideX), Y + (frame * FrameStrideY));
 }
 
 /// <summary>

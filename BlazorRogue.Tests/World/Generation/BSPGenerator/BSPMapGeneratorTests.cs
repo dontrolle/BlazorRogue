@@ -184,12 +184,10 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void EveryFloorTileIsFullyEnclosedByFloorOrWall()
-    {
+    public void EveryFloorTileIsFullyEnclosedByFloorOrWall() =>
         // The wall ring pass must leave no floor cell touching the void - otherwise light/vision
         // and the decoration passes leak into unpainted space.
         AssertEveryFloorTileIsEnclosed(GenerateMap());
-    }
 
     [Fact]
     public void PlayerStartsOnAFloorTile()
@@ -200,12 +198,10 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void EveryFloorTileIsReachableFromThePlayerStart()
-    {
+    public void EveryFloorTileIsReachableFromThePlayerStart() =>
         // The payoff of wiring in ConnectRooms: flood-fill over floor cells from the player's
         // start tile must reach every floor cell on the map.
         AssertEveryFloorTileReachableFromPlayer(GenerateMap());
-    }
 
     [Fact]
     public void PlacesStairsOnFloorTiles()
@@ -333,12 +329,10 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void DoorsLeaveEveryFloorTileReachable()
-    {
+    public void DoorsLeaveEveryFloorTileReachable() =>
         // Doors are game objects on floor tiles - TileType stays Floor - so a closed door never
         // severs the map even though it blocks movement until opened.
         AssertEveryFloorTileReachableFromPlayer(GenerateMap(width: 72, height: 48));
-    }
 
     [Fact]
     public void PercentageChanceOfDoorGatesHowManyCandidatesBecomeDoors()
@@ -347,7 +341,7 @@ public class BSPMapGeneratorTests
         // AddDoors pass. 0 => no doors at all; a fraction => strictly fewer than the "every
         // candidate" default. Pooled over several fresh layouts so the ordering is not a
         // coin-flip (it's not a proportionality assertion - candidate counts vary between maps).
-        int DoorsAcrossMaps(double chance)
+        static int DoorsAcrossMaps(double chance)
         {
             var settings = new SettingsMap(
                 new Dictionary<string, object>
@@ -527,7 +521,7 @@ public class BSPMapGeneratorTests
     {
         // Budget is per-room floor area * density, so a bigger map (more / larger rooms) carries
         // strictly more monsters. Pooled over a few layouts so the ordering isn't a coin-flip.
-        int TotalOver(int width, int height)
+        static int TotalOver(int width, int height)
         {
             int total = 0;
             for (int i = 0; i < 3; i++)
@@ -648,7 +642,7 @@ public class BSPMapGeneratorTests
             foreach (var monster in map.Monsters)
             {
                 Assert.False(
-                    RoomCovers(gen.PlayerRoom!, monster.X, monster.Y),
+                    RoomCovers(gen.PlayerRoom, monster.X, monster.Y),
                     $"monster at ({monster.X},{monster.Y}) spawned in the player's start room"
                 );
             }

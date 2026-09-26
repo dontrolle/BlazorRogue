@@ -29,7 +29,7 @@ public class NodeTests(ITestOutputHelper output)
         node.SplitVerticalAt(9);
         node.Left!.SplitHorizontalAt(4);
 
-        var expectedTree =
+        string expectedTree =
             "Root [0,0]-[20,10] (20x10)  {0}\n"
             + "├── L [0,0]-[9,10] (9x10)  {1}\n"
             + "│   ├── L [0,0]-[9,4] (9x4)  {3}\n"
@@ -60,10 +60,10 @@ public class NodeTests(ITestOutputHelper output)
         root.SplitVerticalAt(9);
         root.Left!.SplitHorizontalAt(7);
 
-        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+        IRoomCarver SelectCarver(Node node, IRoomCarver inherited, Random _) =>
             node == root.Left ? OverlaidRectanglesRoomCarver.Instance : inherited;
 
-        root.CarveRooms(0, 3, 3, new Random(1), selectCarver: selectCarver);
+        root.CarveRooms(0, 3, 3, new Random(1), selectCarver: SelectCarver);
 
         Assert.All(root.Left!.Leaves(), leaf => Assert.Equal(RoomType.Overlaid, leaf.Room!.Type));
         Assert.All(

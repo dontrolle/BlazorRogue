@@ -129,8 +129,8 @@ sealed class SpriteAtlas
         }
 
         var sheet = sheets[sprite.Sheet];
-        int frameX = sprite.X + frame * sprite.FrameStrideX;
-        int frameY = sprite.Y + frame * sprite.FrameStrideY;
+        int frameX = sprite.X + (frame * sprite.FrameStrideX);
+        int frameY = sprite.Y + (frame * sprite.FrameStrideY);
 
         // background-size is a percentage of the element's own box, so scaling the *whole* sheet
         // image by (sheet dimension / sprite dimension) makes the sprite's own region exactly fill

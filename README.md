@@ -73,7 +73,7 @@ By default the app listens on `https://localhost:5001` (see `Properties/launchSe
 dotnet test
 ```
 
-There is no separate lint step — rely on `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way). CI runs `dotnet build`, `dotnet csharpier check .` (formatting), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet csharpier format .` locally before committing to match it.
+Code style is enforced via `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way), plus two dedicated formatting/lint steps. CI runs `dotnet build`, `dotnet csharpier check .` (whitespace/layout), `dotnet format BlazorRogue.sln style --verify-no-changes` (code-style rules, e.g. IDE0001 "simplify name" — `.editorconfig` promotes every analyzer diagnostic to `error`, so these fail the build too, not just show as editor hints), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet format BlazorRogue.sln style` followed by `dotnet csharpier format .` locally before committing to match it — that order matters, since a style fix can touch whitespace and csharpier should get the final say on layout.
 
 ### Docker
 

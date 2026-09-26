@@ -71,7 +71,7 @@ public class BspLayoutTests(ITestOutputHelper output)
         // cellular automaton can wall a leaf off entirely if both dimensions are small (under ~8),
         // which is why it's pointed at {14} rather than a leafier, smaller subtree. Re-run with
         // DisplayName~PrintCarvedPlan to re-derive node ids if the split parameters change.
-        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+        static IRoomCarver SelectCarver(Node node, IRoomCarver inherited, Random _) =>
             node.Id switch
             {
                 1 => OverlaidRectanglesRoomCarver.Instance,
@@ -85,7 +85,7 @@ public class BspLayoutTests(ITestOutputHelper output)
             height: 50,
             seed: 1,
             chanceOfLeafHavingNoRoom: 0.1,
-            selectCarver: selectCarver
+            selectCarver: SelectCarver
         );
 
         output.WriteLine(root.ToTreeString());
@@ -111,17 +111,17 @@ public class BspLayoutTests(ITestOutputHelper output)
         // should give its whole subtree circular rooms and leave every other leaf on the
         // inherited default carver.
         var subtreeLeafIds = new HashSet<int> { 235, 236, 118 };
-        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, _) =>
+        static IRoomCarver SelectCarver(Node node, IRoomCarver inherited, Random _) =>
             node.Id == 58 ? CircularRoomCarver.Instance : inherited;
 
-        var root = CarvedPlan(80, 50, seed: 1, selectCarver: selectCarver);
+        var root = CarvedPlan(80, 50, seed: 1, selectCarver: SelectCarver);
 
         var circularLeaves = root.Leaves()
             .Where(leaf => leaf.Room!.Type == RoomType.Circular)
             .ToList();
 
         Assert.InRange(circularLeaves.Count, 2, 4);
-        Assert.Equal(subtreeLeafIds, circularLeaves.Select(leaf => leaf.Id).ToHashSet());
+        Assert.Equal(subtreeLeafIds, [.. circularLeaves.Select(leaf => leaf.Id)]);
         Assert.All(
             root.Leaves().Where(leaf => !subtreeLeafIds.Contains(leaf.Id)),
             leaf => Assert.NotEqual(RoomType.Circular, leaf.Room!.Type)
@@ -406,7 +406,7 @@ public class BspLayoutTests(ITestOutputHelper output)
         // BSPMapGenerator wraps it, so a walled-off small leaf falls back to a rectangle rather
         // than throwing. CaveRoomCarver's own pocket wall-off keeps each cave footprint
         // contiguous, so the whole plan must still come out connected.
-        Func<Node, IRoomCarver, Random, IRoomCarver> selectCarver = (node, inherited, rng) =>
+        static IRoomCarver SelectCarver(Node node, IRoomCarver inherited, Random rng) =>
             node.Left is null && node.Right is null
                 ? rng.Next(0, 4) switch
                 {
@@ -422,7 +422,7 @@ public class BspLayoutTests(ITestOutputHelper output)
 
         for (int seed = 0; seed < 25; seed++)
         {
-            var root = CarvedPlan(80, 50, seed, selectCarver: selectCarver);
+            var root = CarvedPlan(80, 50, seed, selectCarver: SelectCarver);
 
             Assert.True(root.IsFullyConnected(), $"seed {seed}: plan floor is disconnected.");
         }

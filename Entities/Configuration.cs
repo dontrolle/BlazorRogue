@@ -471,13 +471,11 @@ class Configuration
             stairsElement.GetProperty(property),
             $"img_stairs.{property}"
         );
-        if (weightedIds.Count == 0)
-        {
-            throw new InvalidOperationException(
+        return weightedIds.Count == 0
+            ? throw new InvalidOperationException(
                 $"Floor-set '{floorSetId}' has an \"img_stairs.{property}\" list with no entries - at least one weighted image name is required."
-            );
-        }
-        return [.. weightedIds.Select(w => (w.Id, w.Weight))];
+            )
+            : [.. weightedIds.Select(w => (w.Id, w.Weight))];
     }
 
     void ParseFloorSetType(JsonElement element)
@@ -689,13 +687,11 @@ class Configuration
     static (int, int) GetEdgePair(JsonElement edgesElement, string property, string wallSetId)
     {
         var array = edgesElement.GetProperty(property);
-        if (array.GetArrayLength() != 2)
-        {
-            throw new InvalidOperationException(
+        return array.GetArrayLength() != 2
+            ? throw new InvalidOperationException(
                 $"'edges.{property}' for wall-set '{wallSetId}' must have exactly 2 entries (left, right)."
-            );
-        }
-        return (array[0].GetInt32(), array[1].GetInt32());
+            )
+            : (array[0].GetInt32(), array[1].GetInt32());
     }
 
     static void GetIntArray(JsonElement element, string property, List<int> listToFill)

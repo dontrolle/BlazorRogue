@@ -1,4 +1,3 @@
-using System.Linq;
 using BlazorRogue.World;
 
 namespace BlazorRogue.Tests.World;
@@ -24,10 +23,7 @@ public class LiquidEdgingTests
     ) => [.. LiquidEdging.Overlays(n, e, s, w, nw, ne, sw, se)];
 
     [Fact]
-    public void OpenWaterOnEverySideProducesNoOverlays()
-    {
-        Assert.Empty(Overlays());
-    }
+    public void OpenWaterOnEverySideProducesNoOverlays() => Assert.Empty(Overlays());
 
     [Theory]
     [InlineData(false, false, false, true, 0)] // land west (canonical)
@@ -40,13 +36,11 @@ public class LiquidEdgingTests
         bool s,
         bool w,
         int expectedRotation
-    )
-    {
+    ) =>
         Assert.Equal(
             [("water_edging_1", expectedRotation, false)],
             Overlays(n: n, e: e, s: s, w: w)
         );
-    }
 
     [Fact]
     public void TwoAdjacentLandOrthogonalsAreASingleConvexCornerTile()
@@ -65,26 +59,20 @@ public class LiquidEdgingTests
     }
 
     [Fact]
-    public void AChannelWithSolidBanksIsStillTheSingleChannelTile()
-    {
+    public void AChannelWithSolidBanksIsStillTheSingleChannelTile() =>
         // The diagonals being land (a straight bank) is a don't-care for the channel tile.
         Assert.Equal(
             [("water_edging_3", 0, false)],
             Overlays(w: true, e: true, nw: true, ne: true, sw: true, se: true)
         );
-    }
 
     [Fact]
-    public void ThreeLandSidesAreASingleThreeSidedTile()
-    {
+    public void ThreeLandSidesAreASingleThreeSidedTile() =>
         Assert.Equal([("water_edging_4", 0, false)], Overlays(n: true, w: true, e: true));
-    }
 
     [Fact]
-    public void LandOnAllFourOrthogonalsIsTheSingleEnclosedTile()
-    {
+    public void LandOnAllFourOrthogonalsIsTheSingleEnclosedTile() =>
         Assert.Equal([("water_edging_8", 0, false)], Overlays(n: true, e: true, s: true, w: true));
-    }
 
     [Fact]
     public void ALoneDiagonalLandIsASingleConcaveCornerTile()
@@ -96,31 +84,23 @@ public class LiquidEdgingTests
     }
 
     [Fact]
-    public void TwoAdjacentDiagonalNubsAreASingleTile()
-    {
+    public void TwoAdjacentDiagonalNubsAreASingleTile() =>
         Assert.Equal([("water_edging_10", 0, false)], Overlays(sw: true, se: true));
-    }
 
     [Fact]
-    public void ThreeDiagonalNubsAreASingleTile()
-    {
+    public void ThreeDiagonalNubsAreASingleTile() =>
         Assert.Equal([("water_edging_11", 0, false)], Overlays(sw: true, se: true, ne: true));
-    }
 
     [Fact]
-    public void TwoOppositeDiagonalNubsAreASingleTile()
-    {
+    public void TwoOppositeDiagonalNubsAreASingleTile() =>
         Assert.Equal([("water_edging_12", 0, false)], Overlays(nw: true, se: true));
-    }
 
     [Fact]
-    public void AnEdgeWithADiagonalNubAtOneEndIsASingleTile()
-    {
+    public void AnEdgeWithADiagonalNubAtOneEndIsASingleTile() =>
         // Canonical water_edging_5 is "land W + SE" - verified against the source art's actual
         // alpha-channel content (per-region sampling), not just the code's own prior assumption.
         // See LiquidEdging.cs's Combos comment for the live-game repro that caught this.
         Assert.Equal([("water_edging_5", 0, false)], Overlays(w: true, se: true));
-    }
 
     [Fact]
     public void TheMirrorImageOfEdgePlusNubUsesTheSameTileFlipped()
@@ -128,26 +108,22 @@ public class LiquidEdgingTests
         // "land W + NE" is water_edging_5's chiral partner - same art, mirrored.
         var overlays = Overlays(w: true, ne: true);
 
-        Assert.Single(overlays);
+        _ = Assert.Single(overlays);
         Assert.Equal("water_edging_5", overlays[0].Image);
         Assert.True(overlays[0].Mirror);
     }
 
     [Fact]
-    public void AnEdgeWithNubsAtBothEndsIsASingleTile()
-    {
+    public void AnEdgeWithNubsAtBothEndsIsASingleTile() =>
         // Canonical water_edging_6 is "land W + NE + SE" (both far corners) - see the art-verified
         // comment on LiquidEdging.Combos.
         Assert.Equal([("water_edging_6", 0, false)], Overlays(w: true, ne: true, se: true));
-    }
 
     [Fact]
-    public void AConvexCornerWithAFarNubIsASingleTile()
-    {
+    public void AConvexCornerWithAFarNubIsASingleTile() =>
         // Canonical water_edging_7 is "land W + N + SE" - see the art-verified comment on
         // LiquidEdging.Combos.
         Assert.Equal([("water_edging_7", 0, false)], Overlays(n: true, w: true, se: true));
-    }
 
     [Fact]
     public void FourIsolatedDiagonalNubsFallBackToFourStackedAtomicPieces()

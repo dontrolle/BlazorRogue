@@ -146,7 +146,7 @@ public class FightingSystemTests
         var player = game.Map.Player;
         var goblin = CreateMoveable("Goblin", weaponSkill: 30, weaponDamage: 1);
 
-        game.FightingSystem.CloseCombatAttack(player.CombatComponent!, goblin.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(player.CombatComponent!, goblin.CombatComponent!);
 
         string message = game.Messages[^1];
         Assert.StartsWith("You ", message);
@@ -161,7 +161,7 @@ public class FightingSystemTests
         var player = game.Map.Player;
         var goblin = CreateMoveable("Goblin", weaponSkill: 30, weaponDamage: 1);
 
-        game.FightingSystem.CloseCombatAttack(goblin.CombatComponent!, player.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(goblin.CombatComponent!, player.CombatComponent!);
 
         string message = game.Messages[^1];
         Assert.StartsWith("The Goblin ", message);
@@ -232,7 +232,10 @@ public class FightingSystemTests
         map.AddMoveable(attacker);
         map.AddMoveable(defender);
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.Equal((6, 4), (defender.X, defender.Y));
         Assert.Contains(game.Messages, m => m.Contains("backward"));
@@ -254,7 +257,10 @@ public class FightingSystemTests
         map.AddMoveable(attacker);
         map.AddMoveable(defender);
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.Equal((5, 4), (defender.X, defender.Y));
     }
@@ -269,7 +275,10 @@ public class FightingSystemTests
         map.AddMoveable(attacker);
         map.AddMoveable(defender);
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.Equal((5, 4), (defender.X, defender.Y));
     }
@@ -291,7 +300,10 @@ public class FightingSystemTests
         map.AddMoveable(defender);
         map.Tiles[6, 4].Blocking = true; // a wall at the push destination
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.Equal((5, 4), (defender.X, defender.Y));
         Assert.Contains(game.Messages, m => m.Contains("nowhere to go"));
@@ -328,7 +340,10 @@ public class FightingSystemTests
             )
         );
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.True(map.IsGameOver);
     }
@@ -373,7 +388,10 @@ public class FightingSystemTests
             )
         );
 
-        game.FightingSystem.CloseCombatAttack(attacker.CombatComponent!, defender.CombatComponent!);
+        _ = game.FightingSystem.CloseCombatAttack(
+            attacker.CombatComponent!,
+            defender.CombatComponent!
+        );
 
         Assert.Equal((6, 4), (defender.X, defender.Y));
     }
