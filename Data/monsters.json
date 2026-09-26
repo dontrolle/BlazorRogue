@@ -40,7 +40,8 @@
       "wounds": 10,
       "animationClass": "animated_skeleton",
       "character": "s",
-      "character_color": "ivory"
+      "character_color": "ivory",
+      "tickCost": 10
     },
     {
       "id": "goblin",
@@ -53,7 +54,7 @@
       "animationClass": "animated_goblin",
       "character": "g",
       "character_color": "limegreen",
-      "tickCost": 3
+      "tickCost": 6
     },
     {
       "id": "goblinWarrior",
@@ -66,7 +67,7 @@
       "animationClass": "animated_goblin_warrior",
       "character": "g",
       "character_color": "green",
-      "tickCost": 3
+      "tickCost": 6
     },
     {
       "id": "blackGiantSpider",
@@ -112,7 +113,7 @@
         "parameters": {}
       },
       "abilities": [{ "id": "push_back", "parameters": { "chance": 25 } }],
-      "tickCost": 12
+      "tickCost": 8
     }
   ]
 }
