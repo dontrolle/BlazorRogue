@@ -52,6 +52,11 @@ builder.Services.AddSingleton(_ =>
 });
 builder.Services.AddSingleton(TimeProvider.System);
 
+// Shown as a small corner badge (see Shared/MainLayout.razor) so a deployed instance can be
+// identified at a glance. See BuildInfo.cs for where BLAZORROGUE_VERSION/BLAZORROGUE_BUILD_DATE
+// come from.
+builder.Services.AddSingleton(BuildInfo.FromEnvironment(Environment.GetEnvironmentVariable));
+
 // The tileset atlas (see tools/AtlasPacker) - never checked into source control.
 // BLAZORROGUE_ART_PATH points at the deployed art bundle; when unset (any contributor machine
 // without the tileset, and CI), SpriteAtlas.IsAvailable is false and the game falls back to the
