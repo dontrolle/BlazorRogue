@@ -38,17 +38,17 @@ A partially explored sandy dungeon with a number of monsters chasing:
 
 ![BlazorRogue Screenshot 1](/img/BlazorRogue1.PNG)
 
-A room with a bunch of chests:
+Fighting an Ogre in a muddy chamber, next to a room with murky pool and a coffin:
 
-![BlazorRogue Screenshot 2](/img/BlazorRogue2.PNG)
+![BlazorRogue Screenshot 2](/img/screenshot5.png)
 
-Chased by a skeleton into the arms of a goblin and his two pet black spiders:
+Finishing off a skeleton in a bloody torch-lit vault, with the stairs to the next level:
 
-![BlazorRogue Screenshot 3](/img/BlazorRogue3.PNG)
+![BlazorRogue Screenshot 4](/img/Screenshot4.png)
 
 The same scene rendered in the ASCII renderer:
 
-![BlazorRogue Screenshot 3 - in ASCII](/img/BlazorRogue3_ascii.PNG)
+![BlazorRogue Screenshot 4 - in ASCII](/img/screenshot4_ascii.png)
 
 ## Getting started
 
