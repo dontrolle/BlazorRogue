@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject BuildInfo BuildInfo
 
 <div class="page">
 @Body
+<span class="build-info">@BuildInfo.Version &middot; @BuildInfo.BuildDate</span>
 </div>
 

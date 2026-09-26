@@ -5,6 +5,22 @@
     height: 100vh;
 }
 
+/* Small, deliberately unobtrusive - identifies which build is live without competing with the
+   game UI. Fixed (not absolute) so it stays put regardless of GamePage's own fixed-position
+   overlays, and sits above them (map.css's highest z-index is 1000, for a hovered decoration's
+   tooltip). pointer-events: none so it never intercepts a click meant for the map underneath. */
+.build-info {
+    position: fixed;
+    top: 2px;
+    right: 6px;
+    z-index: 2000;
+    color: #888;
+    font-size: 0.7rem;
+    font-family: monospace;
+    pointer-events: none;
+    user-select: none;
+}
+
 .main {
     flex: 1;
 }
