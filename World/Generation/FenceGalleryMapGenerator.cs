@@ -17,7 +17,7 @@ namespace BlazorRogue.World.Generation;
 /// Unlike <see cref="TestMapGenerator"/>, this overrides <see cref="GenerateMap"/> itself rather
 /// than just <see cref="CreateLayout"/>, skipping doors/liquid pools/random decorations/monsters
 /// entirely - the gallery should stay quiet so the fence rows are the only thing to look at, with one
-/// deliberate exception: a single goblin standing on the enclosure's west wall tile, for manually checking 
+/// deliberate exception: a single goblin standing on the enclosure's west wall tile, for manually checking
 /// that a blocked edge blocks combat as well as movement. Uses a fixed (not randomly-weighted) floor/wall
 /// set so repeat visits render identically.
 /// </remarks>
