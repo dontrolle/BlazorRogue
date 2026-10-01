@@ -4,7 +4,7 @@ namespace BlazorRogue.Tests.TestSupport;
 
 /// <summary>
 /// Thin wrapper for driving a <see cref="BlazorRogue.Game"/> with no Blazor Server/browser
-/// involved (issue #88) - fast automated play tests and, eventually, play-balance sweeps. Every
+/// involved - fast automated play tests and, eventually, play-balance sweeps. Every
 /// actual turn-taking rule lives in <see cref="Map.TakeTurn"/>; this only owns the
 /// <see cref="Game"/> instance and forwards to it, plus optionally driving an
 /// <see cref="IPlayerPolicy"/> instead of a caller picking each <see cref="PlayerAction"/> by hand.

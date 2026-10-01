@@ -5,7 +5,7 @@ namespace BlazorRogue.Tests.TestSupport;
 
 /// <summary>
 /// Supplies the next <see cref="PlayerAction"/> for a <see cref="HeadlessPlayDriver"/> to take,
-/// given the current <see cref="Map"/> state - the seam a play-balance sweep (issue #88) would
+/// given the current <see cref="Map"/> state - the seam a play-balance sweep would
 /// implement its own smarter policy against instead of <see cref="RandomHazardAvoidingPolicy"/>.
 /// </summary>
 interface IPlayerPolicy

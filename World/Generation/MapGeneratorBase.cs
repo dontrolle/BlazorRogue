@@ -511,7 +511,7 @@ abstract class MapGeneratorBase(
 
     /// <summary>
     /// Places a few rectangular fence enclosures (see Data/decorations.json's fence_* types and
-    /// PlaceFenceEnclosure below, dontrolle/BlazorRogue-internal#86) if the level's
+    /// PlaceFenceEnclosure below) if the level's
     /// <c>common.fence_enclosures</c> settings ask for them - absent settings (or a zero
     /// <c>count_max</c>) mean none, same "opt in explicitly" default as <see cref="AddLiquidPools"/>.
     /// Each enclosure is a rough rectangle sampled over existing floor tiles only, never over
@@ -638,7 +638,7 @@ abstract class MapGeneratorBase(
     /// fence_opening-repeated/fence_end_east along the top, fence_wall_west/fence_wall_east
     /// repeated down both sides, fence_corner_sw/fence_straight-repeated/fence_corner_se along the
     /// bottom - the same shape validated by FenceGalleryMapGenerator's fixed 3x3 example and the
-    /// composite mockups in dontrolle/BlazorRogue-internal#86. Also places a non-blocking companion
+    /// composite mockups. Also places a non-blocking companion
     /// tile one column outside the footprint for every shape along the west/east sides - the side
     /// walls (fence_wall_east_companion/fence_wall_west_companion), the top row's end caps
     /// (fence_post_east/fence_post_west), and the bottom row's corners (fence_corner_sw_companion/
@@ -690,10 +690,10 @@ abstract class MapGeneratorBase(
 
             // fence_wall_west's rail sits at its own west edge and fence_wall_east's at its own
             // east edge - each reads as a spindly single line alone, but the two interlock into a
-            // proper double-rail once adjacent (confirmed by compositing the source art, see
-            // dontrolle/BlazorRogue-internal#86). These companions are the same images, placed one
-            // column outside the enclosure's own footprint, but non-blocking - the enclosure's real
-            // blocking edge is still just the fence_wall_west/east column placed above.
+            // proper double-rail once adjacent (confirmed by compositing the source art). These
+            // companions are the same images, placed one column outside the enclosure's own
+            // footprint, but non-blocking - the enclosure's real blocking edge is still just the
+            // fence_wall_west/east column placed above.
             PlaceFence(x0 - 1, y0 + dy, "fence_wall_east_companion");
             PlaceFence(x0 + width, y0 + dy, "fence_wall_west_companion");
         }
@@ -716,7 +716,7 @@ abstract class MapGeneratorBase(
     }
 
     /// <summary>
-    /// Places one fence_* decoration (see Data/decorations.json, dontrolle/BlazorRogue-internal#86)
+    /// Places one fence_* decoration (see Data/decorations.json)
     /// by id at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
     protected void PlaceFence(int x, int y, string typeId) =>
@@ -1271,7 +1271,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Places a freestanding decorative fence pillar spanning (<paramref name="x"/>,
     /// <paramref name="y"/>) and the tile immediately east of it - the "fence_pillar_west"/
-    /// "fence_pillar_east" pair (see Data/decorations.json, dontrolle/BlazorRogue-internal#86) only
+    /// "fence_pillar_east" pair (see Data/decorations.json) only
     /// reads correctly as two adjacent tiles, and doesn't block movement or light at all (it's too
     /// slight visually to justify either) - purely a decorative flourish, unrelated to any actual
     /// fence line. Callers must ensure both tiles are free floor themselves.

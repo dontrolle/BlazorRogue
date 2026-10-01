@@ -204,7 +204,7 @@ public class MapTests
     // A diagonal move that would otherwise cut straight through a sealed corner - both detours
     // around it blocked - must be denied too, or a mover can bypass two blocked edges at once by
     // stepping onto/through the corner tile diagonally. Reported live: a monster walked diagonally
-    // through a fence enclosure corner (dontrolle/BlazorRogue-internal#86).
+    // through a fence enclosure corner.
     [Fact]
     public void IsMovementBlockedAcrossEdgeDeniesADiagonalThatCutsASealedCorner()
     {

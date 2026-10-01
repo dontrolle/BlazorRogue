@@ -5,9 +5,9 @@ using BlazorRogue.World;
 namespace BlazorRogue.Tests.World;
 
 /// <summary>
-/// Covers the fence decoration types in Data/decorations.json (dontrolle/BlazorRogue-internal#86,
-/// Stage 1): each is a plain StaticDecorativeObjectType riding the shared "fence" Edge-blocking
-/// primitive (see Edge/GameObject.BlockedEdges) that Statue already proves out - these tests confirm
+/// Covers the fence decoration types in Data/decorations.json (Stage 1): each is a plain
+/// StaticDecorativeObjectType riding the shared "fence" Edge-blocking primitive (see
+/// Edge/GameObject.BlockedEdges) that Statue already proves out - these tests confirm
 /// decorations.json parses with the intended image/Blocking/BlockedEdges, and that a full
 /// rectangular enclosure built from them contains its interior except at a gate. No map-generation
 /// placement exists yet - these types are only reachable by direct placement, as here.
@@ -94,7 +94,7 @@ public class FenceTests
     }
 
     // Builds the same 3x3 enclosure (north wall with a center gate, west/east side walls, south
-    // wall) validated via the composite mockups in issue #86: a west-cap/opening/east-cap north row,
+    // wall) validated via the composite mockups: a west-cap/opening/east-cap north row,
     // vertical west/east runs, and a corner/straight/corner south row.
     [Fact]
     public void RectangularEnclosureContainsItsInteriorExceptThroughTheGate()
@@ -150,9 +150,9 @@ public class FenceTests
         );
     }
 
-    // The pillar reads as too slight visually to justify blocking anything (see
-    // dontrolle/BlazorRogue-internal#86 discussion) - purely a decorative two-tile flourish, with
-    // no gameplay effect at all. MapGeneratorBase.PlaceFencePillar is the intended way to place it.
+    // The pillar reads as too slight visually to justify blocking anything - purely a decorative
+    // two-tile flourish, with no gameplay effect at all. MapGeneratorBase.PlaceFencePillar is the
+    // intended way to place it.
     [Fact]
     public void FreestandingPillarIsPurelyDecorativeAndBlocksNothing()
     {

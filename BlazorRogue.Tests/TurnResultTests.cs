@@ -5,7 +5,7 @@ using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 
-// Map.TakeTurn(PlayerAction) - the unified entry point for issue #88's headless play driver, and
+// Map.TakeTurn(PlayerAction) - the unified entry point for the headless play driver, and
 // (as of Phase 4) GamePage.razor's own turn-taking path too. Exercises the same handlers
 // MapTests/ItemInteractionTests/StairTests already cover individually
 // (HandlePlayerActionCore/PickUpItemsAtPlayer/UseInventoryItem/DropInventoryItem/stairs), but
@@ -160,7 +160,7 @@ public class TurnResultTests
         var ai = (SimpleAIComponent)
             AIComponentFactory.Create(SimpleAIComponent.ComponentId, map, SettingsMap.Empty);
         // Adjacent, awake, and one hit from dead - registered via AddMonster (not AddMoveable) so
-        // it's actually enqueued in the tick scheduler like a real monster (issue #68).
+        // it's actually enqueued in the tick scheduler like a real monster.
         var monster = NewCreature(5, 4, weaponSkill: 1, wounds: 1, ai: ai);
         map.AddMonster(monster);
         ai.Wake();
