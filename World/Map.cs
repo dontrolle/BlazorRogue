@@ -39,7 +39,7 @@ class Map
     readonly List<Moveable> monsters;
     public IEnumerable<Moveable> Monsters => monsters;
 
-    // Tick-priority-queue turn scheduler (issue #84) - see PlayerTookTurn. Only awake monsters are
+    // Tick-priority-queue turn scheduler - see PlayerTookTurn. Only awake monsters are
     // ever enqueued (via AIComponent.Wake -> EnqueueMonster); the player is never in this queue,
     // since the player is always resolved directly by TakeTurn's dispatch rather than "popped".
     // Per-Map-instance like monsters/moveables: Game.TransitionToLevel swaps Game.Map to a
@@ -652,7 +652,7 @@ class Map
     }
 
     /// <summary>
-    /// Unified entry point for a single player turn - the one both the headless driver (issue #88)
+    /// Unified entry point for a single player turn - the one both the headless driver
     /// and GamePage.razor drive: dispatches <paramref name="action"/> through the same handlers
     /// <see cref="HandlePlayerMoveAction"/>/<see cref="HandlePlayerUseAction"/>/
     /// <see cref="PickUpItemsAtPlayer"/>/<see cref="UseInventoryItem"/>/

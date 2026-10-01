@@ -5,21 +5,20 @@ using BlazorRogue.GameObjects;
 namespace BlazorRogue.World.Generation;
 
 /// <summary>
-/// Deterministic dev-only level showing every current fence_* decoration type (see
-/// dontrolle/BlazorRogue-internal#86) - a swatch row (one tile per shape, in decorations.json's
-/// declaration order) plus the validated 3x3 rectangular enclosure, so a new fence addition can be
-/// eyeballed for regressions without hand-splicing test placement code. Reached in a running game
-/// via Ctrl+D (debug mode) then Ctrl+G (see Game.ToggleDebugLevelView, GamePage.razor) whenever
-/// game-config.json's "debug_level" points at this level's number; never part of normal level
-/// progression - see Data/levels.json's "fence_gallery" entry.
+/// Deterministic dev-only level showing every current fence_* decoration type - a swatch
+/// row (one tile per shape, in decorations.json's declaration order) plus the validated 3x3
+/// rectangular enclosure, so a new fence addition can be eyeballed for regressions without
+/// hand-splicing test placement code. Reached in a running game via Ctrl+D (debug mode) then Ctrl+G
+/// (see Game.ToggleDebugLevelView, GamePage.razor) whenever game-config.json's "debug_level" points
+/// at this level's number; never part of normal level progression - see Data/levels.json's
+/// "fence_gallery" entry.
 /// </summary>
 /// <remarks>
 /// Unlike <see cref="TestMapGenerator"/>, this overrides <see cref="GenerateMap"/> itself rather
 /// than just <see cref="CreateLayout"/>, skipping doors/liquid pools/random decorations/monsters
-/// entirely - the gallery should stay quiet so the fence rows are the only thing to look at, with
-/// one deliberate exception: a single goblin standing on the enclosure's west wall tile, for
-/// manually checking that a blocked edge blocks combat as well as movement (see
-/// dontrolle/BlazorRogue-internal#86 follow-up). Uses a fixed (not randomly-weighted) floor/wall
+/// entirely - the gallery should stay quiet so the fence rows are the only thing to look at, with one
+/// deliberate exception: a single goblin standing on the enclosure's west wall tile, for manually checking 
+/// that a blocked edge blocks combat as well as movement. Uses a fixed (not randomly-weighted) floor/wall
 /// set so repeat visits render identically.
 /// </remarks>
 class FenceGalleryMapGenerator(
@@ -140,15 +139,15 @@ class FenceGalleryMapGenerator(
         // through the gate rather than sitting still) standing on the east wall tile itself. That
         // tile isn't Blocking for occupancy, only edge-blocked on its *outward* (east) side, so
         // this is a legitimate reachable position, not a synthetic one - the same situation a
-        // wandering monster can end up in during real play. On the east side (close to the
-        // player's arrival point above) rather than the west, so there's less time for it to path
-        // out through the gate before you reach it. Walk to the companion tile immediately outside
-        // it (enclosureX0 + 3, enclosureY0 + 1) and press the move-west key: the goblin should be
+        // wandering monster can end up in during real play. On the east side (close to the player's
+        // arrival point above) rather than the west, so there's less time for it to path out
+        // through the gate before you reach it. Walk to the companion tile immediately outside it
+        // (enclosureX0 + 3, enclosureY0 + 1) and press the move-west key: the goblin should be
         // neither attackable nor able to attack back, even though it's directly adjacent, because
-        // the fence's blocked edge sits between the two tiles (dontrolle/BlazorRogue-internal#86
-        // follow-up). If it's already slipped out through the gate by the time you arrive, that's
-        // the gate working as intended (fully walkable) - leave and re-enter the gallery (Ctrl+G
-        // twice) for a fresh goblin and try approaching more directly.
+        // the fence's blocked edge sits between the two tiles. If it's already slipped out through
+        // the gate by the time you arrive, that's the gate working as intended (fully walkable) -
+        // leave and re-enter the gallery (Ctrl+G twice) for a fresh goblin and try approaching more
+        // directly.
         _ = AddMonsterAt(enclosureX0 + 2, enclosureY0 + 1, configuration.MonsterTypes["goblin"]);
 
         // Sight radius is only game-config.json's player_sight_radius - may be too small to see the whole gallery from

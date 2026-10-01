@@ -6,7 +6,7 @@ using BlazorRogue.World;
 
 namespace BlazorRogue.Tests;
 
-// HeadlessPlayDriver/IPlayerPolicy/RandomHazardAvoidingPolicy - issue #88's headless play driver.
+// HeadlessPlayDriver/IPlayerPolicy/RandomHazardAvoidingPolicy - the headless play driver.
 // Map.TakeTurn itself (the thing the driver forwards to) is already exercised directly in
 // TurnResultTests/MapTests; these tests are about the driver's own thin delegation and the
 // built-in policy's action selection, not about re-proving TakeTurn's turn-resolution rules.

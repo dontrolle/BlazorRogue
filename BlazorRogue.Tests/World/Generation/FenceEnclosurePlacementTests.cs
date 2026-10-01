@@ -5,10 +5,10 @@ using BlazorRogue.World.Generation;
 namespace BlazorRogue.Tests.World.Generation;
 
 /// <summary>
-/// Covers MapGeneratorBase.AddFenceEnclosures/PlaceFenceEnclosure (see
-/// dontrolle/BlazorRogue-internal#86) - the procedural placement pass that fences off a random
-/// rectangle of open floor, structured like AddLiquidPools (opt-in via a common.fence_enclosures
-/// settings block, sampled-origin retry loop, skipped entirely when unconfigured).
+/// Covers MapGeneratorBase.AddFenceEnclosures/PlaceFenceEnclosure - the procedural
+/// placement pass that fences off a random rectangle of open floor, structured like AddLiquidPools
+/// (opt-in via a common.fence_enclosures settings block, sampled-origin retry loop, skipped
+/// entirely when unconfigured).
 /// </summary>
 public class FenceEnclosurePlacementTests
 {
