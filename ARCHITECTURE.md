@@ -35,8 +35,8 @@ how to test changes in these areas.
   happens outside any handler; use the component's own `game` instance instead.
 - **`Configuration`** (`Entities/Configuration.cs`) parses all game data from JSON files under `Data/`
   (`monsters.json`, `heroes.json`, `floorsets.json`, `wallsets.json`, `liquidsets.json`,
-  `decorations.json`, `items.json`, `levels.json`, plus the optional `game-config.json`) into strongly-typed dictionaries (`MoveableType`,
-  `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `ItemType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
+  `trapsets.json`, `decorations.json`, `items.json`, `levels.json`, plus the optional `game-config.json`) into strongly-typed dictionaries (`MoveableType`,
+  `StaticDecorativeObjectType`, `TileSet`, `LiquidType`, `TrapType`, `ItemType`, `LevelConfiguration`). File paths are resolved relative to `AppContext.BaseDirectory`
   (not the process's current working directory), so `Data/*.json` is a `CopyToOutputDirectory`
   content item in `BlazorRogue.csproj` — it ships next to the built assembly in both `dotnet
   build`/`dotnet publish` output. Nearly all visual/audio/combat-stat tuning is data-driven through

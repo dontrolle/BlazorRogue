@@ -1,0 +1,15 @@
+{
+  "trap_sets": [
+    {
+      "id": "spike_trap",
+      "name": "spike trap",
+      "image": ["trap"],
+      "character": "^",
+      "character_color": "#c0c0c0",
+      "info_text": "A spike trap, set into the floor",
+      "effect": { "kind": "damage", "magnitude": 3 },
+      "starts_hidden": true,
+      "reusable": false
+    }
+  ]
+}

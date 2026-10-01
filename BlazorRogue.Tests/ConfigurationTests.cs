@@ -1,4 +1,5 @@
-﻿using BlazorRogue.AI;
+﻿using System.Text.Json;
+using BlazorRogue.AI;
 using BlazorRogue.Entities;
 using BlazorRogue.World.Generation;
 
@@ -202,6 +203,85 @@ public class ConfigurationTests
             "liquid_water_blue",
             configuration.LiquidTypeById("water_blue").AnimationClass
         );
+    }
+
+    [Fact]
+    public void ParseLoadsTrapTypesFromData()
+    {
+        var configuration = ParseConfiguration();
+
+        var spikeTrap = configuration.TrapTypeById("spike_trap");
+        Assert.Equal("spike trap", spikeTrap.Name);
+        Assert.Equal(["trap"], spikeTrap.Images);
+        Assert.Equal("^", spikeTrap.Character);
+        Assert.Equal(TrapEffectKind.Damage, spikeTrap.EffectKind);
+        Assert.Equal(3, spikeTrap.EffectMagnitude);
+        Assert.True(spikeTrap.StartsHidden);
+        Assert.False(spikeTrap.Reusable);
+    }
+
+    [Fact]
+    public void TrapTypeByIdThrowsForUnknownId()
+    {
+        var configuration = ParseConfiguration();
+
+        _ = Assert.Throws<InvalidOperationException>(() =>
+            configuration.TrapTypeById("no_such_trap")
+        );
+    }
+
+    static TrapType ParseTrapJson(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        return Configuration.ParseTrapType(doc.RootElement);
+    }
+
+    const string MinimalTrapJson = /*lang=json,strict*/
+        """
+        {
+          "id": "t", "name": "t", "image": ["trap"], "character": "^",
+          "character_color": "red", "info_text": "t",
+          "effect": { "kind": "damage", "magnitude": 2 }
+        }
+        """;
+
+    [Fact]
+    public void ParseTrapTypeDefaultsToHiddenAndOneShot()
+    {
+        var trapType = ParseTrapJson(MinimalTrapJson);
+
+        Assert.True(trapType.StartsHidden);
+        Assert.False(trapType.Reusable);
+    }
+
+    [Fact]
+    public void ParseTrapTypeReadsExplicitVisibilityAndReusability()
+    {
+        var trapType = ParseTrapJson(
+            MinimalTrapJson.Replace(
+                "\"info_text\": \"t\",",
+                "\"info_text\": \"t\", \"starts_hidden\": false, \"reusable\": true,",
+                StringComparison.Ordinal
+            )
+        );
+
+        Assert.False(trapType.StartsHidden);
+        Assert.True(trapType.Reusable);
+    }
+
+    [Theory]
+    [InlineData(
+        "\"kind\": \"damage\", \"magnitude\": 2",
+        "\"kind\": \"explode\", \"magnitude\": 2"
+    )]
+    [InlineData("\"magnitude\": 2", "\"magnitude\": 0")]
+    [InlineData("\"image\": [\"trap\"]", "\"image\": []")]
+    public void ParseTrapTypeRejectsInvalidEntries(string valid, string invalid)
+    {
+        string json = MinimalTrapJson.Replace(valid, invalid, StringComparison.Ordinal);
+        Assert.NotEqual(MinimalTrapJson, json);
+
+        _ = Assert.Throws<InvalidOperationException>(() => ParseTrapJson(json));
     }
 
     [Fact]

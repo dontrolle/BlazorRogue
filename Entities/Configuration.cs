@@ -51,6 +51,11 @@ class Configuration
         "Data",
         "liquidsets.json"
     );
+    static readonly string TrapSetsFileName = Path.Combine(
+        AppContext.BaseDirectory,
+        "Data",
+        "trapsets.json"
+    );
     static readonly string DecorationsFileName = Path.Combine(
         AppContext.BaseDirectory,
         "Data",
@@ -110,6 +115,17 @@ class Configuration
         liquidTypesById.TryGetValue(id, out var liquidType)
             ? liquidType
             : throw new InvalidOperationException($"Unknown liquid-set id: {id}.");
+
+    readonly Dictionary<string, TrapType> trapTypesById = [];
+    public IEnumerable<TrapType> TrapTypes => trapTypesById.Values;
+
+    /// <summary>
+    /// Looks up a trap-set by id. Throws for an unknown id, like the other <c>*ById</c> lookups.
+    /// </summary>
+    public TrapType TrapTypeById(string id) =>
+        trapTypesById.TryGetValue(id, out var trapType)
+            ? trapType
+            : throw new InvalidOperationException($"Unknown trap-set id: {id}.");
 
     const string DefaultStairsFloorSetId = "grey";
 
@@ -223,6 +239,7 @@ class Configuration
         ParseDataFile(options, WallSetsFileName, "uf_wall_sets", ParseWallSetType);
         ParseDataFile(options, DoorSetsFileName, "door_sets", ParseDoorSetType);
         ParseDataFile(options, LiquidSetsFileName, "liquid_sets", ParseLiquidType);
+        ParseDataFile(options, TrapSetsFileName, "trap_sets", AddTrapType);
         ParseDataFile(
             options,
             DecorationsFileName,
@@ -580,6 +597,77 @@ class Configuration
         {
             throw new InvalidOperationException($"Found another liquid-set with id: {id}.");
         }
+    }
+
+    void AddTrapType(JsonElement element)
+    {
+        var trapType = ParseTrapType(element);
+        if (!trapTypesById.TryAdd(trapType.Id, trapType))
+        {
+            throw new InvalidOperationException($"Found another trap-set with id: {trapType.Id}.");
+        }
+    }
+
+    /// <summary>
+    /// Parses one <c>Data/trapsets.json</c> entry. Static (and internal) so its validation can be
+    /// unit tested on hand-written JSON, rather than only through the real data files.
+    /// </summary>
+    internal static TrapType ParseTrapType(JsonElement element)
+    {
+        string id = GetRequiredString(element, "id");
+        string name = GetRequiredString(element, "name");
+        string character = GetRequiredString(element, "character");
+        string characterColor = GetRequiredString(element, "character_color");
+        string infoText = GetRequiredString(element, "info_text");
+
+        var images = new List<string>();
+        foreach (var imageElement in element.GetProperty("image").EnumerateArray())
+        {
+            images.Add(RequireNonNullString(imageElement, "image"));
+        }
+        if (images.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Trap-set '{id}' has an \"image\" list with no entries - at least one image name is required."
+            );
+        }
+
+        var effectElement = element.GetProperty("effect");
+        string kindString = GetRequiredString(effectElement, "kind");
+        var effectKind = kindString switch
+        {
+            "damage" => TrapEffectKind.Damage,
+            _ => throw new InvalidOperationException(
+                $"Trap-set '{id}' has unknown effect kind '{kindString}' - expected damage."
+            ),
+        };
+        int effectMagnitude = GetRequiredInt(effectElement, "magnitude");
+        if (effectMagnitude < 1)
+        {
+            throw new InvalidOperationException(
+                $"Trap-set '{id}' has effect magnitude {effectMagnitude} - it must be positive."
+            );
+        }
+
+        bool startsHidden =
+            !element.TryGetProperty("starts_hidden", out var startsHiddenElement)
+            || startsHiddenElement.GetBoolean();
+        bool reusable =
+            element.TryGetProperty("reusable", out var reusableElement)
+            && reusableElement.GetBoolean();
+
+        return new TrapType(
+            id,
+            name,
+            images,
+            character,
+            characterColor,
+            infoText,
+            effectKind,
+            effectMagnitude,
+            startsHidden,
+            reusable
+        );
     }
 
     void ParseDoorSetType(JsonElement element)

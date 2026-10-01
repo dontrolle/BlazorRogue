@@ -25,7 +25,7 @@ Rendering/        SpriteAtlas (licensed-tileset atlas -> CSS), AnimationCssGener
 Entities/         Types parsed from configuration, plus Configuration.cs (parses Data/*.json)
 Sessions/         Per-browser session state that survives page reloads
 Utility/          Small standalone helpers (e.g. string extension methods)
-Data/             JSON game data: monsters, heroes, floorsets, wallsets, liquidsets, decorations, items, levels, game-config
+Data/             JSON game data: monsters, heroes, floorsets, wallsets, liquidsets, trapsets, decorations, items, levels, game-config
 Game.cs / References.cs   Core game state
 wwwroot/          Static assets: CSS, JS interop, sounds
 docker/           Dockerfile (see Commands below)
