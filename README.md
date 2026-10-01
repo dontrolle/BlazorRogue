@@ -4,7 +4,7 @@
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A small rogue-like built from the bottom up in a custom game engine on C#/Blazor. Features a tileset renderer using the great [Ultimate Fantasy Tileset from Oryx](https://www.oryxdesignlab.com/ultimatefantasy), and a custom-built ASCII renderer, switchable at any time.
+A small rogue-like built in a custom game engine on C#/Blazor. Features a tileset renderer using the great [Ultimate Fantasy Tileset from Oryx](https://www.oryxdesignlab.com/ultimatefantasy), and an ASCII renderer, switchable at any time.
 
 ## Table of contents
 
@@ -21,15 +21,15 @@ A small rogue-like built from the bottom up in a custom game engine on C#/Blazor
 
 ## Features
 
-- Procedural dungeon generation, including animated liquid pools — water, mud, acid and lava; walkable, but mud/water slow you, acid burns, and lava is insta-death.
+- Procedural dungeon generation, including animated liquid pools — water, mud, acid and lava. Liquid is walkable, but mud/water slow you, acid burns, and lava is insta-death.
 - Procedurally-placed fence enclosures — blocks movement and combat, but are see-through.
 - A variety of monsters, animated using CSS animations.
 - Sounds and music, plus a screen-shake effect on hits.
 - Useable environment objects (doors, chests) and classical field-of-view/vision.
 - Pick-up items with a lettered inventory: consumable potions and equippable gear (e.g. a ring of protection).
 - Basic combat, driven by a Warhammer-inspired ruleset.
-- A tick-based turn scheduler — monsters can be faster or slower than the player (e.g. a goblin gets two actions to your one; an ogre sometimes misses a turn). A fast monster's extra move(s) within a single keypress play out as a brief snap-through animation on the map, and new message-log lines reveal one at a time.
-- A tileset renderer (using the Ultimate Fantasy Tileset) and a from-scratch ASCII renderer (old-school format, with colors), switchable client-side at any time - and auto-selected on load based on whether tileset graphics are present.
+- A tick-based turn scheduler — monsters can be faster or slower than the player (e.g. a goblin may get two actions to your one, while an ogre sometimes misses a turn).
+- A tileset renderer (using the Ultimate Fantasy Tileset) and an ASCII renderer (old-school format, with colors), switchable client-side - and auto-selected on load based on whether tileset graphics are present.
 - Almost everything (monster/hero stats, floor/wall sets, decorations, map generation weights) is data-driven via JSON, rather than hardcoded — see [Game data / configuration](#game-data--configuration).
 
 ## Screenshots
@@ -67,25 +67,28 @@ dotnet run
 
 By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) — open either URL in a browser to play.
 
+#### Tests
+
 `BlazorRogue.Tests` is an xUnit test project covering core, UI-independent game logic (dice/combat math, `Configuration` JSON parsing, `Map` geometry helpers, end-to-end dungeon generation smoke tests, and a headless play driver for scripted or randomized play-testing with no browser involved). Run it with:
 
 ```
 dotnet test
 ```
 
+#### Code style
+
 Code style is enforced via `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way), plus two dedicated formatting/lint steps. CI runs `dotnet build`, `dotnet csharpier check .` (whitespace/layout), `dotnet format BlazorRogue.sln style --verify-no-changes` (code-style rules, e.g. IDE0001 "simplify name" — `.editorconfig` promotes every analyzer diagnostic to `error`, so these fail the build too, not just show as editor hints), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet format BlazorRogue.sln style` followed by `dotnet csharpier format .` locally before committing to match it — that order matters, since a style fix can touch whitespace and csharpier should get the final say on layout.
 
-### Docker
+#### Docker
+
+Build and run via docker:
 
 ```
 docker build -f docker/Dockerfile -t blazorrogue .
 docker run -p 8080:8080 blazorrogue
 ```
 
-Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage
-`dotnet publish` (see `docker/Dockerfile`) and never contains the proprietary tileset assets at all
-— see [Tileset](#tileset) — so the containerized game runs in ASCII-renderer mode unless
-`BLAZORROGUE_ART_PATH` is pointed at a separately-deployed tileset atlas.
+Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage `dotnet publish` (see `docker/Dockerfile`) and never contains the proprietary tileset assets at all — see [Tileset](#tileset) — so the containerized game runs in ASCII-renderer mode unless `BLAZORROGUE_ART_PATH` is pointed at a separately-deployed tileset atlas.
 
 ## How to play
 
