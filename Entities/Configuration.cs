@@ -124,6 +124,16 @@ class Configuration
     /// </summary>
     public int StartingLevelNumber { get; private set; } = DefaultStartingLevelNumber;
 
+    /// <summary>Player sight radius when <c>game-config.json</c> doesn't say otherwise.</summary>
+    internal const int DefaultPlayerSightRadius = 6;
+
+    /// <summary>
+    /// How many tiles the player can see (and wake monsters) around themselves, from
+    /// <c>Data/game-config.json</c>'s <c>player_sight_radius</c>. Defaults to
+    /// <see cref="DefaultPlayerSightRadius"/>; must be positive.
+    /// </summary>
+    public int PlayerSightRadius { get; private set; } = DefaultPlayerSightRadius;
+
     /// <summary>
     /// Initial value for <see cref="Game.DebugMode"/> (verbose combat rolls in the message log),
     /// from <c>Data/game-config.json</c>'s <c>debug_mode</c>. Defaults to <c>false</c>; toggle it
@@ -360,6 +370,16 @@ class Configuration
         if (root.TryGetProperty("starting_level", out var startingLevelElement))
         {
             StartingLevelNumber = RequireNonNullInt(startingLevelElement, "starting_level");
+        }
+        if (root.TryGetProperty("player_sight_radius", out var sightRadiusElement))
+        {
+            PlayerSightRadius = RequireNonNullInt(sightRadiusElement, "player_sight_radius");
+            if (PlayerSightRadius < 1)
+            {
+                throw new InvalidOperationException(
+                    $"game-config.json 'player_sight_radius' must be positive, but is {PlayerSightRadius}."
+                );
+            }
         }
         if (root.TryGetProperty("debug_mode", out var debugModeElement))
         {

@@ -22,8 +22,7 @@ class Map
     // Set via AddPlayer() shortly after Map construction (DungeonGenerator always calls it before
     // the map is used); null! avoids forcing nullable-checks on every consumer of this property.
     public Moveable Player { get; private set; } = null!;
-    public const int PlayerSightRadius = 6;
-    public const int PlayerSightRadiusSquared = PlayerSightRadius * PlayerSightRadius;
+    public int PlayerSightRadius => Game.Configuration.PlayerSightRadius;
 
     public List<string> DebugInfo = [];
 
