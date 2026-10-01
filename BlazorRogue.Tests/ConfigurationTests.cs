@@ -411,6 +411,7 @@ public class ConfigurationTests
         var configuration = ParseConfiguration();
 
         Assert.Equal(0, configuration.StartingLevelNumber);
+        Assert.Equal(12, configuration.PlayerSightRadius);
         Assert.False(configuration.DebugMode);
         Assert.Equal(-1002, configuration.DebugLevelNumber);
     }

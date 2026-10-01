@@ -151,7 +151,7 @@ class FenceGalleryMapGenerator(
         // twice) for a fresh goblin and try approaching more directly.
         _ = AddMonsterAt(enclosureX0 + 2, enclosureY0 + 1, configuration.MonsterTypes["goblin"]);
 
-        // Sight radius is only Map.PlayerSightRadius (6) - too small to see the whole gallery from
+        // Sight radius is only game-config.json's player_sight_radius - may be too small to see the whole gallery from
         // one spot regardless, but this puts the swatch row mostly in view on arrival, with the
         // enclosure a short walk south.
         return Tuple.Create(8, 6);

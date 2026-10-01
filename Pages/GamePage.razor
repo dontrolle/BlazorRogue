@@ -624,8 +624,9 @@ else
         windowYOffset = Math.Clamp(optimalYOffset, 0, game.Map.Height - windowHeight);
 
         // optional: keep move buffer proportional after resize
-        windowMoveBufferX = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowWidth / 3));
-        windowMoveBufferY = Math.Min(Map.PlayerSightRadius + 1, Math.Max(1, windowHeight / 3));
+        int sightRadius = game.Configuration.PlayerSightRadius;
+        windowMoveBufferX = Math.Min(sightRadius + 1, Math.Max(1, windowWidth / 3));
+        windowMoveBufferY = Math.Min(sightRadius + 1, Math.Max(1, windowHeight / 3));
     }
 
     private async Task ToggleRenderMode()
@@ -850,8 +851,9 @@ else
     // guarded on `session is null` so neither is dereferenced before that.
     Game game = null!;
 
-    int windowMoveBufferX = Map.PlayerSightRadius + 1;
-    int windowMoveBufferY = Map.PlayerSightRadius + 1;
+    // Placeholders until FitMapToViewportAsync derives them from the configured sight radius.
+    int windowMoveBufferX = BlazorRogue.Entities.Configuration.DefaultPlayerSightRadius + 1;
+    int windowMoveBufferY = BlazorRogue.Entities.Configuration.DefaultPlayerSightRadius + 1;
 
     int windowWidth = 25;
     int windowHeight = 20;
