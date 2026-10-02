@@ -19,6 +19,12 @@ class Map
     public TileSet DungeonWallSet { get; private set; }
     public Game Game { get; }
 
+    /// <summary>
+    /// Random source for cosmetic sprite picks made while rendering (wall faces, stair art), seeded
+    /// per level so a seeded game looks the same too. Never shared with the generator's own source.
+    /// </summary>
+    public Random Random { get; }
+
     // Set via AddPlayer() shortly after Map construction (DungeonGenerator always calls it before
     // the map is used); null! avoids forcing nullable-checks on every consumer of this property.
     public Moveable Player { get; private set; } = null!;
@@ -79,10 +85,11 @@ class Map
     public Stair GetStair(StairDirection direction) =>
         GameObjects.OfType<Stair>().Single(stair => stair.Direction == direction);
 
-    public Map(int width, int height, TileSet dungeonWallSet, Game game)
+    public Map(int width, int height, TileSet dungeonWallSet, Game game, Random? random = null)
     {
         DungeonWallSet = dungeonWallSet;
         Game = game;
+        Random = random ?? Random.Shared;
         Width = width;
         Height = height;
         Tiles = new Tile[width, height];

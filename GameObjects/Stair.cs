@@ -64,7 +64,7 @@ class Stair(int x, int y, StairDirection direction)
         var (up, down) = stairsSource.StairImages!.Value;
         pickedImageName ??= TileSet.PickWeighted(
             Direction == StairDirection.Down ? down : up,
-            Random.Shared
+            map.Random
         );
 
         map.Decorations[X, Y]

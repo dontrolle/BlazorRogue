@@ -980,7 +980,7 @@ else
         if (ctrlKey && key.Equals("d", StringComparison.OrdinalIgnoreCase))
         {
             game.DebugMode = !game.DebugMode;
-            game.AddMessage($"Debug mode {(game.DebugMode ? "on" : "off")}.");
+            game.AddMessage($"Debug mode {(game.DebugMode ? $"on (seed {game.Seed})" : "off")}.");
             return;
         }
 

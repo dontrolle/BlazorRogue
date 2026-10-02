@@ -17,7 +17,12 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
         height,
         levelNumber,
         game,
-        SelectWallSet(game.Configuration, settings, game.Configuration.CaveWallSets),
+        SelectWallSet(
+            game.Configuration,
+            settings,
+            game.Configuration.CaveWallSets,
+            SetupRandom(game, levelNumber)
+        ),
         settings
     )
 {
@@ -32,9 +37,17 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
         .GetInt("smoothing_pass_one_iterations", 4);
     readonly int smoothingPassTwoIterations = LayoutSettings(settings)
         .GetInt("smoothing_pass_two_iterations", 3);
-    readonly TileSet floorTileSet = SelectFloorTileSet(game.Configuration, settings);
+    readonly TileSet floorTileSet = SelectFloorTileSet(
+        game.Configuration,
+        settings,
+        SetupRandom(game, levelNumber, LevelSeed.SetupFloor)
+    );
 
-    static TileSet SelectFloorTileSet(Configuration configuration, SettingsMap settings)
+    static TileSet SelectFloorTileSet(
+        Configuration configuration,
+        SettingsMap settings,
+        Random random
+    )
     {
         var (tileSets, weights) = ResolveFloorPool(
             configuration,
@@ -42,7 +55,7 @@ class CaveGenerator(int width, int height, int levelNumber, Game game, SettingsM
             "common",
             configuration.FloorSets
         );
-        return SelectRandomWeighted(tileSets, weights);
+        return SelectRandomWeighted(tileSets, weights, random);
     }
 
     static SettingsMap LayoutSettings(SettingsMap settings) =>

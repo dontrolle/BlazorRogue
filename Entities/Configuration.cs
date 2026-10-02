@@ -167,6 +167,13 @@ class Configuration
     /// </summary>
     public int? DebugLevelNumber { get; private set; }
 
+    /// <summary>
+    /// Seed for level generation, from <c>Data/game-config.json</c>'s <c>seed</c>: the same seed
+    /// generates the same dungeon (see <c>Game.Seed</c>, which a <c>Game</c> can also be given
+    /// directly). Null (the default) if unset, in which case each game picks a random seed.
+    /// </summary>
+    public int? Seed { get; private set; }
+
     // Set by Parse() once all floorsets are loaded and validated; used as the stair image source
     // for any floorset that doesn't define its own "img_stairs" (see Stair.Render). null! avoids
     // forcing nullable-checks on every consumer, since Parse() always runs first.
@@ -405,6 +412,10 @@ class Configuration
         if (root.TryGetProperty("debug_level", out var debugLevelElement))
         {
             DebugLevelNumber = RequireNonNullInt(debugLevelElement, "debug_level");
+        }
+        if (root.TryGetProperty("seed", out var seedElement))
+        {
+            Seed = RequireNonNullInt(seedElement, "seed");
         }
     }
 

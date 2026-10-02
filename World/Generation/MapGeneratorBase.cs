@@ -28,10 +28,20 @@ abstract class MapGeneratorBase(
     SettingsMap settings
 ) : IMapGenerator
 {
-    protected readonly Map map = new(width, height, wallSet, game);
+    protected readonly Map map = new(
+        width,
+        height,
+        wallSet,
+        game,
+        LevelSeed.Random(game.Seed, levelNumber, LevelSeed.Cosmetic)
+    );
     protected readonly Configuration configuration = game.Configuration;
     protected readonly int levelNumber = levelNumber;
-    protected readonly Random mapGenerationRandomSource = new();
+    protected readonly Random mapGenerationRandomSource = LevelSeed.Random(
+        game.Seed,
+        levelNumber,
+        LevelSeed.Generation
+    );
 
     // Decorations - shared by every DungeonGeneratorBase subclass, so levels.json groups these
     // under "common" rather than mixing them in with a specific generator's own layout parameters.
@@ -117,15 +127,23 @@ abstract class MapGeneratorBase(
 
     // Picks a random element ahead of the base constructor running, e.g. for choosing a subclass's
     // wall set from a constructor initializer - at that point the instance `random` field (and any
-    // other instance state) hasn't been initialized yet, so it can't be used. Uses Random.Shared
-    // rather than a seedable source for the same reason.
+    // other instance state) hasn't been initialized yet, so it can't be used. Takes a Random from
+    // the caller instead (see SetupRandom) so the pick is still reproducible from the game's seed.
 #pragma warning disable CA1851 // Possible multiple enumerations of 'IEnumerable' collection
-    protected static T SelectRandom<T>(IEnumerable<T> elements) =>
-        elements.ElementAt(Random.Shared.Next(elements.Count()));
+    protected static T SelectRandom<T>(IEnumerable<T> elements, Random random) =>
+        elements.ElementAt(random.Next(elements.Count()));
 #pragma warning restore CA1851 // Possible multiple enumerations of 'IEnumerable' collection
 
-    protected static T SelectRandomWeighted<T>(T[] elements, double[] weights) =>
-        WeightedPick(elements, weights, Random.Shared);
+    protected static T SelectRandomWeighted<T>(T[] elements, double[] weights, Random random) =>
+        WeightedPick(elements, weights, random);
+
+    /// <summary>
+    /// A seeded Random for picks made from a subclass's constructor initializer, ahead of the
+    /// instance's own source existing. <paramref name="stream"/> (<see cref="LevelSeed.Setup"/>,
+    /// <see cref="LevelSeed.SetupFloor"/>) keeps separate picks from drawing correlated numbers.
+    /// </summary>
+    protected static Random SetupRandom(Game game, int levelNumber, int stream = LevelSeed.Setup) =>
+        LevelSeed.Random(game.Seed, levelNumber, stream);
 
     /// <summary>
     /// Resolves the wall <see cref="TileSet"/> for a level: weighted-picks among the ids listed in
@@ -136,18 +154,19 @@ abstract class MapGeneratorBase(
     protected static TileSet SelectWallSet(
         Configuration configuration,
         SettingsMap settings,
-        IEnumerable<TileSet> defaultPool
+        IEnumerable<TileSet> defaultPool,
+        Random random
     )
     {
         var weighted = CommonSettings(settings).GetWeightedIds("wall_tile_set", []);
         if (weighted.Count == 0)
         {
-            return SelectRandom(defaultPool);
+            return SelectRandom(defaultPool, random);
         }
 
         TileSet[] wallSets = [.. weighted.Select(w => configuration.WallSetById(w.Id))];
         double[] weights = [.. weighted.Select(w => w.Weight)];
-        return SelectRandomWeighted(wallSets, weights);
+        return SelectRandomWeighted(wallSets, weights, random);
     }
 
     /// <summary>
@@ -796,9 +815,7 @@ abstract class MapGeneratorBase(
     /// by id at (<paramref name="x"/>, <paramref name="y"/>).
     /// </summary>
     protected void PlaceFence(int x, int y, string typeId) =>
-        map.AddGameObject(
-            new StaticDecorativeObject(x, y, configuration.StaticDecorativeObjectTypes[typeId])
-        );
+        map.AddGameObject(NewDecoration(x, y, configuration.StaticDecorativeObjectTypes[typeId]));
 
     /// <summary>
     /// Adds decorations randomly on walls and floors.
@@ -832,11 +849,7 @@ abstract class MapGeneratorBase(
             )
             {
                 map.AddGameObject(
-                    new StaticDecorativeObject(
-                        x,
-                        y,
-                        configuration.StaticDecorativeObjectTypes["bones"]
-                    )
+                    NewDecoration(x, y, configuration.StaticDecorativeObjectTypes["bones"])
                 );
             }
 
@@ -862,11 +875,7 @@ abstract class MapGeneratorBase(
                     }
 
                     map.AddGameObject(
-                        new StaticDecorativeObject(
-                            x,
-                            y,
-                            configuration.StaticDecorativeObjectTypes[tableId]
-                        )
+                        NewDecoration(x, y, configuration.StaticDecorativeObjectTypes[tableId])
                     );
                 }
             }
@@ -884,11 +893,7 @@ abstract class MapGeneratorBase(
                         mapGenerationRandomSource.Next(0, 4) == 0 ? "altar_skull" : "altar_blood";
 
                     map.AddGameObject(
-                        new StaticDecorativeObject(
-                            x,
-                            y,
-                            configuration.StaticDecorativeObjectTypes[altarId]
-                        )
+                        NewDecoration(x, y, configuration.StaticDecorativeObjectTypes[altarId])
                     );
                 }
             }
@@ -903,11 +908,7 @@ abstract class MapGeneratorBase(
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
                     map.AddGameObject(
-                        new StaticDecorativeObject(
-                            x,
-                            y,
-                            configuration.StaticDecorativeObjectTypes["barrel"]
-                        )
+                        NewDecoration(x, y, configuration.StaticDecorativeObjectTypes["barrel"])
                     );
                 }
             }
@@ -976,11 +977,7 @@ abstract class MapGeneratorBase(
                     };
 
                     map.AddGameObject(
-                        new StaticDecorativeObject(
-                            x,
-                            y,
-                            configuration.StaticDecorativeObjectTypes[clutterId]
-                        )
+                        NewDecoration(x, y, configuration.StaticDecorativeObjectTypes[clutterId])
                     );
                 }
             }
@@ -992,11 +989,7 @@ abstract class MapGeneratorBase(
             )
             {
                 map.AddGameObject(
-                    new StaticDecorativeObject(
-                        x,
-                        y,
-                        configuration.StaticDecorativeObjectTypes["rune"]
-                    )
+                    NewDecoration(x, y, configuration.StaticDecorativeObjectTypes["rune"])
                 );
             }
 
@@ -1010,11 +1003,7 @@ abstract class MapGeneratorBase(
                     mapGenerationRandomSource.Next(0, 2) == 0 ? "leaves_green" : "leaves_brown";
 
                 map.AddGameObject(
-                    new StaticDecorativeObject(
-                        x,
-                        y,
-                        configuration.StaticDecorativeObjectTypes[leavesId]
-                    )
+                    NewDecoration(x, y, configuration.StaticDecorativeObjectTypes[leavesId])
                 );
             }
 
@@ -1035,7 +1024,7 @@ abstract class MapGeneratorBase(
                 if (adjacentLiquidId is not null)
                 {
                     map.AddGameObject(
-                        new StaticDecorativeObject(
+                        NewDecoration(
                             x,
                             y,
                             configuration.StaticDecorativeObjectTypes["puddle_large"],
@@ -1109,7 +1098,7 @@ abstract class MapGeneratorBase(
                 {
                     // i.e., we found a suitable spot for a spiderweb
                     map.AddGameObject(
-                        new StaticDecorativeObject(
+                        NewDecoration(
                             x,
                             y,
                             configuration.StaticDecorativeObjectTypes["corner_spiderweb"],
@@ -1220,8 +1209,8 @@ abstract class MapGeneratorBase(
                 : ("wall_straight", "floor_straight");
 
             var dustType = configuration.StaticDecorativeObjectTypes["dust"];
-            map.AddGameObject(new StaticDecorativeObject(x, y, dustType, wallTag));
-            map.AddGameObject(new StaticDecorativeObject(x, y + 1, dustType, floorTag));
+            map.AddGameObject(NewDecoration(x, y, dustType, wallTag));
+            map.AddGameObject(NewDecoration(x, y + 1, dustType, floorTag));
         }
     }
 
@@ -1248,11 +1237,7 @@ abstract class MapGeneratorBase(
         if (mapGenerationRandomSource.NextDouble() < percentageChanceOfLilypad)
         {
             map.AddGameObject(
-                new StaticDecorativeObject(
-                    x,
-                    y,
-                    configuration.StaticDecorativeObjectTypes["lilypad"]
-                )
+                NewDecoration(x, y, configuration.StaticDecorativeObjectTypes["lilypad"])
             );
         }
     }
@@ -1260,6 +1245,28 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Does the map contain a door at (x,y)?
     /// </summary>
+    protected StaticDecorativeObject NewDecoration(
+        int x,
+        int y,
+        StaticDecorativeObjectType type,
+        string? imageTag = null,
+        int? verticalOffsetOverride = null,
+        string? nameOverride = null,
+        string? infoTextOverride = null,
+        Decoration.Layer? decorationLayerOverride = null
+    ) =>
+        new(
+            x,
+            y,
+            type,
+            imageTag,
+            verticalOffsetOverride,
+            nameOverride,
+            infoTextOverride,
+            decorationLayerOverride,
+            mapGenerationRandomSource
+        );
+
     protected bool MapTileContainsDoor(int x, int y) =>
         map.GameObjectByCoord[x, y].Any(go => go is Door);
 
@@ -1284,9 +1291,8 @@ abstract class MapGeneratorBase(
     protected T GetRandomElementWeighted<T>(T[] elements, double[] weights) =>
         WeightedPick(elements, weights, mapGenerationRandomSource);
 
-    // Shared core for GetRandomElementWeighted (instance, seedable via `random`) and
-    // SelectRandomWeighted (static, for use ahead of the base constructor running - see
-    // SelectRandom above) so the weighting logic isn't duplicated between them.
+    // Shared core for GetRandomElementWeighted (instance) and SelectRandomWeighted (static, for use
+    // ahead of the base constructor running - see SelectRandom above) so the weighting logic isn't duplicated between them.
     static T WeightedPick<T>(T[] elements, double[] weights, Random rng)
     {
         if (elements.Length != weights.Length)
@@ -1355,18 +1361,10 @@ abstract class MapGeneratorBase(
     protected void PlaceFencePillar(int x, int y)
     {
         map.AddGameObject(
-            new StaticDecorativeObject(
-                x,
-                y,
-                configuration.StaticDecorativeObjectTypes["fence_pillar_west"]
-            )
+            NewDecoration(x, y, configuration.StaticDecorativeObjectTypes["fence_pillar_west"])
         );
         map.AddGameObject(
-            new StaticDecorativeObject(
-                x + 1,
-                y,
-                configuration.StaticDecorativeObjectTypes["fence_pillar_east"]
-            )
+            NewDecoration(x + 1, y, configuration.StaticDecorativeObjectTypes["fence_pillar_east"])
         );
     }
 }

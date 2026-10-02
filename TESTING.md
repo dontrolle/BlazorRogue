@@ -22,6 +22,10 @@ is fine for geometry helpers but **not** for anything that kills a `Moveable`: d
 puddle (needs `Game.Configuration`) and re-renders (needs a post-gen map). Use `new Game()` for
 those — it generates a real dungeon in a few ms, as `GameTests` already does.
 
+For a generator test that needs a *reproducible* real dungeon, use `new Game(seed: 42)`: the same seed
+generates the identical level (see `SeededGenerationTests`, whose `Fingerprint` helper compares tiles,
+objects, creatures and rendered sprites).
+
 For a deterministic turn-based scenario (AI pathing, combat, liquid hazards) where a randomly
 generated dungeon would make the exact tile layout unpredictable, build a small bare *all-floor*
 `Map` wired to a real `Game` instead — see `LiquidPoolTests.BareFloorMap`/`NewCreature` (reused by

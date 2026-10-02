@@ -22,7 +22,8 @@ class StaticDecorativeObject : GameObject
         int? verticalOffsetOverride = null,
         string? nameOverride = null,
         string? infoTextOverride = null,
-        Decoration.Layer? decorationLayerOverride = null
+        Decoration.Layer? decorationLayerOverride = null,
+        Random? random = null
     )
         : base(x, y, nameOverride ?? staticDecorativeObjectType.Name)
     {
@@ -46,8 +47,11 @@ class StaticDecorativeObject : GameObject
         else
         {
             // if no tag is given, select a random image (and whichever animation class shares its
-            // tag) among the variants given
-            (image, animationClass) = staticDecorativeObjectType.RandomImageWithAnimationClass;
+            // tag) among the variants given - from `random` when the caller wants it reproducible
+            // (see MapGeneratorBase), else the shared source
+            (image, animationClass) = staticDecorativeObjectType.RandomImageWithAnimationClass(
+                random ?? Random.Shared
+            );
         }
 
         InfoText = infoTextOverride ?? staticDecorativeObjectType.InfoText;

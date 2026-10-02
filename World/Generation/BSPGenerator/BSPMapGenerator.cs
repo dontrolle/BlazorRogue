@@ -47,7 +47,12 @@ class BSPMapGenerator(int width, int height, int levelNumber, Game game, Setting
         height,
         levelNumber,
         game,
-        SelectWallSet(game.Configuration, settings, game.Configuration.DungeonWallSets),
+        SelectWallSet(
+            game.Configuration,
+            settings,
+            game.Configuration.DungeonWallSets,
+            SetupRandom(game, levelNumber)
+        ),
         settings
     )
 {

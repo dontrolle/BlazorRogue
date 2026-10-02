@@ -22,7 +22,12 @@ class TestMapGenerator(
         height,
         levelNumber,
         game,
-        SelectWallSet(game.Configuration, settings, game.Configuration.DungeonWallSets),
+        SelectWallSet(
+            game.Configuration,
+            settings,
+            game.Configuration.DungeonWallSets,
+            SetupRandom(game, levelNumber)
+        ),
         settings
     )
 {

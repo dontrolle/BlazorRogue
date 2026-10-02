@@ -21,8 +21,6 @@ class StaticDecorativeObjectType(
     Decoration.Layer decorationLayer = Decoration.Layer.Middleground
 )
 {
-    readonly Random random = new();
-
     public string Id { get; } = id;
     public string Name { get; } = name;
     readonly Dictionary<string, string> imageVariants = image;
@@ -52,22 +50,20 @@ class StaticDecorativeObjectType(
     /// placement can still override it.</summary>
     public Decoration.Layer DecorationLayer { get; } = decorationLayer;
 
-    string RandomTag => imageVariants.ElementAt(random.Next(0, imageVariants.Count)).Key;
+    string RandomTag(Random random) =>
+        imageVariants.ElementAt(random.Next(0, imageVariants.Count)).Key;
 
-    public string RandomImage => imageVariants[RandomTag];
+    public string RandomImage(Random random) => imageVariants[RandomTag(random)];
 
     /// <summary>
     /// Picks a random tag and returns its image together with whatever animation class (if any)
     /// shares that tag, so a multi-frame species (e.g. lilypad's "a"/"b") never ends up with one
     /// frame's image paired with a different frame's animation.
     /// </summary>
-    public (string Image, string? AnimationClass) RandomImageWithAnimationClass
+    public (string Image, string? AnimationClass) RandomImageWithAnimationClass(Random random)
     {
-        get
-        {
-            string tag = RandomTag;
-            return (imageVariants[tag], AnimationClassForTag(tag));
-        }
+        string tag = RandomTag(random);
+        return (imageVariants[tag], AnimationClassForTag(tag));
     }
 
     public string? AnimationClassForTag(string tag) =>
