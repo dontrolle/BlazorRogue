@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
@@ -53,8 +52,6 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
 
     // For now, all blocking tiles also block light. If I make windows, this needs to change.
     public bool Blocking { get; set; }
-
-    static readonly Random Random = new();
 
     // The wall-face image pool and the half-wall pool both include a random pick, cached here on
     // first Render() so a neighboring tile changing (and re-triggering this tile's Render, e.g.
@@ -207,7 +204,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     {
         // if tile above has a door, restrict to the simpler pool, else usually (3/4) simple too -
         // "decorated" half-wall art is rare and never appears directly above a door.
-        halfWallIndex ??= PickHalfWallIndex(ContainsDoor(map, X, Y - 1));
+        halfWallIndex ??= PickHalfWallIndex(map, ContainsDoor(map, X, Y - 1));
 
         map.Decorations[X, Y]
             .Add(
@@ -219,13 +216,13 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             );
     }
 
-    int PickHalfWallIndex(bool doorAbove)
+    int PickHalfWallIndex(Map map, bool doorAbove)
     {
-        bool restrictToSimplerHalfWall = doorAbove || Random.Next(0, 4) < 3;
+        bool restrictToSimplerHalfWall = doorAbove || map.Random.Next(0, 4) < 3;
         int[] pool = restrictToSimplerHalfWall
             ? TileSet.ImageSimpleEdgeNorthIndexes
             : TileSet.ImageEdgeNorthIndexes;
-        return pool[Random.Next(0, pool.Length)];
+        return pool[map.Random.Next(0, pool.Length)];
     }
 
     // Casts the wall's shadow onto the floor tile below - same "own cell, offset into the
@@ -242,7 +239,7 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
             : TileSet.PickWeighted(
                 TileSet.ImageSouthEdgeIndexes,
                 TileSet.ImageSouthEdgeWeights,
-                Random
+                map.Random
             );
 
         map.Decorations[X, Y].Add(new Decoration(owner, TileSet.ImageName(southFaceIndex.Value)));

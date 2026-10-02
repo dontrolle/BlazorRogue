@@ -56,6 +56,14 @@ how to test changes in these areas.
   `Game` seeds `CurrentLevelNumber` from `StartingLevelNumber` and `Game.DebugMode` from
   `Configuration.DebugMode` at construction (the latter also re-toggled in-game via Ctrl+D — see
   `GamePage.KeyUp`).
+- **Reproducible level generation**: every `Game` has a `Seed` — the constructor's `seed`, else
+  `game-config.json`'s optional `seed`, else a random one picked at startup (shown by Ctrl+D) — and
+  each level's random streams are derived from it plus the level number (`World/Generation/
+  LevelSeed.cs`, a stable splitmix mix, deliberately not `HashCode.Combine`), so the same seed
+  generates the same dungeon whatever order levels are visited in. Generators draw from
+  `mapGenerationRandomSource` (and `SetupRandom` for picks made before the base constructor runs);
+  cosmetic render-time picks (wall faces, stair art) use `Map.Random`. Don't reach for
+  `Random.Shared`/`new Random()` in anything that shapes a generated level.
 - **Entity/component model**: `GameObject` (`GameObjects/GameObject.cs`) is the abstract base for
   everything placed on the map (`Moveable`, `Door`, `Chest`, `Torch`, `HalfWall`, `WallEdge`,
   `StaticDecorativeObject`, `Item`). Behavior is composed via optional `Component` (`Components/Component.cs`)

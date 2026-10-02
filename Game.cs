@@ -23,6 +23,13 @@ class Game
 
     public int CurrentLevelNumber { get; private set; }
 
+    /// <summary>
+    /// The seed this game's levels are generated from (see <see cref="LevelSeed"/>):
+    /// the constructor's <c>seed</c> if given, else <see cref="Configuration.Seed"/>, else a random
+    /// one picked at startup - so any game, seeded or not, can be reproduced from its seed.
+    /// </summary>
+    public int Seed { get; }
+
     // Levels already visited this playthrough, keyed by level number, so TransitionToLevel can
     // restore one exactly as it was left instead of regenerating it. Only 3 levels are defined in
     // Data/levels.json today, so this is unbounded rather than evicted - even a much deeper dungeon
@@ -51,10 +58,11 @@ class Game
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses
-    /// <see cref="Game(Configuration)"/>; this overload exists for tests and standalone use.
+    /// <see cref="Game(Configuration, int?)"/>; this overload exists for tests and standalone use.
     /// </remarks>
-    public Game()
-        : this(ParseConfiguration()) { }
+    /// <param name="seed">Overrides the configured seed - see <see cref="Seed"/>.</param>
+    public Game(int? seed = null)
+        : this(ParseConfiguration(), seed) { }
 
     /// <summary>
     /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
@@ -63,9 +71,11 @@ class Game
     /// <see cref="DebugMode"/> both come from <c>Data/game-config.json</c> via the configuration.
     /// </summary>
     /// <param name="configuration">Already-parsed, immutable game content.</param>
-    public Game(Configuration configuration)
+    /// <param name="seed">Overrides <see cref="Configuration.Seed"/> - see <see cref="Seed"/>.</param>
+    public Game(Configuration configuration, int? seed = null)
     {
         Configuration = configuration;
+        Seed = seed ?? configuration.Seed ?? System.Random.Shared.Next();
 
         DebugMode = configuration.DebugMode;
 
