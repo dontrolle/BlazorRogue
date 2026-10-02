@@ -9,6 +9,8 @@ namespace BlazorRogue.Tests.World.Generation;
 /// Covers MapGeneratorBase.AddTraps' placement rules - an opt-in percentage knob, and traps only on
 /// plain unoccupied floor away from the start and the stairs - plus Map.IsChokepoint, which keeps
 /// reusable traps out of corridors and doorways.
+/// The placement tests run over a few fixed seeds, so each rule is checked against several distinct
+/// but reproducible layouts - a failure names its seed, replay it with <c>new Game(seed: n)</c>.
 /// </summary>
 public class TrapPlacementTests
 {
@@ -61,10 +63,12 @@ public class TrapPlacementTests
         return traps;
     }
 
-    [Fact]
-    public void NoTrapsArePlacedUnlessTheLevelOptsIn()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void NoTrapsArePlacedUnlessTheLevelOptsIn(int seed)
     {
-        var game = new Game();
+        var game = new Game(seed: seed);
         var level = LevelWithSettings(SettingsMap.Empty);
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
@@ -72,10 +76,15 @@ public class TrapPlacementTests
         Assert.Empty(TrapsOn(map));
     }
 
-    [Fact]
-    public void ACertainChancePlacesTrapsOfAConfiguredTypeOnly()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void ACertainChancePlacesTrapsOfAConfiguredTypeOnly(int seed)
     {
-        var game = new Game();
+        var game = new Game(seed: seed);
         var level = LevelWithSettings(CrowdedLevelWithTrapChance(1.0));
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
@@ -93,10 +102,15 @@ public class TrapPlacementTests
         );
     }
 
-    [Fact]
-    public void TrapsOnlyLandOnPlainUnoccupiedFloor()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void TrapsOnlyLandOnPlainUnoccupiedFloor(int seed)
     {
-        var game = new Game();
+        var game = new Game(seed: seed);
         var level = LevelWithSettings(CrowdedLevelWithTrapChance(1.0));
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
@@ -121,10 +135,15 @@ public class TrapPlacementTests
         );
     }
 
-    [Fact]
-    public void TrapsKeepTheirDistanceFromThePlayerAndTheStairs()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void TrapsKeepTheirDistanceFromThePlayerAndTheStairs(int seed)
     {
-        var game = new Game();
+        var game = new Game(seed: seed);
         var level = LevelWithSettings(CrowdedLevelWithTrapChance(1.0));
 
         var map = MapGeneratorFactory.Create(level, game).GenerateMap();
