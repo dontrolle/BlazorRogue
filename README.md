@@ -21,16 +21,16 @@ A small rogue-like built in a custom game engine on C#/Blazor. Features a tilese
 
 ## Features
 
-- Procedural dungeon generation, including animated liquid pools — water, mud, acid and lava. Liquid is walkable, but mud/water slow you, acid burns, and lava is insta-death.
-- Procedurally-placed fence enclosures — blocks movement and combat, but are see-through.
+- Procedural dungeon generation, including animated liquid pools - water, mud, acid and lava. Liquid is walkable, but mud/water slow you, acid burns, and lava is insta-death.
+- Procedurally-placed fence enclosures - blocks movement and combat, but are see-through.
 - A variety of monsters, animated using CSS animations.
 - Sounds and music, plus a screen-shake effect on hits.
 - Useable environment objects (doors, chests) and classical field-of-view/vision.
 - Pick-up items with a lettered inventory: consumable potions and equippable gear (e.g. a ring of protection).
 - Basic combat, driven by a Warhammer-inspired ruleset.
-- A tick-based turn scheduler — monsters can be faster or slower than the player (e.g. a goblin may get two actions to your one, while an ogre sometimes misses a turn).
+- A tick-based turn scheduler - monsters can be faster or slower than the player (e.g. a goblin may get two actions to your one, while an ogre sometimes misses a turn).
 - A tileset renderer (using the Ultimate Fantasy Tileset) and an ASCII renderer (old-school format, with colors), switchable client-side - and auto-selected on load based on whether tileset graphics are present.
-- Almost everything (monster/hero stats, floor/wall sets, decorations, map generation weights) is data-driven via JSON, rather than hardcoded — see [Game data / configuration](#game-data--configuration).
+- Almost everything (monster/hero stats, floor/wall sets, decorations, map generation weights) is data-driven via JSON, rather than hardcoded - see [Game data / configuration](#game-data--configuration).
 
 ## Screenshots
 
@@ -65,7 +65,7 @@ dotnet build
 dotnet run
 ```
 
-By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) — open either URL in a browser to play.
+By default the app listens on `https://localhost:5001` (see `Properties/launchSettings.json`) - open either URL in a browser to play.
 
 #### Tests
 
@@ -77,7 +77,7 @@ dotnet test
 
 #### Code style
 
-Code style is enforced via `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way), plus two dedicated formatting/lint steps. CI runs `dotnet build`, `dotnet csharpier check .` (whitespace/layout), `dotnet format BlazorRogue.sln style --verify-no-changes` (code-style rules, e.g. IDE0001 "simplify name" — `.editorconfig` promotes every analyzer diagnostic to `error`, so these fail the build too, not just show as editor hints), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet format BlazorRogue.sln style` followed by `dotnet csharpier format .` locally before committing to match it — that order matters, since a style fix can touch whitespace and csharpier should get the final say on layout.
+Code style is enforced via `.editorconfig` conventions and the compiler's nullable-reference-type warnings (the build is currently warning-free; please keep it that way), plus two dedicated formatting/lint steps. CI runs `dotnet build`, `dotnet csharpier check .` (whitespace/layout), `dotnet format BlazorRogue.sln style --verify-no-changes` (code-style rules, e.g. IDE0001 "simplify name" - `.editorconfig` promotes every analyzer diagnostic to `error`, so these fail the build too, not just show as editor hints), then `dotnet test` on every push/PR to `master` via GitHub Actions (`.github/workflows/CI.yml`). Run `dotnet format BlazorRogue.sln style` followed by `dotnet csharpier format .` locally before committing to match it - that order matters, since a style fix can touch whitespace and csharpier should get the final say on layout.
 
 #### Docker
 
@@ -88,7 +88,7 @@ docker build -f docker/Dockerfile -t blazorrogue .
 docker run -p 8080:8080 blazorrogue
 ```
 
-Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage `dotnet publish` (see `docker/Dockerfile`) and never contains the proprietary tileset assets at all — see [Tileset](#tileset) — so the containerized game runs in ASCII-renderer mode unless `BLAZORROGUE_ART_PATH` is pointed at a separately-deployed tileset atlas.
+Open `http://localhost:8080` in a browser. The image is a Linux container built via multi-stage `dotnet publish` (see `docker/Dockerfile`) and never contains the proprietary tileset assets at all - see [Tileset](#tileset) - so the containerized game runs in ASCII-renderer mode unless `BLAZORROGUE_ART_PATH` is pointed at a separately-deployed tileset atlas.
 
 ## How to play
 
@@ -97,8 +97,8 @@ Open `http://localhost:8080` in a browser. The image is a Linux container built 
 | Move / attack (8-directional) | Numpad, or `qweasdzxc` |
 | Use (open door, chest, etc.) | `Shift` + move towards the object |
 | Pick up item(s) on your tile | `g` |
-| Open inventory | `i` — then `u` use/equip, `d` drop, `Esc` close |
-| Quick use / equip an item | `u` — opens the inventory ready to use/equip |
+| Open inventory | `i` - then `u` use/equip, `d` drop, `Esc` close |
+| Quick use / equip an item | `u` - opens the inventory ready to use/equip |
 | Start a new game | "New game" button (left panel) |
 | Toggle tileset/ASCII rendering | CTRL-A |
 | Toggle debug mode | CTRL-D |
@@ -108,7 +108,7 @@ Open `http://localhost:8080` in a browser. The image is a Linux container built 
 
 This project employs the excellent [Ultimate Fantasy Tileset](https://www.oryxdesignlab.com/ultimatefantasy).
 
-If you own the UF Tileset, see `tools/AtlasPacker/README.md` for how to build an atlas bundle from it and point the game at it via `BLAZORROGUE_ART_PATH`. Without one, the game automatically falls back to the built-in ASCII renderer — no setup needed to get playing.
+If you own the UF Tileset, see `tools/AtlasPacker/README.md` for how to build an atlas bundle from it and point the game at it via `BLAZORROGUE_ART_PATH`. Without one, the game automatically falls back to the built-in ASCII renderer - no setup needed to get playing.
 
 ## Project structure
 
@@ -149,30 +149,30 @@ One playthrough is rooted in a `Game`, which owns the map generator, `Map`, comb
 
 Everything placed on the map is a `GameObject` (`Moveable`, `Door`, `Chest`, …). Inspired by ECS `GameObject`'s have optional `Component`'s added at construction. The `Map` holds the `Tile` grid a map generator builds. `Vision/` does field-of-view. `GameObject`'s are rendered to `Decoration`'s. Rendering has a tileset path and an ASCII path, chosen client-side.
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full picture — engine internals, the map-generation and rendering pipelines, and the gotchas worth knowing before a structural change.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the full picture - engine internals, the map-generation and rendering pipelines, and the gotchas worth knowing before a structural change.
 
 ## Game data / configuration
 
-Most game content is data, not code — new monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#:
+Most game content is data, not code - new monsters, heroes, floor/wall sets, and decorations can usually be added without touching C#:
 
-- `Data/monsters.json`, `Data/heroes.json` — combat stats, AI behavior, sprites/animations.
-- `Data/floorsets.json`, `Data/wallsets.json` — tileset mappings and map-generation weights.
-- `Data/liquidsets.json` — animated liquid pools (water/mud/acid/lava): frames, ASCII colour, and hazard effect.
-- `Data/decorations.json` — static decorative objects (torches, carpets, etc.).
-- `Data/items.json` — pickup-able items: name, kind (`use_once` / `equipable`), sprite + ASCII glyph, and effect (`heal` / `armour_bonus`) with a magnitude.
-- `Data/levels.json` — one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
-- `Data/game-config.json` — optional local knobs: `starting_level` (the level `no` a new game starts on, default `0`; set to `-1000` to start on the test level), `debug_mode` (initial value of the in-game Ctrl-D debug toggle, default `false`), `seed` (an integer; the same seed generates the same dungeon — omitted by default, in which case each game picks a random seed, shown when toggling debug mode with Ctrl-D), and `debug_level` (the level `no` Ctrl-G jumps to/from once debug mode is on — e.g. `-1002` for the fence gallery; omitted by default, in which case Ctrl-G does nothing). The file, or any key, may be omitted.
+- `Data/monsters.json`, `Data/heroes.json` - combat stats, AI behavior, sprites/animations.
+- `Data/floorsets.json`, `Data/wallsets.json` - tileset mappings and map-generation weights.
+- `Data/liquidsets.json` - animated liquid pools (water/mud/acid/lava): frames, ASCII colour, and hazard effect.
+- `Data/decorations.json` - static decorative objects (torches, carpets, etc.).
+- `Data/items.json` - pickup-able items: name, kind (`use_once` / `equipable`), sprite + ASCII glyph, and effect (`heal` / `armour_bonus`) with a magnitude.
+- `Data/levels.json` - one entry per level: dimensions, which map generator to use (by string id), and that generator's own tuning parameters.
+- `Data/game-config.json` - optional local knobs: `starting_level` (the level `no` a new game starts on, default `0`; set to `-1000` to start on the test level), `debug_mode` (initial value of the in-game Ctrl-D debug toggle, default `false`), `seed` (an integer; the same seed generates the same dungeon - omitted by default, in which case each game picks a random seed, shown when toggling debug mode with Ctrl-D), and `debug_level` (the level `no` Ctrl-G jumps to/from once debug mode is on - e.g. `-1002` for the fence gallery; omitted by default, in which case Ctrl-G does nothing). The file, or any key, may be omitted.
 
-These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind — follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.
+These are parsed in `Entities/Configuration.cs` via a `Parse*Type` method per entity kind - follow the existing pattern (and the `GetRequiredString`/`RequireNonNullString` helpers for required fields) when adding a new data-driven concept.
 
-A level's `map_generator.parameters` in `levels.json` is different from the rest: It's parsed into a `SettingsMap` (`Entities/SettingsMap.cs`) — a small recursive value tree of int/double/string/nested-map, read back via typed getters (`GetInt`, `GetDouble`, `GetString`, `GetMap`), each with a required form and a `(key, defaultValue)` form. This keeps the JSON-parsing library out of the map generators entirely — see the `Map generation` and `Map-generator parameters` entries in [`CLAUDE.md`](CLAUDE.md) for the full design.
+A level's `map_generator.parameters` in `levels.json` is different from the rest: It's parsed into a `SettingsMap` (`Entities/SettingsMap.cs`) - a small recursive value tree of int/double/string/nested-map, read back via typed getters (`GetInt`, `GetDouble`, `GetString`, `GetMap`), each with a required form and a `(key, defaultValue)` form. This keeps the JSON-parsing library out of the map generators entirely - see the `Map generation` and `Map-generator parameters` entries in [`CLAUDE.md`](CLAUDE.md) for the full design.
 
 ## Contributing
 
 - `master` is protected: every change needs to go through a pull request; CI (`dotnet build` + `dotnet test`) must pass before merging.
-- Please keep the build warning-free — nullable reference types are enabled project-wide.
+- Please keep the build warning-free - nullable reference types are enabled project-wide.
 - Add or update tests in `BlazorRogue.Tests` for changes to game logic (combat, configuration parsing, map/dungeon generation, etc.); for changes that are hard to unit test (rendering, Blazor components, JS interop), please describe how you manually verified the change (e.g. a screenshot or a description of in-browser testing) in your PR description.
-- Small, focused PRs are preferred over large ones, especially for anything touching rendering or the hosting model — those are the areas most likely to have subtle runtime-only breakage that `dotnet build` won't catch.
+- Small, focused PRs are preferred over large ones, especially for anything touching rendering or the hosting model - those are the areas most likely to have subtle runtime-only breakage that `dotnet build` won't catch.
 
 ## License
 
