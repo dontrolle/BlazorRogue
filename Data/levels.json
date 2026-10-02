@@ -38,6 +38,7 @@
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_traps": 0.01,
             "percentage_chance_of_door": 0.4,
             "percentage_chance_of_items": 0.02,
             "item_types": [
@@ -102,6 +103,7 @@
             "percentage_chance_of_spider_web_in_corner": 0,
             "percentage_chance_of_torch": 0,
             "percentage_chance_of_chests": 0,
+            "percentage_chance_of_traps": 0,
             "percentage_chance_of_items": 0,
             "liquid_pools": {
               "radius_min": 6,
@@ -164,6 +166,7 @@
             "percentage_chance_of_spider_web_in_corner": 0,
             "percentage_chance_of_torch": 0,
             "percentage_chance_of_chests": 0,
+            "percentage_chance_of_traps": 0.01,
             "percentage_chance_of_items": 0.02,
             "item_types": [
               [ "health_potion", 3 ],
@@ -248,6 +251,7 @@
             "percentage_chance_of_spider_web_in_corner": 0.25,
             "percentage_chance_of_torch": 0.20,
             "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_traps": 0.01,
             "percentage_chance_of_items": 0.02,
             "item_types": [
               [ "health_potion", 3 ],
@@ -327,6 +331,7 @@
             "percentage_chance_of_spider_web_in_corner": 0.30,
             "percentage_chance_of_torch": 0.15,
             "percentage_chance_of_chests": 0.02,
+            "percentage_chance_of_traps": 0.01,
             "percentage_chance_of_items": 0.02,
             "item_types": [
               [ "health_potion", 3 ],
