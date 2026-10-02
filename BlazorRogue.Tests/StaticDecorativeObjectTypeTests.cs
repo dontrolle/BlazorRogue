@@ -39,10 +39,11 @@ public class StaticDecorativeObjectTypeTests
         };
         var type = Type(images);
 
+        var random = new Random(1);
         var seen = new HashSet<string>();
         for (int i = 0; i < 200; i++)
         {
-            _ = seen.Add(type.RandomImage(Random.Shared));
+            _ = seen.Add(type.RandomImage(random));
         }
 
         Assert.Equal([.. images.Values], seen);
@@ -56,10 +57,11 @@ public class StaticDecorativeObjectTypeTests
             animationClasses: new Dictionary<string, string> { ["a"] = "anim_a", ["b"] = "anim_b" }
         );
 
+        var random = new Random(1);
         var seenImages = new HashSet<string>();
         for (int i = 0; i < 200; i++)
         {
-            var (image, animationClass) = type.RandomImageWithAnimationClass(Random.Shared);
+            var (image, animationClass) = type.RandomImageWithAnimationClass(random);
             _ = seenImages.Add(image);
             Assert.Equal(image == "img_a" ? "anim_a" : "anim_b", animationClass);
         }

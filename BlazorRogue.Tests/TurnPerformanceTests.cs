@@ -26,7 +26,7 @@ public class TurnPerformanceTests(ITestOutputHelper output)
 
         for (int g = 0; g < Games; g++)
         {
-            var driver = new HeadlessPlayDriver();
+            var driver = new HeadlessPlayDriver(seed: g);
             var policy = new RandomHazardAvoidingPolicy(new Random(g));
 
             for (int turn = 0; turn < TurnsPerGame && !driver.Map.IsGameOver; turn++)

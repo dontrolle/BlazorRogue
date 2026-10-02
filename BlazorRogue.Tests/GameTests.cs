@@ -1,4 +1,6 @@
-﻿namespace BlazorRogue.Tests;
+﻿using BlazorRogue.Tests.TestSupport;
+
+namespace BlazorRogue.Tests;
 
 /// <summary>
 /// End-to-end smoke tests that exercise Configuration parsing + procedural dungeon generation
@@ -43,16 +45,17 @@ public class GameTests
     }
 
     [Fact]
-    public void NewGameCanBeGeneratedRepeatedlyWithoutThrowing()
-    {
-        // Dungeon generation involves randomness; run it several times to catch intermittent bugs
-        // (e.g. generation logic that occasionally produces an invalid or unreachable layout).
-        for (int i = 0; i < 5; i++)
-        {
-            var game = new Game();
-            Assert.NotNull(game.Map.Player);
-        }
-    }
+    public void NewGameCanBeGeneratedRepeatedlyWithoutThrowing() =>
+        // Dungeon generation involves randomness; run it over several seeds to catch intermittent
+        // bugs (e.g. generation logic that occasionally produces an invalid or unreachable layout).
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var game = new Game(seed: seed);
+                Assert.NotNull(game.Map.Player);
+            }
+        );
 
     [Fact]
     public void ToggleDebugLevelViewRoundTripsToTheConfiguredDebugLevelAndBack()

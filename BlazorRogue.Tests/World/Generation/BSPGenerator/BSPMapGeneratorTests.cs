@@ -1,5 +1,6 @@
 using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
+using BlazorRogue.Tests.TestSupport;
 using BlazorRogue.World;
 using BlazorRogue.World.Generation;
 using BlazorRogue.World.Generation.BSPGenerator;
@@ -29,12 +30,22 @@ public class BSPMapGeneratorTests
             settingsMap: settings
         );
 
-    static Map GenerateMap(int width = 60, int height = 40) =>
-        GenerateMap(SettingsMap.Empty, width, height);
+    // Fixed seed for the tests that generate a single map, so a failure replays; the tests that loop
+    // pass their own, via SeededRuns.
+    const int DefaultSeed = 1;
 
-    static Map GenerateMap(SettingsMap settings, int width = 60, int height = 40, int number = 0) =>
+    static Map GenerateMap(int width = 60, int height = 40, int seed = DefaultSeed) =>
+        GenerateMap(SettingsMap.Empty, width, height, seed: seed);
+
+    static Map GenerateMap(
+        SettingsMap settings,
+        int width = 60,
+        int height = 40,
+        int number = 0,
+        int seed = DefaultSeed
+    ) =>
         MapGeneratorFactory
-            .Create(Level(width, height, settings, number), new Game())
+            .Create(Level(width, height, settings, number), new Game(seed: seed))
             .GenerateMap();
 
     /// <summary>Wraps a <c>layout</c> parameter block the way levels.json nests it.</summary>
@@ -59,18 +70,19 @@ public class BSPMapGeneratorTests
         return new SettingsMap(root);
     }
 
-    /// <summary>Like <see cref="GenerateMap(SettingsMap, int, int, int)"/> but also hands back the
+    /// <summary>Like <see cref="GenerateMap(SettingsMap, int, int, int, int)"/> but also hands back the
     /// concrete generator, for assertions against its carved rooms / player room.</summary>
     static (BSPMapGenerator Gen, Map Map) GenerateWithGen(
         SettingsMap settings,
         int width = 72,
         int height = 48,
-        int number = 0
+        int number = 0,
+        int seed = DefaultSeed
     )
     {
         var generator = MapGeneratorFactory.Create(
             Level(width, height, settings, number),
-            new Game()
+            new Game(seed: seed)
         );
         var map = generator.GenerateMap();
         return ((BSPMapGenerator)generator, map);
@@ -156,104 +168,131 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void GeneratesANonTrivialAmountOfFloor()
-    {
-        var map = GenerateMap();
+    public void GeneratesANonTrivialAmountOfFloor() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(seed: seed);
 
-        Assert.True(
-            FloorCells(map).Count > 100,
-            $"Expected a carved dungeon, got only {FloorCells(map).Count} floor tiles."
+                Assert.True(
+                    FloorCells(map).Count > 100,
+                    $"Expected a carved dungeon, got only {FloorCells(map).Count} floor tiles."
+                );
+            }
         );
-    }
 
     [Fact]
-    public void NoFloorTileSitsOnTheMapPerimeter()
-    {
-        var map = GenerateMap();
+    public void NoFloorTileSitsOnTheMapPerimeter() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(seed: seed);
 
-        for (int x = 0; x < map.Width; x++)
-        {
-            Assert.False(IsFloor(map, x, 0));
-            Assert.False(IsFloor(map, x, map.Height - 1));
-        }
-        for (int y = 0; y < map.Height; y++)
-        {
-            Assert.False(IsFloor(map, 0, y));
-            Assert.False(IsFloor(map, map.Width - 1, y));
-        }
-    }
+                for (int x = 0; x < map.Width; x++)
+                {
+                    Assert.False(IsFloor(map, x, 0));
+                    Assert.False(IsFloor(map, x, map.Height - 1));
+                }
+                for (int y = 0; y < map.Height; y++)
+                {
+                    Assert.False(IsFloor(map, 0, y));
+                    Assert.False(IsFloor(map, map.Width - 1, y));
+                }
+            }
+        );
 
     [Fact]
     public void EveryFloorTileIsFullyEnclosedByFloorOrWall() =>
         // The wall ring pass must leave no floor cell touching the void - otherwise light/vision
         // and the decoration passes leak into unpainted space.
-        AssertEveryFloorTileIsEnclosed(GenerateMap());
+        SeededRuns.Each(5, seed => AssertEveryFloorTileIsEnclosed(GenerateMap(seed: seed)));
 
     [Fact]
-    public void PlayerStartsOnAFloorTile()
-    {
-        var map = GenerateMap();
+    public void PlayerStartsOnAFloorTile() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(seed: seed);
 
-        Assert.True(IsFloor(map, map.Player.X, map.Player.Y));
-    }
+                Assert.True(IsFloor(map, map.Player.X, map.Player.Y));
+            }
+        );
 
     [Fact]
     public void EveryFloorTileIsReachableFromThePlayerStart() =>
         // The payoff of wiring in ConnectRooms: flood-fill over floor cells from the player's
         // start tile must reach every floor cell on the map.
-        AssertEveryFloorTileReachableFromPlayer(GenerateMap());
+        SeededRuns.Each(
+            5,
+            seed => AssertEveryFloorTileReachableFromPlayer(GenerateMap(seed: seed))
+        );
 
     [Fact]
-    public void PlacesStairsOnFloorTiles()
-    {
-        // number 0's only neighbour in levels.json is level 1, so AddStairs adds a single down
-        // stair; it must land on floor (a room connector).
-        var map = GenerateMap();
+    public void PlacesStairsOnFloorTiles() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                // number 0's only neighbour in levels.json is level 1, so AddStairs adds a single down
+                // stair; it must land on floor (a room connector).
+                var map = GenerateMap(seed: seed);
 
-        var stairs = map.GameObjects.OfType<Stair>().ToList();
-        Assert.NotEmpty(stairs);
-        Assert.All(stairs, stair => Assert.True(IsFloor(map, stair.X, stair.Y)));
-    }
+                var stairs = map.GameObjects.OfType<Stair>().ToList();
+                Assert.NotEmpty(stairs);
+                Assert.All(stairs, stair => Assert.True(IsFloor(map, stair.X, stair.Y)));
+            }
+        );
 
     [Fact]
-    public void PlayerSpawnsFarFromTheDownStair()
-    {
+    public void PlayerSpawnsFarFromTheDownStair() =>
         // ChooseKeyRooms puts the player and the down-stair in the farthest-apart pair of rooms,
         // so a fresh level always has a real traversal from entrance to exit.
-        for (int i = 0; i < 5; i++)
-        {
-            var map = GenerateMap(width: 72, height: 48);
-            var down = map.GetStair(StairDirection.Down);
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(width: 72, height: 48, seed: seed);
+                var down = map.GetStair(StairDirection.Down);
 
-            int dx = map.Player.X - down.X;
-            int dy = map.Player.Y - down.Y;
-            Assert.True(
-                (dx * dx) + (dy * dy) > 20 * 20,
-                $"player ({map.Player.X},{map.Player.Y}) too close to down-stair ({down.X},{down.Y})"
-            );
-        }
-    }
+                int dx = map.Player.X - down.X;
+                int dy = map.Player.Y - down.Y;
+                Assert.True(
+                    (dx * dx) + (dy * dy) > 20 * 20,
+                    $"player ({map.Player.X},{map.Player.Y}) too close to down-stair ({down.X},{down.Y})"
+                );
+            }
+        );
 
     [Fact]
-    public void UpAndDownStairsLandInDifferentRoomsFarApart()
-    {
+    public void UpAndDownStairsLandInDifferentRoomsFarApart() =>
         // number 1 in levels.json has both a level 0 and a level 2, so both stairs are placed -
         // in the two farthest-apart rooms.
-        for (int i = 0; i < 5; i++)
-        {
-            var map = GenerateMap(SettingsMap.Empty, width: 72, height: 48, number: 1);
-            var up = map.GetStair(StairDirection.Up);
-            var down = map.GetStair(StairDirection.Down);
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(
+                    SettingsMap.Empty,
+                    width: 72,
+                    height: 48,
+                    number: 1,
+                    seed: seed
+                );
+                var up = map.GetStair(StairDirection.Up);
+                var down = map.GetStair(StairDirection.Down);
 
-            Assert.True(IsFloor(map, up.X, up.Y));
-            Assert.True(IsFloor(map, down.X, down.Y));
-            Assert.False(up.X == down.X && up.Y == down.Y);
+                Assert.True(IsFloor(map, up.X, up.Y));
+                Assert.True(IsFloor(map, down.X, down.Y));
+                Assert.False(up.X == down.X && up.Y == down.Y);
 
-            int dx = up.X - down.X;
-            int dy = up.Y - down.Y;
-            Assert.True((dx * dx) + (dy * dy) > 20 * 20);
-        }
-    }
+                int dx = up.X - down.X;
+                int dy = up.Y - down.Y;
+                Assert.True((dx * dx) + (dy * dy) > 20 * 20);
+            }
+        );
 
     [Fact]
     public void StairsStayReachableWithCaveHeavyRooms()
@@ -268,71 +307,89 @@ public class BSPMapGeneratorTests
             }
         );
 
-        for (int i = 0; i < 6; i++)
-        {
-            var map = GenerateMap(settings, width: 72, height: 48);
-            var down = map.GetStair(StairDirection.Down);
+        SeededRuns.Each(
+            6,
+            seed =>
+            {
+                var map = GenerateMap(settings, width: 72, height: 48, seed: seed);
+                var down = map.GetStair(StairDirection.Down);
 
-            var reached = FloodFillFloorFrom(map, (map.Player.X, map.Player.Y));
-            Assert.Contains((down.X, down.Y), reached);
-        }
+                var reached = FloodFillFloorFrom(map, (map.Player.X, map.Player.Y));
+                Assert.Contains((down.X, down.Y), reached);
+            }
+        );
     }
 
     [Fact]
-    public void PlacesDoorsWhereCorridorsPierceRooms()
-    {
+    public void PlacesDoorsWhereCorridorsPierceRooms() =>
         // Every corridor crossing a room's wall ring leaves a one-tile gap; RecordDoorCandidates
         // flags it and the base AddDoors pass fills it. A multi-room BSP map always has some.
-        for (int i = 0; i < 5; i++)
-        {
-            var map = GenerateMap(width: 72, height: 48);
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(width: 72, height: 48, seed: seed);
 
-            Assert.NotEmpty(map.GameObjects.OfType<Door>());
-        }
-    }
-
-    [Fact]
-    public void EveryDoorSitsInAOneTileGapInAWall()
-    {
-        // A door must be on floor with wall on exactly one axis and open passage on the other -
-        // a real threshold, never mid-room or mid-corridor.
-        var map = GenerateMap(width: 72, height: 48);
-        var doors = map.GameObjects.OfType<Door>().ToList();
-
-        Assert.NotEmpty(doors);
-        foreach (var door in doors)
-        {
-            Assert.True(IsFloor(map, door.X, door.Y));
-
-            bool wallOnXAxis =
-                map.Tiles[door.X - 1, door.Y].TileType == TileType.Wall
-                && map.Tiles[door.X + 1, door.Y].TileType == TileType.Wall;
-            bool wallOnYAxis =
-                map.Tiles[door.X, door.Y - 1].TileType == TileType.Wall
-                && map.Tiles[door.X, door.Y + 1].TileType == TileType.Wall;
-
-            Assert.True(
-                wallOnXAxis ^ wallOnYAxis,
-                $"Door at ({door.X},{door.Y}) is not in a clean one-tile wall gap."
-            );
-        }
-    }
+                Assert.NotEmpty(map.GameObjects.OfType<Door>());
+            }
+        );
 
     [Fact]
-    public void NoTwoDoorsShareATile()
-    {
-        var map = GenerateMap(width: 72, height: 48);
+    public void EveryDoorSitsInAOneTileGapInAWall() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                // A door must be on floor with wall on exactly one axis and open passage on the other -
+                // a real threshold, never mid-room or mid-corridor.
+                var map = GenerateMap(width: 72, height: 48, seed: seed);
+                var doors = map.GameObjects.OfType<Door>().ToList();
 
-        var doorCells = map.GameObjects.OfType<Door>().Select(d => (d.X, d.Y)).ToList();
+                Assert.NotEmpty(doors);
+                foreach (var door in doors)
+                {
+                    Assert.True(IsFloor(map, door.X, door.Y));
 
-        Assert.Equal(doorCells.Count, doorCells.Distinct().Count());
-    }
+                    bool wallOnXAxis =
+                        map.Tiles[door.X - 1, door.Y].TileType == TileType.Wall
+                        && map.Tiles[door.X + 1, door.Y].TileType == TileType.Wall;
+                    bool wallOnYAxis =
+                        map.Tiles[door.X, door.Y - 1].TileType == TileType.Wall
+                        && map.Tiles[door.X, door.Y + 1].TileType == TileType.Wall;
+
+                    Assert.True(
+                        wallOnXAxis ^ wallOnYAxis,
+                        $"Door at ({door.X},{door.Y}) is not in a clean one-tile wall gap."
+                    );
+                }
+            }
+        );
+
+    [Fact]
+    public void NoTwoDoorsShareATile() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var map = GenerateMap(width: 72, height: 48, seed: seed);
+
+                var doorCells = map.GameObjects.OfType<Door>().Select(d => (d.X, d.Y)).ToList();
+
+                Assert.Equal(doorCells.Count, doorCells.Distinct().Count());
+            }
+        );
 
     [Fact]
     public void DoorsLeaveEveryFloorTileReachable() =>
         // Doors are game objects on floor tiles - TileType stays Floor - so a closed door never
         // severs the map even though it blocks movement until opened.
-        AssertEveryFloorTileReachableFromPlayer(GenerateMap(width: 72, height: 48));
+        SeededRuns.Each(
+            5,
+            seed =>
+                AssertEveryFloorTileReachableFromPlayer(
+                    GenerateMap(width: 72, height: 48, seed: seed)
+                )
+        );
 
     [Fact]
     public void PercentageChanceOfDoorGatesHowManyCandidatesBecomeDoors()
@@ -353,12 +410,13 @@ public class BSPMapGeneratorTests
             );
 
             int total = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                total += GenerateMap(settings, width: 72, height: 48)
-                    .GameObjects.OfType<Door>()
-                    .Count();
-            }
+            SeededRuns.Each(
+                8,
+                seed =>
+                    total += GenerateMap(settings, width: 72, height: 48, seed: seed)
+                        .GameObjects.OfType<Door>()
+                        .Count()
+            );
             return total;
         }
 
@@ -390,12 +448,15 @@ public class BSPMapGeneratorTests
             }
         );
 
-        for (int i = 0; i < 6; i++)
-        {
-            var map = GenerateMap(settings, width: 72, height: 48);
-            AssertEveryFloorTileIsEnclosed(map);
-            AssertEveryFloorTileReachableFromPlayer(map);
-        }
+        SeededRuns.Each(
+            6,
+            seed =>
+            {
+                var map = GenerateMap(settings, width: 72, height: 48, seed: seed);
+                AssertEveryFloorTileIsEnclosed(map);
+                AssertEveryFloorTileReachableFromPlayer(map);
+            }
+        );
     }
 
     [Fact]
@@ -411,13 +472,16 @@ public class BSPMapGeneratorTests
             }
         );
 
-        for (int i = 0; i < 8; i++)
-        {
-            var map = GenerateMap(settings, width: 72, height: 48);
-            Assert.True(FloorCells(map).Count > 50);
-            AssertEveryFloorTileIsEnclosed(map);
-            AssertEveryFloorTileReachableFromPlayer(map);
-        }
+        SeededRuns.Each(
+            8,
+            seed =>
+            {
+                var map = GenerateMap(settings, width: 72, height: 48, seed: seed);
+                Assert.True(FloorCells(map).Count > 50);
+                AssertEveryFloorTileIsEnclosed(map);
+                AssertEveryFloorTileReachableFromPlayer(map);
+            }
+        );
     }
 
     [Fact]
@@ -472,39 +536,48 @@ public class BSPMapGeneratorTests
             new Dictionary<string, object> { ["chance_of_leaf_having_no_room"] = 0.4 }
         );
 
-        for (int i = 0; i < 5; i++)
-        {
-            AssertEveryFloorTileReachableFromPlayer(GenerateMap(settings, width: 72, height: 48));
-        }
+        SeededRuns.Each(
+            5,
+            seed =>
+                AssertEveryFloorTileReachableFromPlayer(
+                    GenerateMap(settings, width: 72, height: 48, seed: seed)
+                )
+        );
     }
 
     // ---- Track A1: room-aware AddMonsters ----
 
     [Fact]
-    public void MonstersSpawnOnFloorInsideRoomsAndNeverOnBlockingObjects()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            var (gen, map) = GenerateWithGen(SettingsMap.Empty, width: 72, height: 48);
-
-            Assert.NotEmpty(map.Monsters);
-            foreach (var monster in map.Monsters)
+    public void MonstersSpawnOnFloorInsideRoomsAndNeverOnBlockingObjects() =>
+        SeededRuns.Each(
+            3,
+            seed =>
             {
-                Assert.True(
-                    IsFloor(map, monster.X, monster.Y),
-                    $"monster at ({monster.X},{monster.Y}) is not on a floor tile"
-                );
-                Assert.True(
-                    InAnyCarvedRoom(gen, monster.X, monster.Y),
-                    $"monster at ({monster.X},{monster.Y}) is outside every carved room footprint"
+                var (gen, map) = GenerateWithGen(
+                    SettingsMap.Empty,
+                    width: 72,
+                    height: 48,
+                    seed: seed
                 );
 
-                var here = map.GameObjectByCoord[monster.X, monster.Y];
-                Assert.DoesNotContain(here, o => o is Door);
-                Assert.DoesNotContain(here, o => o.Blocking);
+                Assert.NotEmpty(map.Monsters);
+                foreach (var monster in map.Monsters)
+                {
+                    Assert.True(
+                        IsFloor(map, monster.X, monster.Y),
+                        $"monster at ({monster.X},{monster.Y}) is not on a floor tile"
+                    );
+                    Assert.True(
+                        InAnyCarvedRoom(gen, monster.X, monster.Y),
+                        $"monster at ({monster.X},{monster.Y}) is outside every carved room footprint"
+                    );
+
+                    var here = map.GameObjectByCoord[monster.X, monster.Y];
+                    Assert.DoesNotContain(here, o => o is Door);
+                    Assert.DoesNotContain(here, o => o.Blocking);
+                }
             }
-        }
-    }
+        );
 
     [Fact]
     public void NoTwoMonstersShareATile()
@@ -524,10 +597,11 @@ public class BSPMapGeneratorTests
         static int TotalOver(int width, int height)
         {
             int total = 0;
-            for (int i = 0; i < 3; i++)
-            {
-                total += GenerateMap(width: width, height: height).Monsters.Count();
-            }
+            SeededRuns.Each(
+                3,
+                seed =>
+                    total += GenerateMap(width: width, height: height, seed: seed).Monsters.Count()
+            );
             return total;
         }
 
@@ -542,10 +616,10 @@ public class BSPMapGeneratorTests
     {
         var settings = Settings(common: new() { ["monsters_per_100_tiles"] = 0.0 });
 
-        for (int i = 0; i < 3; i++)
-        {
-            Assert.Empty(GenerateMap(settings, width: 72, height: 48).Monsters);
-        }
+        SeededRuns.Each(
+            3,
+            seed => Assert.Empty(GenerateMap(settings, width: 72, height: 48, seed: seed).Monsters)
+        );
     }
 
     [Fact]
@@ -559,10 +633,14 @@ public class BSPMapGeneratorTests
             }
         );
 
-        for (int i = 0; i < 3; i++)
-        {
-            Assert.Empty(GenerateMap(settings, width: 72, height: 48).GameObjects.OfType<Item>());
-        }
+        SeededRuns.Each(
+            3,
+            seed =>
+                Assert.Empty(
+                    GenerateMap(settings, width: 72, height: 48, seed: seed)
+                        .GameObjects.OfType<Item>()
+                )
+        );
     }
 
     [Fact]
@@ -601,10 +679,10 @@ public class BSPMapGeneratorTests
     {
         var settings = Settings(layout: new() { ["empty_room_chance"] = 1.0 });
 
-        for (int i = 0; i < 3; i++)
-        {
-            Assert.Empty(GenerateMap(settings, width: 72, height: 48).Monsters);
-        }
+        SeededRuns.Each(
+            3,
+            seed => Assert.Empty(GenerateMap(settings, width: 72, height: 48, seed: seed).Monsters)
+        );
     }
 
     [Fact]
@@ -631,21 +709,27 @@ public class BSPMapGeneratorTests
     }
 
     [Fact]
-    public void PlayerStartRoomStaysMonsterFreeByDefault()
-    {
+    public void PlayerStartRoomStaysMonsterFreeByDefault() =>
         // Default player_room_monster_multiplier is 0 - the room you spawn in never gets monsters.
-        for (int i = 0; i < 4; i++)
-        {
-            var (gen, map) = GenerateWithGen(SettingsMap.Empty, width: 72, height: 48);
-
-            Assert.NotNull(gen.PlayerRoom);
-            foreach (var monster in map.Monsters)
+        SeededRuns.Each(
+            4,
+            seed =>
             {
-                Assert.False(
-                    RoomCovers(gen.PlayerRoom, monster.X, monster.Y),
-                    $"monster at ({monster.X},{monster.Y}) spawned in the player's start room"
+                var (gen, map) = GenerateWithGen(
+                    SettingsMap.Empty,
+                    width: 72,
+                    height: 48,
+                    seed: seed
                 );
+
+                Assert.NotNull(gen.PlayerRoom);
+                foreach (var monster in map.Monsters)
+                {
+                    Assert.False(
+                        RoomCovers(gen.PlayerRoom, monster.X, monster.Y),
+                        $"monster at ({monster.X},{monster.Y}) spawned in the player's start room"
+                    );
+                }
             }
-        }
-    }
+        );
 }

@@ -1,4 +1,5 @@
 using BlazorRogue.Entities;
+using BlazorRogue.Tests.TestSupport;
 using BlazorRogue.World;
 using BlazorRogue.World.Generation;
 
@@ -208,28 +209,34 @@ public class FenceEnclosurePlacementTests
             )
         );
 
-        for (int i = 0; i < 5; i++)
-        {
-            var game = new Game();
-            var map = MapGeneratorFactory.Create(level, game).GenerateMap();
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                var game = new Game(seed: seed);
+                var map = MapGeneratorFactory.Create(level, game).GenerateMap();
 
-            var fenceCoords = new List<(int X, int Y)>();
-            map.ForEachTile(
-                (x, y) =>
-                {
-                    int fenceCount = map.Decorations[x, y]
-                        .Count(d =>
-                            (d.ImageName ?? "").StartsWith("fence_", StringComparison.Ordinal)
-                        );
-                    Assert.True(fenceCount <= 1, $"Overlapping fence decorations at ({x},{y}).");
-                    if (fenceCount == 1)
+                var fenceCoords = new List<(int X, int Y)>();
+                map.ForEachTile(
+                    (x, y) =>
                     {
-                        fenceCoords.Add((x, y));
+                        int fenceCount = map.Decorations[x, y]
+                            .Count(d =>
+                                (d.ImageName ?? "").StartsWith("fence_", StringComparison.Ordinal)
+                            );
+                        Assert.True(
+                            fenceCount <= 1,
+                            $"Overlapping fence decorations at ({x},{y})."
+                        );
+                        if (fenceCount == 1)
+                        {
+                            fenceCoords.Add((x, y));
+                        }
                     }
-                }
-            );
+                );
 
-            Assert.NotEmpty(fenceCoords);
-        }
+                Assert.NotEmpty(fenceCoords);
+            }
+        );
     }
 }

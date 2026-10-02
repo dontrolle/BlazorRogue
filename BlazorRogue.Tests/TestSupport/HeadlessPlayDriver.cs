@@ -26,9 +26,12 @@ sealed class HeadlessPlayDriver(Game game)
     /// </summary>
     public Map Map => Game.Map;
 
-    /// <summary>Wraps a freshly generated <see cref="BlazorRogue.Game"/>.</summary>
-    public HeadlessPlayDriver()
-        : this(new Game()) { }
+    /// <summary>
+    /// Wraps a freshly generated <see cref="BlazorRogue.Game"/>, from <paramref name="seed"/> if
+    /// given so the dungeon is reproducible (see <see cref="Game.Seed"/>).
+    /// </summary>
+    public HeadlessPlayDriver(int? seed = null)
+        : this(new Game(seed: seed)) { }
 
     public TurnResult TakeTurn(PlayerAction action) => Map.TakeTurn(action);
 

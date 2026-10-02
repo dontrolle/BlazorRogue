@@ -265,7 +265,7 @@ public class HeadlessPlayDriverTests
     [Fact]
     public void RandomHazardAvoidingPolicyCanPlayARealGeneratedGameForManyTurnsWithoutThrowing()
     {
-        var driver = new HeadlessPlayDriver();
+        var driver = new HeadlessPlayDriver(seed: 42);
         var policy = new RandomHazardAvoidingPolicy(new Random(42));
 
         const int turnLimit = 300;

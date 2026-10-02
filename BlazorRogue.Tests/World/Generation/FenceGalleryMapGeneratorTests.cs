@@ -48,7 +48,7 @@ public class FenceGalleryMapGeneratorTests
 
         Assert.All(
             everyFenceType,
-            t => Assert.Contains(t.RandomImage(Random.Shared), renderedImages)
+            t => Assert.Contains(t.RandomImage(new Random(0)), renderedImages)
         );
     }
 }
