@@ -1,4 +1,5 @@
 using BlazorRogue.Entities;
+using BlazorRogue.Tests.TestSupport;
 using BlazorRogue.World;
 using BlazorRogue.World.Generation;
 
@@ -78,20 +79,23 @@ public class DungeonGeneratorBaseTests
     [Fact]
     public void GeneratedMapOnlyEverUsesWallTileSetIdsListedInLevelSettings()
     {
-        // Weighted-random pick is non-deterministic, so run it repeatedly and assert the result is
-        // always one of the two listed ids, never e.g. "ruins" which isn't listed here even though
-        // it's a valid dungeon wall-set.
-        var game = new Game();
+        // The weighted-random pick varies with the seed, so run it over several seeds (a fresh Game
+        // per seed - one Game generates a given level identically every time) and assert the result
+        // is always one of the two listed ids, never e.g. "ruins" which isn't listed here even
+        // though it's a valid dungeon wall-set.
         var level = LevelWith(
             BasicDungeonGenerator.Id,
             SettingsWithWallTileSet(("dungeon", 1.0), ("crypt", 1.0))
         );
 
-        for (int i = 0; i < 20; i++)
-        {
-            var map = MapGeneratorFactory.Create(level, game).GenerateMap();
-            Assert.Contains(map.DungeonWallSet.Id, DungeonAndCryptIds);
-        }
+        SeededRuns.Each(
+            20,
+            seed =>
+            {
+                var map = MapGeneratorFactory.Create(level, new Game(seed: seed)).GenerateMap();
+                Assert.Contains(map.DungeonWallSet.Id, DungeonAndCryptIds);
+            }
+        );
     }
 
     [Fact]

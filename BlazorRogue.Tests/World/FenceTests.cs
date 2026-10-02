@@ -87,7 +87,7 @@ public class FenceTests
             ? Decoration.Layer.Infront
             : Decoration.Layer.Middleground;
 
-        Assert.Equal(expectedImage, sdot.RandomImage(Random.Shared));
+        Assert.Equal(expectedImage, sdot.RandomImage(new Random(0)));
         Assert.Equal(expectedBlocking, sdot.Blocking);
         Assert.Equal(expectedBlockedEdges, sdot.BlockedEdges);
         Assert.Equal(expectedLayer, sdot.DecorationLayer);
