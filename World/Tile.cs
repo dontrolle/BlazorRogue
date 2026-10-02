@@ -30,6 +30,9 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     // decorations by RenderLiquid below.
     public LiquidType? Liquid { get; set; }
 
+    /// <summary>The trap placed on this tile, if any - see <see cref="World.Trap"/>.</summary>
+    public Trap? Trap { get; set; }
+
     // Set (and reset) each Render() call for a freestanding wall tile (see Render below) - the
     // tile is still, in every other respect, a normal wall (Blocking, TileType, Character all stay
     // keyed to TileSet/TileIndex as usual); only the graphical background image is swapped for a

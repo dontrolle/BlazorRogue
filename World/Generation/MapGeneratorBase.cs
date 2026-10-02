@@ -71,6 +71,16 @@ abstract class MapGeneratorBase(
     protected readonly double percentageChanceOfPuddleLarge = CommonSettings(settings)
         .GetDouble("percentage_chance_of_puddle_large", 0.15);
 
+    // Floor traps (see AddTraps). Defaults to 0 so a level has none unless it opts in, and keeps
+    // the generator tests that don't care about traps unchanged.
+    protected readonly double percentageChanceOfTraps = CommonSettings(settings)
+        .GetDouble("percentage_chance_of_traps", 0.0);
+
+    // A trap is never placed closer than this (Chebyshev, in tiles) to the player's start or to a
+    // stair - the player arrives on a stair, so a trap right beside one would be unavoidable.
+    protected readonly int trapMinDistanceFromStart = CommonSettings(settings)
+        .GetInt("trap_min_distance_from_start", 4);
+
     // Parallel to itemTypePoolWeights below. Both reference game.Configuration rather than the
     // `configuration` field further down - field initializers can't reference another instance
     // field of the same type being constructed (see the CommonSettings note above), only the
@@ -171,7 +181,7 @@ abstract class MapGeneratorBase(
     /// <summary>
     /// Implementation of IMapGenerator.GenerateMap that calls a set of overridable generator-functions in turn:
     ///     CreateLayout(), AddDoors(), AddRandomPostMapGenerationDecorations(),
-    ///     AddStairs(), AddPlayer(), AddMonsters()
+    ///     AddStairs(), AddPlayer(), AddMonsters(), AddTraps()
     ///
     ///  and ensures that map.PostGenInitialize() is called.
     /// </summary>
@@ -198,6 +208,10 @@ abstract class MapGeneratorBase(
         AddPlayer(playerPos, existingPlayer);
 
         AddMonsters();
+
+        // Last, so its eligibility check can steer clear of everything above - stairs, the player,
+        // monsters, doors, items and decorations are all in place by now.
+        AddTraps(playerPos);
 
         // initialize various maps and so on in Map (it there a better place to do this?)
         map.PostGenInitalize();
@@ -295,6 +309,68 @@ abstract class MapGeneratorBase(
         );
         map.AddMonster(monster);
         return monster;
+    }
+
+    /// <summary>
+    /// Rolls <see cref="percentageChanceOfTraps"/> for every eligible floor tile and places a
+    /// random trap type from <c>Data/trapsets.json</c> on each hit. Placement only - what a trap
+    /// does, and whether it is drawn, is up to the engine and renderers.
+    /// </summary>
+    /// <param name="playerPos">The player's start position, which traps keep their distance from.</param>
+    protected virtual void AddTraps(Tuple<int, int> playerPos)
+    {
+        if (percentageChanceOfTraps <= 0 || !configuration.TrapTypes.Any())
+        {
+            return;
+        }
+
+        var keepClear = new List<Tuple<int, int>> { playerPos };
+        keepClear.AddRange(map.GameObjects.OfType<Stair>().Select(s => Tuple.Create(s.X, s.Y)));
+
+        for (int x = 0; x < map.Width; x++)
+        {
+            for (int y = 0; y < map.Height; y++)
+            {
+                if (mapGenerationRandomSource.NextDouble() >= percentageChanceOfTraps)
+                {
+                    continue;
+                }
+
+                var trapType = GetRandomElement(configuration.TrapTypes);
+                if (IsTrapEligible(x, y, trapType, keepClear))
+                {
+                    map.Tiles[x, y].Trap = new Trap(trapType);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether a trap of <paramref name="trapType"/> may go on (<paramref name="x"/>,
+    /// <paramref name="y"/>): a plain, unoccupied floor tile - not a liquid pool, door, stair, item,
+    /// chest, statue or fountain - at least <see cref="trapMinDistanceFromStart"/> from every
+    /// <paramref name="keepClear"/> position. A reusable trap additionally mustn't sit on a
+    /// chokepoint (see <see cref="Map.IsChokepoint"/>), since the player could be forced to cross it
+    /// again and again.
+    /// </summary>
+    bool IsTrapEligible(int x, int y, TrapType trapType, List<Tuple<int, int>> keepClear)
+    {
+        if (
+            map.Tiles[x, y].TileType != TileType.Floor
+            || map.Tiles[x, y].Trap is not null
+            || map.IsBlocked(x, y)
+            || TileOccupied(x, y)
+            || map.GameObjectByCoord[x, y]
+                .Any(g => g is Door or Stair or Item or Chest or Statue or Fountain)
+        )
+        {
+            return false;
+        }
+
+        bool farEnoughFromStart = !keepClear.Any(p =>
+            Math.Max(Math.Abs(p.Item1 - x), Math.Abs(p.Item2 - y)) < trapMinDistanceFromStart
+        );
+        return farEnoughFromStart && (!trapType.Reusable || !map.IsChokepoint(x, y));
     }
 
     /// <summary>

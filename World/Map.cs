@@ -1014,6 +1014,51 @@ class Map
         );
     }
 
+    /// <summary>
+    /// A local approximation of "removing this tile could cut the level in two": true when the
+    /// walkable tiles among the eight neighbours form more than one separate run around the ring
+    /// (a corridor, a doorway, a corner). Cheap and conservative - it may flag a tile that isn't a
+    /// true cut vertex, never the reverse. Looks at terrain only (floor/liquid tiles that aren't
+    /// Blocking), not at GameObjects or moveables.
+    /// </summary>
+    public bool IsChokepoint(int x, int y)
+    {
+        (int dx, int dy)[] ring =
+        [
+            (0, -1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+            (0, 1),
+            (-1, 1),
+            (-1, 0),
+            (-1, -1),
+        ];
+
+        bool Walkable(int i)
+        {
+            int nx = x + ring[i].dx;
+            int ny = y + ring[i].dy;
+            return nx >= 0
+                && ny >= 0
+                && nx < Width
+                && ny < Height
+                && Tiles[nx, ny].TileType is TileType.Floor or TileType.Liquid
+                && !Tiles[nx, ny].Blocking;
+        }
+
+        int runs = 0;
+        for (int i = 0; i < ring.Length; i++)
+        {
+            if (Walkable(i) && !Walkable((i + ring.Length - 1) % ring.Length))
+            {
+                runs++;
+            }
+        }
+
+        return runs > 1;
+    }
+
     public bool IsBlocked(int x, int y) =>
         postGenInitialized
             ? BlocksMovementMap[x, y]
