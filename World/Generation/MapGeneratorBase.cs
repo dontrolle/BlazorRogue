@@ -367,16 +367,10 @@ abstract class MapGeneratorBase(
             return false;
         }
 
-        if (
-            keepClear.Any(p =>
-                Math.Max(Math.Abs(p.Item1 - x), Math.Abs(p.Item2 - y)) < trapMinDistanceFromStart
-            )
-        )
-        {
-            return false;
-        }
-
-        return !trapType.Reusable || !map.IsChokepoint(x, y);
+        bool farEnoughFromStart = !keepClear.Any(p =>
+            Math.Max(Math.Abs(p.Item1 - x), Math.Abs(p.Item2 - y)) < trapMinDistanceFromStart
+        );
+        return farEnoughFromStart && (!trapType.Reusable || !map.IsChokepoint(x, y));
     }
 
     /// <summary>
