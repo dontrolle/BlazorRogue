@@ -120,6 +120,12 @@ class Configuration
     public IEnumerable<TrapType> TrapTypes => trapTypesById.Values;
 
     /// <summary>
+    /// Drops every trap type, so no generator places a trap. For tests whose outcome mustn't depend
+    /// on random trap damage (long headless play runs); call it before creating any <see cref="Game"/>.
+    /// </summary>
+    internal void ClearTrapTypes() => trapTypesById.Clear();
+
+    /// <summary>
     /// Looks up a trap-set by id. Throws for an unknown id, like the other <c>*ById</c> lookups.
     /// </summary>
     public TrapType TrapTypeById(string id) =>

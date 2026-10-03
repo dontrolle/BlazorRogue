@@ -155,6 +155,31 @@ public class FightingSystemTests
     }
 
     [Fact]
+    public void AKillingBlowIsNarratedBeforeTheKilledMessage()
+    {
+        var game = new Game();
+        var attacker = CreateMoveable("Ogre", weaponSkill: 100, weaponDamage: 1000, toughness: 0);
+
+        // Dice are unseeded, so retry until a blow actually lands (and kills).
+        for (int attempt = 0; attempt < 50; attempt++)
+        {
+            var victim = CreateMoveable("Goblin", weaponSkill: 1, toughness: 0, wounds: 5);
+            var result = game.FightingSystem.CloseCombatAttack(
+                attacker.CombatComponent!,
+                victim.CombatComponent!
+            );
+            if (result.DefenderKilled)
+            {
+                Assert.Equal("The Goblin was killed!", game.Messages[^1]);
+                Assert.Contains("deals", game.Messages[^2]);
+                return;
+            }
+        }
+
+        Assert.Fail("No killing blow landed in 50 attempts.");
+    }
+
+    [Fact]
     public void CombatMessageCallsThePlayerYouWhenItIsTheDefender()
     {
         var game = new Game();

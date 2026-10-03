@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BlazorRogue.Combat.Warhammer;
 using BlazorRogue.Effects;
 using BlazorRogue.Entities;
@@ -75,7 +76,7 @@ class Game
     public Game(Configuration configuration, int? seed = null)
     {
         Configuration = configuration;
-        Seed = seed ?? configuration.Seed ?? System.Random.Shared.Next();
+        Seed = seed ?? configuration.Seed ?? Random.Shared.Next();
 
         DebugMode = configuration.DebugMode;
 
@@ -197,6 +198,52 @@ class Game
 
     static StairDirection Opposite(StairDirection direction) =>
         direction == StairDirection.Down ? StairDirection.Up : StairDirection.Down;
+
+    int killMessageDeferrals;
+    readonly List<string> deferredKillMessages = [];
+
+    /// <summary>
+    /// Adds a "X was killed!" message - or, inside <see cref="WithKillMessagesLast"/>, holds it back
+    /// until that scope ends. A kill is announced from inside the damage call itself, i.e. before
+    /// the message describing the hit that caused it, which would otherwise read backwards.
+    /// </summary>
+    public void AddKillMessage(string message)
+    {
+        if (killMessageDeferrals > 0)
+        {
+            deferredKillMessages.Add(message);
+        }
+        else
+        {
+            AddMessage(message);
+        }
+    }
+
+    /// <summary>
+    /// Runs <paramref name="action"/> (a damage-dealing step plus its own narration), then adds any
+    /// kill messages it raised after everything else it logged. Scopes may nest; the outermost
+    /// one flushes.
+    /// </summary>
+    public void WithKillMessagesLast(Action action)
+    {
+        killMessageDeferrals++;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            if (--killMessageDeferrals == 0)
+            {
+                foreach (string message in deferredKillMessages)
+                {
+                    AddMessage(message);
+                }
+
+                deferredKillMessages.Clear();
+            }
+        }
+    }
 
     public void AddMessage(string message)
     {

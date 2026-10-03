@@ -54,6 +54,10 @@ class CombatComponent(
     // healing - clamp the post-soak amount at zero.
     public void ApplyDamage(int damage) => Wounds -= Math.Max(0, damage - DamageSoak);
 
+    // For hazards that aren't a blow to be parried or armoured against (a spike trap underfoot):
+    // the full amount lands, so a low-magnitude hazard can't be soaked away entirely.
+    public void ApplyUnsoakedDamage(int damage) => Wounds -= Math.Max(0, damage);
+
     public void HealByMove()
     {
         if (Dice.RollD100() <= ChanceToHealInTurn)
