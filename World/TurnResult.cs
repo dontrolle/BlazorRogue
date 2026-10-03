@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BlazorRogue.AI;
 using BlazorRogue.Combat.Warhammer;
+using BlazorRogue.Entities;
 using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.World;
@@ -21,7 +22,8 @@ record struct TurnResult(
     AttackResult? PlayerAttack,
     IReadOnlyList<MonsterAction> MonsterActions,
     bool GameOverThisTurn,
-    bool LevelChangedThisTurn
+    bool LevelChangedThisTurn,
+    TrapType? TrapTriggered = null
 );
 
 /// <summary>

@@ -399,6 +399,12 @@
   pointer-events: none;
 }
 
+.game_over_cause {
+  font-size: 0.4em;
+  letter-spacing: normal;
+  font-weight: normal;
+}
+
 /* ?-triggered help overlay: any keypress or a backdrop click dismisses it (see KeyUp/CloseHelp
    in GamePage.razor). Sits above .game_over (z-index 10) and tooltips (z-index 5). */
 .help_backdrop {

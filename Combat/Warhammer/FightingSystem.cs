@@ -13,6 +13,20 @@ class FightingSystem(Game game) : IFightingSystem
         ArgumentNullException.ThrowIfNull(attacker);
         ArgumentNullException.ThrowIfNull(defender);
 
+        if (Game == null)
+        {
+            return ResolveCloseCombatAttack(attacker, defender);
+        }
+
+        // The "was killed!" message is raised by the damage itself, so hold it until the hit has
+        // been narrated.
+        AttackResult result = default;
+        Game.WithKillMessagesLast(() => result = ResolveCloseCombatAttack(attacker, defender));
+        return result;
+    }
+
+    AttackResult ResolveCloseCombatAttack(CombatComponent attacker, CombatComponent defender)
+    {
         int toHitRoll = Dice.RollD100();
 
         int attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
@@ -41,6 +55,11 @@ class FightingSystem(Game game) : IFightingSystem
             defender.ResetAdvantage();
 
             damage = attacker.WeaponDamage + attackerSLAdvantage;
+            if (Game != null && ReferenceEquals(defender.Owner, Game.Map.Player))
+            {
+                Game.Map.CauseOfDeath = $"the {attacker.Owner!.Name}";
+            }
+
             defender.ApplyDamage(damage);
         }
         else

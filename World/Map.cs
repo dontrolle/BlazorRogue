@@ -238,11 +238,68 @@ class Map
     {
         if (
             !IsFlying(moveable)
-            && Tiles[moveable.X, moveable.Y].Liquid is { EffectKind: LiquidEffectKind.Instakill }
+            && Tiles[moveable.X, moveable.Y].Liquid
+                is { EffectKind: LiquidEffectKind.Instakill } lava
         )
         {
+            if (ReferenceEquals(moveable, Player))
+            {
+                CauseOfDeath = $"the {lava.Name}";
+            }
+
             moveable.Kill();
+            return;
         }
+
+        if (ReferenceEquals(moveable, Player))
+        {
+            TriggerTrapAt(moveable.X, moveable.Y);
+        }
+    }
+
+    /// <summary>The trap the player set off during the current <see cref="TakeTurn"/>, if any.</summary>
+    TrapType? trapTriggeredThisTurn;
+
+    /// <summary>
+    /// Springs the armed trap at (<paramref name="x"/>, <paramref name="y"/>) on the player: reveals
+    /// it, applies its effect, and spends it unless it is reusable. Player-only for now (monsters
+    /// don't trigger traps - see the traps epic).
+    /// </summary>
+    void TriggerTrapAt(int x, int y)
+    {
+        if (Tiles[x, y].Trap is not { State: not TrapState.Spent } trap)
+        {
+            return;
+        }
+
+        var type = trap.Type;
+        trap.State = type.Reusable ? TrapState.Revealed : TrapState.Spent;
+        trapTriggeredThisTurn = type;
+
+        switch (type.EffectKind)
+        {
+            case TrapEffectKind.Damage:
+                var combat = Player.CombatComponent!;
+                int woundsBefore = combat.Wounds;
+                Game.AddMessage($"You trigger a {type.Name}!");
+                CauseOfDeath = $"a {type.Name}";
+                Game.WithKillMessagesLast(() =>
+                {
+                    combat.ApplyUnsoakedDamage(type.EffectMagnitude);
+                    int dealt = woundsBefore - combat.Wounds;
+                    if (dealt > 0)
+                    {
+                        Game.AddMessage($"You take {dealt} damage from the {type.Name}!");
+                    }
+                });
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown {nameof(TrapEffectKind)}: {type}");
+        }
+
+        References.Game.EffectsSystem.Shake = true;
+        References.SoundManager.PlayCombatSound(true);
+        RenderDecorations(x, y);
     }
 
     /// <summary>
@@ -269,17 +326,25 @@ class Map
             }
 
             int woundsBefore = combat.Wounds;
-            combat.ApplyDamage(acid.EffectMagnitude);
-
-            int dealt = woundsBefore - combat.Wounds;
-            if (dealt > 0)
+            if (ReferenceEquals(moveable, Player))
             {
-                Game.AddMessage(
-                    ReferenceEquals(moveable, Player)
-                        ? $"You take {dealt} damage from the {acid.Name}!"
-                        : $"The {moveable.Name} takes {dealt} damage from the {acid.Name}!"
-                );
+                CauseOfDeath = $"the {acid.Name}";
             }
+
+            Game.WithKillMessagesLast(() =>
+            {
+                combat.ApplyDamage(acid.EffectMagnitude);
+
+                int dealt = woundsBefore - combat.Wounds;
+                if (dealt > 0)
+                {
+                    Game.AddMessage(
+                        ReferenceEquals(moveable, Player)
+                            ? $"You take {dealt} damage from the {acid.Name}!"
+                            : $"The {moveable.Name} takes {dealt} damage from the {acid.Name}!"
+                    );
+                }
+            });
         }
     }
 
@@ -500,6 +565,13 @@ class Map
     /// </summary>
     public bool IsGameOver { get; private set; }
 
+    /// <summary>
+    /// What killed the player ("a spike trap", "the goblin", "the lava"), once <see cref="IsGameOver"/>.
+    /// Each damage source records itself here just before dealing damage, so whichever one was
+    /// last when the player's wounds ran out is the killer.
+    /// </summary>
+    public string? CauseOfDeath { get; set; }
+
     void PlayerKilled(object? sender, EventArgs e)
     {
         if (sender is not Moveable killedPlayer)
@@ -696,6 +768,7 @@ class Map
         // which GamePage uses to make sure a hit's shake plays on only the one render that follows
         // it - don't remove this as "redundant" with that.
         References.Game.EffectsSystem.Reset();
+        trapTriggeredThisTurn = null;
 
         var mapBeforeAction = this;
 
@@ -747,7 +820,8 @@ class Map
             PlayerAttack: playerAttack,
             MonsterActions: monsterActions,
             GameOverThisTurn: currentMap.IsGameOver,
-            LevelChangedThisTurn: levelChanged
+            LevelChangedThisTurn: levelChanged,
+            TrapTriggered: trapTriggeredThisTurn
         );
     }
 

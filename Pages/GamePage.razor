@@ -295,7 +295,13 @@ else
 
             @if (game.Map.IsGameOver)
             {
-                <div class="game_over">Game over</div>
+                <div class="game_over">
+                    Game over
+                    @if (game.Map.CauseOfDeath is { } causeOfDeath)
+                    {
+                        <div class="game_over_cause">Killed by @causeOfDeath</div>
+                    }
+                </div>
             }
         </div>
     </span>

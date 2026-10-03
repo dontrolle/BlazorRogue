@@ -77,6 +77,8 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
     /// </summary>
     public void Render(Map map)
     {
+        RenderTrap(map);
+
         if (Liquid is not null)
         {
             RenderLiquid(map);
@@ -126,6 +128,31 @@ class Tile(int x, int y, TileSet tileSet, int tileIndex)
         }
 
         RenderEdges(map, owner, TileSet.EdgeFreeIndexes, hasFloorLeft, hasFloorRight, 0);
+    }
+
+    /// <summary>
+    /// Draws this tile's trap once it's no longer <see cref="TrapState.Hidden"/>. A hidden trap
+    /// deliberately emits nothing at all - no sprite, glyph or tooltip - so it can't leak into
+    /// either renderer.
+    /// </summary>
+    void RenderTrap(Map map)
+    {
+        if (Trap is not { State: not TrapState.Hidden } trap)
+        {
+            return;
+        }
+
+        var type = trap.Type;
+        var owner = new TileDecorationOwner(X, Y, type.Name) { InfoText = type.InfoText };
+        map.Decorations[X, Y]
+            .Add(
+                new Decoration(owner, type.Images[(X + (Y * 31)) % type.Images.Count])
+                {
+                    DecorationLayer = Decoration.Layer.Behind,
+                    Character = type.Character,
+                    CharacterColor = type.CharacterColor,
+                }
+            );
     }
 
     /// <summary>

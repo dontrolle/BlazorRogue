@@ -1,3 +1,4 @@
+using BlazorRogue.Entities;
 using BlazorRogue.World;
 
 namespace BlazorRogue.Tests.TestSupport;
@@ -28,10 +29,24 @@ sealed class HeadlessPlayDriver(Game game)
 
     /// <summary>
     /// Wraps a freshly generated <see cref="BlazorRogue.Game"/>, from <paramref name="seed"/> if
-    /// given so the dungeon is reproducible (see <see cref="Game.Seed"/>).
+    /// given so the dungeon is reproducible (see <see cref="Game.Seed"/>). Trap-free by default,
+    /// so random trap damage can't end a long play run early or skew timings; pass
+    /// <paramref name="withTraps"/> to keep the configured traps.
     /// </summary>
-    public HeadlessPlayDriver(int? seed = null)
-        : this(new Game(seed: seed)) { }
+    public HeadlessPlayDriver(int? seed = null, bool withTraps = false)
+        : this(NewGame(seed, withTraps)) { }
+
+    static Game NewGame(int? seed, bool withTraps)
+    {
+        var configuration = new Configuration();
+        configuration.Parse();
+        if (!withTraps)
+        {
+            configuration.ClearTrapTypes();
+        }
+
+        return new Game(configuration, seed);
+    }
 
     public TurnResult TakeTurn(PlayerAction action) => Map.TakeTurn(action);
 
