@@ -89,7 +89,8 @@ class Map
     {
         DungeonWallSet = dungeonWallSet;
         Game = game;
-        Random = random ?? Random.Shared;
+        // Generators always pass their level's cosmetic stream; the fixed fallback is for tests.
+        Random = random ?? new Random(0);
         Width = width;
         Height = height;
         Tiles = new Tile[width, height];
@@ -364,7 +365,7 @@ class Map
             return false;
         }
 
-        if (Dice.RollD100() > slow.EffectMagnitude)
+        if (Dice.RollD100(Game.GameplayRandom) > slow.EffectMagnitude)
         {
             return false;
         }
@@ -613,7 +614,8 @@ class Map
             puddleType,
             nameOverride: killed.Name + "_puddle",
             infoTextOverride: $"Blood puddle of {killed.Name}",
-            decorationLayerOverride: Decoration.Layer.Behind
+            decorationLayerOverride: Decoration.Layer.Behind,
+            random: Game.GameplayRandom
         );
 
         AddGameObject(puddleObject);
@@ -693,7 +695,7 @@ class Map
         bool playerMoved = stateChanged && !playerStumbled;
         if (playerMoved && !playerAttacked && !IsGameOver && !Player.CombatComponent!.IsStarving)
         {
-            Player.CombatComponent.HealByMove();
+            Player.CombatComponent.HealByMove(Game.GameplayRandom);
         }
 
         return stateChanged;

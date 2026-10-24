@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text;
+using BlazorRogue.Combat;
 using BlazorRogue.Entities;
+using BlazorRogue.Tests.TestSupport;
 using BlazorRogue.World;
 using BlazorRogue.World.Generation;
 
@@ -161,6 +163,27 @@ public class SeededGenerationTests
         Assert.Contains("/spike_trap;", first);
         Assert.Equal(first, second);
     }
+
+    [Fact]
+    public void ALevelDoesNotDependOnHowManyDiceWereRolledBeforeItWasVisited() =>
+        SeededRuns.Each(
+            5,
+            seed =>
+            {
+                // A fresh game per iteration: one game generates a given level identically every time.
+                var level = new Game(seed: seed).Configuration.Levels.Values.Last();
+
+                string immediate = Fingerprint(Generate(new Game(seed: seed), level));
+
+                var rolled = new Game(seed: seed);
+                for (int i = 0; i < 300; i++)
+                {
+                    _ = Dice.RollD100(rolled.GameplayRandom);
+                }
+
+                Assert.Equal(immediate, Fingerprint(Generate(rolled, level)));
+            }
+        );
 
     [Fact]
     public void AGameExposesTheSeedItWasGiven() => Assert.Equal(31337, new Game(seed: 31337).Seed);

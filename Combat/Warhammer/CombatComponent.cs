@@ -58,9 +58,9 @@ class CombatComponent(
     // the full amount lands, so a low-magnitude hazard can't be soaked away entirely.
     public void ApplyUnsoakedDamage(int damage) => Wounds -= Math.Max(0, damage);
 
-    public void HealByMove()
+    public void HealByMove(Random random)
     {
-        if (Dice.RollD100() <= ChanceToHealInTurn)
+        if (Dice.RollD100(random) <= ChanceToHealInTurn)
         {
             Heal(healthGainedByOneStep);
         }

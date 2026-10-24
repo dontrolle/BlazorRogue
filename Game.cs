@@ -31,6 +31,20 @@ class Game
     /// </summary>
     public int Seed { get; }
 
+    /// <summary>
+    /// The seed of this game's gameplay randomness (combat dice, liquid stumbles, healing, blood
+    /// puddles; monster AI streams derive from it): the constructor's <c>gameplaySeed</c> if given,
+    /// else derived from <see cref="Seed"/>, so one number reproduces dungeon and dice alike.
+    /// </summary>
+    public int GameplaySeed { get; }
+
+    /// <summary>
+    /// The gameplay random stream. Separate from every level's streams (including
+    /// <see cref="Map.Random"/>, which is cosmetic), so neither rendering nor level generation
+    /// shifts the dice. Owned by this game - nothing process-wide.
+    /// </summary>
+    internal Random GameplayRandom { get; }
+
     // Levels already visited this playthrough, keyed by level number, so TransitionToLevel can
     // restore one exactly as it was left instead of regenerating it. Only 3 levels are defined in
     // Data/levels.json today, so this is unbounded rather than evicted - even a much deeper dungeon
@@ -59,11 +73,12 @@ class Game
     /// </summary>
     /// <remarks>
     /// The app shares a single parsed configuration (see Program.cs) and so uses
-    /// <see cref="Game(Configuration, int?)"/>; this overload exists for tests and standalone use.
+    /// <see cref="Game(Configuration, int?, int?)"/>; this overload exists for tests and standalone use.
     /// </remarks>
     /// <param name="seed">Overrides the configured seed - see <see cref="Seed"/>.</param>
-    public Game(int? seed = null)
-        : this(ParseConfiguration(), seed) { }
+    /// <param name="gameplaySeed">Overrides the gameplay stream's seed - see <see cref="GameplaySeed"/>.</param>
+    public Game(int? seed = null, int? gameplaySeed = null)
+        : this(ParseConfiguration(), seed, gameplaySeed) { }
 
     /// <summary>
     /// Creates a game using an already-parsed <paramref name="configuration"/>, which may be
@@ -73,10 +88,13 @@ class Game
     /// </summary>
     /// <param name="configuration">Already-parsed, immutable game content.</param>
     /// <param name="seed">Overrides <see cref="Configuration.Seed"/> - see <see cref="Seed"/>.</param>
-    public Game(Configuration configuration, int? seed = null)
+    /// <param name="gameplaySeed">Overrides the gameplay stream's seed - see <see cref="GameplaySeed"/>.</param>
+    public Game(Configuration configuration, int? seed = null, int? gameplaySeed = null)
     {
         Configuration = configuration;
         Seed = seed ?? configuration.Seed ?? Random.Shared.Next();
+        GameplaySeed = gameplaySeed ?? LevelSeed.Gameplay(Seed);
+        GameplayRandom = new Random(GameplaySeed);
 
         DebugMode = configuration.DebugMode;
 

@@ -4,10 +4,15 @@ namespace BlazorRogue.Combat;
 
 static class Dice
 {
-    // internal set: lets tests seed a deterministic sequence, mirroring References.SoundManager.
-    internal static Random Random { get; set; } = new();
-
-    public static int RollD100() => Random.Next(1, 101);
+    /// <summary>
+    /// Rolls a d100 from <paramref name="random"/> - gameplay passes its game's own stream
+    /// (<see cref="Game.GameplayRandom"/>), so no roll depends on any other game's.
+    /// </summary>
+    public static int RollD100(Random random)
+    {
+        ArgumentNullException.ThrowIfNull(random);
+        return random.Next(1, 101);
+    }
 
     public static int ReverseD100(int d100Roll)
     {
