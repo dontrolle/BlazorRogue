@@ -215,7 +215,7 @@ public class ConfigurationTests
         Assert.Equal(["trap"], spikeTrap.Images);
         Assert.Equal("^", spikeTrap.Character);
         Assert.Equal(TrapEffectKind.Damage, spikeTrap.EffectKind);
-        Assert.Equal(3, spikeTrap.EffectMagnitude);
+        Assert.Equal(7, spikeTrap.EffectMagnitude);
         Assert.True(spikeTrap.StartsHidden);
         Assert.False(spikeTrap.Reusable);
     }
@@ -493,7 +493,7 @@ public class ConfigurationTests
         Assert.Equal(0, configuration.StartingLevelNumber);
         Assert.Equal(12, configuration.PlayerSightRadius);
         Assert.False(configuration.DebugMode);
-        Assert.Equal(-1002, configuration.DebugLevelNumber);
+        Assert.Equal(-1003, configuration.DebugLevelNumber);
     }
 
     [Fact]
