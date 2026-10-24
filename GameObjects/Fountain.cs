@@ -14,22 +14,20 @@ namespace BlazorRogue.GameObjects;
 /// </summary>
 class Fountain : GameObject
 {
-    static StaticDecorativeObjectType Sdot =>
-        References.Game.Configuration.StaticDecorativeObjectTypes["fountain"];
+    readonly StaticDecorativeObjectType sdot;
 
-    public override string InfoText => Sdot.InfoText;
+    public override string InfoText => sdot.InfoText;
 
-    public Fountain(int x, int y)
-        : base(x, y, Sdot.Name)
+    public Fountain(int x, int y, StaticDecorativeObjectType sdot)
+        : base(x, y, sdot.Name)
     {
-        Blocking = Sdot.Blocking;
-        OccupiesTile = Sdot.OccupiesTile;
+        this.sdot = sdot;
+        Blocking = sdot.Blocking;
+        OccupiesTile = sdot.OccupiesTile;
     }
 
     public override void Render(Map map)
     {
-        var sdot = Sdot;
-
         map.Decorations[X, Y]
             .Add(
                 new Decoration(this, sdot.ImageVariants["pool"])

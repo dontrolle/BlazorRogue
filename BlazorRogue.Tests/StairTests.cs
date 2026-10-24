@@ -189,7 +189,13 @@ public class StairTests
     {
         var game = new Game();
         var (x, y) = FindFreeTile(game.Map);
-        var door = new Door(x, y, "wood", Orientation.Horizontal, isOpen: false);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("wood"),
+            Orientation.Horizontal,
+            isOpen: false
+        );
         game.Map.AddGameObject(door);
 
         Door.Use(door);

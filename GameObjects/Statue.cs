@@ -11,23 +11,21 @@ namespace BlazorRogue.GameObjects;
 /// </summary>
 class Statue : GameObject
 {
-    static StaticDecorativeObjectType Sdot =>
-        References.Game.Configuration.StaticDecorativeObjectTypes["statue"];
+    readonly StaticDecorativeObjectType sdot;
 
-    public override string InfoText => Sdot.InfoText;
+    public override string InfoText => sdot.InfoText;
 
-    public Statue(int x, int y)
-        : base(x, y, Sdot.Name)
+    public Statue(int x, int y, StaticDecorativeObjectType sdot)
+        : base(x, y, sdot.Name)
     {
-        Blocking = Sdot.Blocking;
-        BlockedEdges = Sdot.BlockedEdges;
-        OccupiesTile = Sdot.OccupiesTile;
+        this.sdot = sdot;
+        Blocking = sdot.Blocking;
+        BlockedEdges = sdot.BlockedEdges;
+        OccupiesTile = sdot.OccupiesTile;
     }
 
     public override void Render(Map map)
     {
-        var sdot = Sdot;
-
         map.Decorations[X, Y]
             .Add(new Decoration(this, sdot.ImageVariants["top"]) { VerticalOffset = -1 });
         map.Decorations[X, Y]
