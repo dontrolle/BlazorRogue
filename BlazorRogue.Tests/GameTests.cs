@@ -60,8 +60,8 @@ public class GameTests
     [Fact]
     public void ToggleDebugLevelViewRoundTripsToTheConfiguredDebugLevelAndBack()
     {
-        // Data/game-config.json ships debug_level: -1002 (the fence gallery, see
-        // FenceGalleryMapGenerator) - exercises the real configured value, not a synthetic one.
+        // Data/game-config.json ships debug_level: -1003 (the trap gallery, see
+        // TrapGalleryMapGenerator) - exercises the real configured value, not a synthetic one.
         var game = new Game();
         int originalLevelNumber = game.CurrentLevelNumber;
         int originalPlayerX = game.Map.Player.X;

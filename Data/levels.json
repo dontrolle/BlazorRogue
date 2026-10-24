@@ -131,6 +131,18 @@
       }
     },
     {
+      "no": -1003,
+      "id": "trap_gallery",
+      "name": "Trap Gallery",
+      "height": 20,
+      "width": 30,
+      "background_soundtrack": "Ambience_Cave_00.mp3",
+      "map_generator": {
+        "generator_id": "trap_gallery_map_generator",
+        "parameters": {}
+      }
+    },
+    {
       "no": 0,
       "id": "level0",
       "name": "The Wilds",
