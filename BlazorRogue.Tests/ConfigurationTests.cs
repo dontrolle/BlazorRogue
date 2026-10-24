@@ -215,7 +215,7 @@ public class ConfigurationTests
         Assert.Equal(["trap"], spikeTrap.Images);
         Assert.Equal("^", spikeTrap.Character);
         Assert.Equal(TrapEffectKind.Damage, spikeTrap.EffectKind);
-        Assert.Equal(3, spikeTrap.EffectMagnitude);
+        Assert.Equal(7, spikeTrap.EffectMagnitude);
         Assert.True(spikeTrap.StartsHidden);
         Assert.False(spikeTrap.Reusable);
     }
