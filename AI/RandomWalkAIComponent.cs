@@ -7,7 +7,7 @@ class RandomWalkAIComponent(Map map, Random? random = null) : AIComponent(map)
 {
     public const string ComponentId = "random_walk_ai";
 
-    readonly Random random = random ?? new Random();
+    readonly Random random = random ?? map.Game?.GameplayRandom ?? new Random(0);
 
     public override AITurnOutcome TakeTurn()
     {

@@ -4,9 +4,13 @@ using BlazorRogue.GameObjects;
 
 namespace BlazorRogue.Combat.Warhammer;
 
-class FightingSystem(Game game) : IFightingSystem
+class FightingSystem(Game game, Random? random = null) : IFightingSystem
 {
     public Game Game { get; } = game;
+
+    // The game's gameplay stream; a fixed-seed stream when there is no game (unit tests), so even
+    // that is reproducible.
+    Random Random { get; } = random ?? game?.GameplayRandom ?? new Random(0);
 
     public AttackResult CloseCombatAttack(CombatComponent attacker, CombatComponent defender)
     {
@@ -27,11 +31,11 @@ class FightingSystem(Game game) : IFightingSystem
 
     AttackResult ResolveCloseCombatAttack(CombatComponent attacker, CombatComponent defender)
     {
-        int toHitRoll = Dice.RollD100();
+        int toHitRoll = Dice.RollD100(Random);
 
         int attackerSL = Dice.GetSuccessLevel(toHitRoll, attacker.WeaponSkill + attacker.Advantage);
 
-        int toDefendRoll = Dice.RollD100();
+        int toDefendRoll = Dice.RollD100(Random);
         int defenderSL = Dice.GetSuccessLevel(
             toDefendRoll,
             defender.WeaponSkill + defender.Advantage
@@ -141,7 +145,7 @@ class FightingSystem(Game game) : IFightingSystem
         }
 
         int chance = abilities.GetParameters(AbilityId.PushBack).GetInt("chance", 0);
-        if (Dice.RollD100() > chance)
+        if (Dice.RollD100(Random) > chance)
         {
             return;
         }

@@ -7,9 +7,10 @@ public class DiceTests
     [Fact]
     public void RollD100IsAlwaysWithinValidRange()
     {
+        var random = new Random(1);
         for (int i = 0; i < 1000; i++)
         {
-            int roll = Dice.RollD100();
+            int roll = Dice.RollD100(random);
             Assert.InRange(roll, 1, 100);
         }
     }
@@ -69,20 +70,11 @@ public class DiceTests
     [Fact]
     public void RollD100IsDeterministicWithASeededRandomSource()
     {
-        var original = Dice.Random;
-        try
-        {
-            Dice.Random = new Random(12345);
-            int[] first = [Dice.RollD100(), Dice.RollD100(), Dice.RollD100()];
+        var a = new Random(12345);
+        var b = new Random(12345);
+        int[] first = [Dice.RollD100(a), Dice.RollD100(a), Dice.RollD100(a)];
+        int[] second = [Dice.RollD100(b), Dice.RollD100(b), Dice.RollD100(b)];
 
-            Dice.Random = new Random(12345);
-            int[] second = [Dice.RollD100(), Dice.RollD100(), Dice.RollD100()];
-
-            Assert.Equal(first, second);
-        }
-        finally
-        {
-            Dice.Random = original;
-        }
+        Assert.Equal(first, second);
     }
 }

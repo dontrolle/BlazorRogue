@@ -72,15 +72,15 @@ public class TrapTriggerTests
     [Fact]
     public void SteppingOnAHiddenTrapDamagesThePlayerAndRevealsAndSpendsIt()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         var trap = new Trap(SpikeTrap());
         var map = MapWithTrap(game, trap);
 
         var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
 
         Assert.Same(trap.Type, result.TrapTriggered);
-        // 3 damage, plus the random +1 move-healing that follows any plain move.
-        Assert.InRange(map.Player.CombatComponent!.Wounds, 17, 18);
+        // 3 damage, plus the +1 move-healing that gameplay seed 1's first roll grants after a plain move.
+        Assert.Equal(18, map.Player.CombatComponent!.Wounds);
         Assert.Equal(TrapState.Spent, trap.State);
         Assert.True(game.EffectsSystem.Shake);
         Assert.Contains(game.Messages, m => m.Contains("spike trap"));
@@ -90,20 +90,20 @@ public class TrapTriggerTests
     [Fact]
     public void TrapDamageIgnoresArmourSoak()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         var map = MapWithTrap(game, new Trap(SpikeTrap()), armour: 10);
 
         _ = map.TakeTurn(new PlayerAction.Move(Direction.East));
 
         // 3 damage against 10 armour would be soaked to nothing if it went through ApplyDamage.
-        Assert.InRange(map.Player.CombatComponent!.Wounds, 17, 18);
+        Assert.Equal(18, map.Player.CombatComponent!.Wounds);
         Assert.Contains(game.Messages, m => m.Contains("You take 3 damage"));
     }
 
     [Fact]
     public void ASpentTrapDoesNotFireAgain()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         var trap = new Trap(SpikeTrap());
         var map = MapWithTrap(game, trap);
         _ = map.TakeTurn(new PlayerAction.Move(Direction.East));
@@ -118,7 +118,7 @@ public class TrapTriggerTests
     [Fact]
     public void AReusableTrapStaysArmedAndFiresEveryTime()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         var trap = new Trap(SpikeTrap(reusable: true));
         var map = MapWithTrap(game, trap);
         _ = map.TakeTurn(new PlayerAction.Move(Direction.East));
@@ -134,7 +134,7 @@ public class TrapTriggerTests
     [Fact]
     public void ATrapThatKillsThePlayerEndsTheGame()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         var map = MapWithTrap(game, new Trap(SpikeTrap()), wounds: 3);
 
         var result = map.TakeTurn(new PlayerAction.Move(Direction.East));
@@ -151,7 +151,7 @@ public class TrapTriggerTests
     [Fact]
     public void AHiddenTrapProducesNoDecoration()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         _ = MapWithTrap(game, new Trap(SpikeTrap(startsHidden: true)));
 
         Assert.Empty(game.Map.Decorations[5, 4]);
@@ -160,7 +160,7 @@ public class TrapTriggerTests
     [Fact]
     public void AnAlwaysVisibleTrapIsDrawnWithItsSpriteGlyphAndTooltip()
     {
-        var game = new Game();
+        var game = new Game(seed: 1, gameplaySeed: 1);
         _ = MapWithTrap(game, new Trap(SpikeTrap(startsHidden: false)));
 
         var decoration = Assert.Single(game.Map.Decorations[5, 4]);

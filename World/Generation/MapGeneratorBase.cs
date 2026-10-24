@@ -36,6 +36,7 @@ abstract class MapGeneratorBase(
         LevelSeed.Random(game.Seed, levelNumber, LevelSeed.Cosmetic)
     );
     protected readonly Configuration configuration = game.Configuration;
+    int monstersSpawned;
     protected readonly int levelNumber = levelNumber;
     protected readonly Random mapGenerationRandomSource = LevelSeed.Random(
         game.Seed,
@@ -317,12 +318,19 @@ abstract class MapGeneratorBase(
     /// </summary>
     protected Moveable AddMonsterAt(int x, int y, MoveableType monsterType)
     {
+        // Each monster's AI rolls from its own stream (level + spawn order), derived from the
+        // gameplay seed, so adding or removing a monster doesn't shift any other monster's moves.
         var monster = new Moveable(
             Tuple.Create(x, y),
             AIComponentFactory.Create(
                 monsterType.AIComponentId,
                 map,
-                monsterType.AIComponentSettings
+                monsterType.AIComponentSettings,
+                LevelSeed.Random(
+                    map.Game.GameplaySeed,
+                    levelNumber,
+                    LevelSeed.Monster(monstersSpawned++)
+                )
             ),
             monsterType
         );
