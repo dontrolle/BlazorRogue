@@ -1,4 +1,6 @@
-﻿using BlazorRogue.Tests.TestSupport;
+﻿using BlazorRogue.Entities;
+using BlazorRogue.GameObjects;
+using BlazorRogue.Tests.TestSupport;
 
 namespace BlazorRogue.Tests;
 
@@ -60,8 +62,8 @@ public class GameTests
     [Fact]
     public void ToggleDebugLevelViewRoundTripsToTheConfiguredDebugLevelAndBack()
     {
-        // Data/game-config.json ships debug_level: -1002 (the fence gallery, see
-        // FenceGalleryMapGenerator) - exercises the real configured value, not a synthetic one.
+        // Data/game-config.json ships debug_level: -1003 (the trap gallery, see
+        // TrapGalleryMapGenerator) - exercises the real configured value, not a synthetic one.
         var game = new Game();
         int originalLevelNumber = game.CurrentLevelNumber;
         int originalPlayerX = game.Map.Player.X;
@@ -74,5 +76,21 @@ public class GameTests
         Assert.Equal(originalLevelNumber, game.CurrentLevelNumber);
         Assert.Equal(originalPlayerX, game.Map.Player.X);
         Assert.Equal(originalPlayerY, game.Map.Player.Y);
+    }
+
+    [Fact]
+    public void GameStartingOnADoorPlacingLevelGeneratesWithoutAPriorGame()
+    {
+        // Level generation must not depend on References.Game, which Game only assigns after its
+        // starting level is generated. Clear it so a stale game from an earlier test can't hide that.
+        References.Game = null!;
+        var configuration = new Configuration();
+        configuration.Parse();
+        configuration.StartingLevelNumber = -1000;
+
+        var game = new Game(configuration, seed: 1);
+
+        Assert.Equal(-1000, game.CurrentLevelNumber);
+        Assert.NotEmpty(game.Map.GameObjects.OfType<Door>());
     }
 }

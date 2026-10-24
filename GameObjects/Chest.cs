@@ -1,22 +1,20 @@
 ﻿using System;
 using BlazorRogue.Components;
+using BlazorRogue.Entities;
 using BlazorRogue.World;
 
 namespace BlazorRogue.GameObjects;
 
-class Chest(int x, int y, string id, InventoryComponent content)
+class Chest(int x, int y, StaticDecorativeObjectType sdot, InventoryComponent content)
     : GameObject(
         x,
         y,
-        References.Game.Configuration.StaticDecorativeObjectTypes[id].Name,
+        sdot.Name,
         useableComponent: new UseableComponent(Use),
         inventoryComponent: content
     )
 {
-    readonly string id = id;
-
-    public override string InfoText =>
-        $"{References.Game.Configuration.StaticDecorativeObjectTypes[id].InfoText} ({ChestStateToString(this)})";
+    public override string InfoText => $"{sdot.InfoText} ({ChestStateToString(this)})";
 
     internal enum ChestState
     {
@@ -78,8 +76,6 @@ class Chest(int x, int y, string id, InventoryComponent content)
 
     public override void Render(Map map)
     {
-        var sdot = References.Game.Configuration.StaticDecorativeObjectTypes[id];
-
         string img = "";
         switch (State)
         {

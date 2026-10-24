@@ -21,6 +21,8 @@ static class MapGeneratorFactory
         [TestMapGenerator.Id] = (w, h, n, g, s) => new TestMapGenerator(w, h, n, g, s),
         [FenceGalleryMapGenerator.Id] = (w, h, n, g, s) =>
             new FenceGalleryMapGenerator(w, h, n, g, s),
+        [TrapGalleryMapGenerator.Id] = (w, h, n, g, s) =>
+            new TrapGalleryMapGenerator(w, h, n, g, s),
     };
 
     /// <summary>

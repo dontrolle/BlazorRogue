@@ -144,7 +144,7 @@ class Configuration
     /// <see cref="DefaultStartingLevelNumber"/>, and <see cref="Parse"/> fail-fast validates that a
     /// level with this number actually exists.
     /// </summary>
-    public int StartingLevelNumber { get; private set; } = DefaultStartingLevelNumber;
+    public int StartingLevelNumber { get; internal set; } = DefaultStartingLevelNumber;
 
     /// <summary>Player sight radius when <c>game-config.json</c> doesn't say otherwise.</summary>
     internal const int DefaultPlayerSightRadius = 6;

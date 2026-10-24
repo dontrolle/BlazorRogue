@@ -95,6 +95,20 @@ randomized per new game, so a fixed walk sequence isn't reproducible - find your
 eval const els = Array.from(document.querySelectorAll('.decoration')); const hit = els.find(e => (e.getAttribute('alt')||'').includes('Health potion')); return hit ? hit.closest('.cell').id : null;
 ```
 
+### Verifying traps: the Trap Gallery debug level
+
+`Data/game-config.json` ships `debug_level: -1003`, a fixed level with no doors, monsters or
+liquids and one hidden plus one revealed trap per configured trap type. Reach it with
+`key d KeyD ctrl` (Ctrl+D, debug mode on) then `key g KeyG ctrl` (Ctrl+G); Ctrl+G again returns
+to where you were. It regenerates fresh on every visit, so spent traps come back.
+
+The hero arrives at (3,2). One row per trap type (declaration order in `Data/trapsets.json`, rows
+2 apart starting at y=2): hidden trap at x=6, revealed at x=9. After 8 types a new block starts 12
+columns east (hidden x=18, revealed x=21). So for the first type (`spike_trap`) hidden = (6,2),
+revealed = (9,2); the second type would be (6,4)/(9,4). Walking east along y=2 from arrival
+steps on the hidden trap on the 3rd move. Cells are `.cell` elements with id `x,y` (see the
+`eval` example above); the fence gallery is `-1002` if you point `debug_level` back at it.
+
 ## Run (human path)
 
 `dotnet run` (or `docker run` per `CLAUDE.md`), then open `https://localhost:5001` in a real

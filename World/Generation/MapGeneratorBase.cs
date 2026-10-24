@@ -436,7 +436,7 @@ abstract class MapGeneratorBase(
                             new Door(
                                 x,
                                 y,
-                                GetRandomElement(doorTypes),
+                                configuration.DoorSetById(GetRandomElement(doorTypes)),
                                 Orientation.Horizontal,
                                 GetRandomBool()
                             )
@@ -457,7 +457,7 @@ abstract class MapGeneratorBase(
                             new Door(
                                 x,
                                 y,
-                                GetRandomElement(doorTypes),
+                                configuration.DoorSetById(GetRandomElement(doorTypes)),
                                 Orientation.Vertical,
                                 GetRandomBool()
                             )
@@ -939,7 +939,9 @@ abstract class MapGeneratorBase(
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
-                    map.AddGameObject(new Statue(x, y));
+                    map.AddGameObject(
+                        new Statue(x, y, configuration.StaticDecorativeObjectTypes["statue"])
+                    );
                 }
             }
 
@@ -963,7 +965,9 @@ abstract class MapGeneratorBase(
             {
                 if (NumberOfSurroundingBlockingSpots(x, y) < 4)
                 {
-                    map.AddGameObject(new Fountain(x, y));
+                    map.AddGameObject(
+                        new Fountain(x, y, configuration.StaticDecorativeObjectTypes["fountain"])
+                    );
                 }
             }
 
@@ -1057,7 +1061,12 @@ abstract class MapGeneratorBase(
                 }
 
                 map.AddGameObject(
-                    new Chest(x, y, chestId, new InventoryComponent() { Gold = gold })
+                    new Chest(
+                        x,
+                        y,
+                        configuration.StaticDecorativeObjectTypes[chestId],
+                        new InventoryComponent() { Gold = gold }
+                    )
                 );
             }
 
