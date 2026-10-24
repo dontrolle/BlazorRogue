@@ -10,7 +10,13 @@ public class DoorTests
     {
         var game = new Game();
         var monster = game.Map.Monsters.First();
-        var door = new Door(monster.X, monster.Y, "wood", Orientation.Horizontal, isOpen: true);
+        var door = new Door(
+            monster.X,
+            monster.Y,
+            References.Game.Configuration.DoorSetById("wood"),
+            Orientation.Horizontal,
+            isOpen: true
+        );
         game.Map.AddGameObject(door);
 
         Door.Use(door);
@@ -23,7 +29,13 @@ public class DoorTests
     {
         var game = new Game();
         var player = game.Map.Player;
-        var door = new Door(player.X, player.Y, "wood", Orientation.Horizontal, isOpen: true);
+        var door = new Door(
+            player.X,
+            player.Y,
+            References.Game.Configuration.DoorSetById("wood"),
+            Orientation.Horizontal,
+            isOpen: true
+        );
         game.Map.AddGameObject(door);
 
         Door.Use(door);
@@ -36,7 +48,13 @@ public class DoorTests
     {
         var game = new Game();
         (int x, int y) = FindTileWithNoMoveable(game.Map);
-        var door = new Door(x, y, "wood", Orientation.Horizontal, isOpen: true);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("wood"),
+            Orientation.Horizontal,
+            isOpen: true
+        );
         game.Map.AddGameObject(door);
 
         Door.Use(door);
@@ -49,7 +67,13 @@ public class DoorTests
     {
         var game = new Game();
         (int x, int y) = FindTileWithNoMoveable(game.Map);
-        var door = new Door(x, y, "gate", Orientation.Horizontal, isOpen: false);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("gate"),
+            Orientation.Horizontal,
+            isOpen: false
+        );
 
         Assert.True(door.Blocking);
         Assert.False(door.BlocksLight);
@@ -60,7 +84,13 @@ public class DoorTests
     {
         var game = new Game();
         (int x, int y) = FindTileWithNoMoveable(game.Map);
-        var door = new Door(x, y, "wood", Orientation.Horizontal, isOpen: false);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("wood"),
+            Orientation.Horizontal,
+            isOpen: false
+        );
 
         Assert.True(door.Blocking);
         Assert.True(door.BlocksLight);
@@ -71,7 +101,13 @@ public class DoorTests
     {
         var game = new Game();
         (int x, int y) = FindTileWithNoMoveable(game.Map);
-        var door = new Door(x, y, "gate", Orientation.Horizontal, isOpen: true);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("gate"),
+            Orientation.Horizontal,
+            isOpen: true
+        );
 
         Assert.False(door.Blocking);
         Assert.False(door.BlocksLight);
@@ -82,7 +118,13 @@ public class DoorTests
     {
         var game = new Game();
         (int x, int y) = FindTileWithNoMoveable(game.Map);
-        var door = new Door(x, y, "gate", Orientation.Horizontal, isOpen: false);
+        var door = new Door(
+            x,
+            y,
+            References.Game.Configuration.DoorSetById("gate"),
+            Orientation.Horizontal,
+            isOpen: false
+        );
 
         Assert.Equal(
             "A wrought-iron gate - you can see through it, even closed (closed)",
