@@ -14,7 +14,7 @@ namespace BlazorRogue.GameObjects;
 /// </remarks>
 class Door : GameObject
 {
-    public string DoorType { get; private set; }
+    public string DoorType => doorSet.Id;
     public Orientation Orientation { get; private set; }
     public bool IsOpen { get; private set; }
 
@@ -23,11 +23,10 @@ class Door : GameObject
 
     public override string InfoText => $"{doorSet.InfoText} ({(IsOpen ? "open" : "closed")})";
 
-    public Door(int x, int y, string doorType, Orientation orientation, bool isOpen)
+    public Door(int x, int y, DoorSet doorSet, Orientation orientation, bool isOpen)
         : base(x, y, "Door", null, null, new UseableComponent(Use))
     {
-        DoorType = doorType;
-        doorSet = References.Game.Configuration.DoorSetById(doorType);
+        this.doorSet = doorSet;
         Orientation = orientation;
         IsOpen = isOpen;
         UpdateBlockingState();
